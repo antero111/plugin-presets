@@ -1,2 +1,3 @@
-# Example
-An example greeter plugin
+# Plugin presets
+
+Plugin Presets plugin
