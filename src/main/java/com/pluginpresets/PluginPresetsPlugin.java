@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -188,8 +189,7 @@ public class PluginPresetsPlugin extends Plugin
 		);
 		pluginPresets.add(preset);
 
-		savePresets();
-		pluginPanel.rebuild();
+		setAsSelected(preset);
 	}
 
 	public void deletePreset(final PluginPreset preset)
@@ -291,6 +291,6 @@ public class PluginPresetsPlugin extends Plugin
 
 	public boolean stringContainsInvalidCharacters(String string)
 	{
-		return !(string.chars().allMatch(Character::isLetterOrDigit));
+		return !(Pattern.compile("^[ A-Za-z0-9]+$").matcher(string).matches());
 	}
 }
