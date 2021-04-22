@@ -38,7 +38,6 @@ import javax.inject.Inject;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigDescriptor;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
@@ -50,7 +49,6 @@ import net.runelite.client.util.LinkBrowser;
 import net.runelite.client.plugins.PluginManager;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
 
-@Slf4j
 @PluginDescriptor(
 	name = "Plugin Presets",
 	description = "Create presets of your plugin configurations.",
@@ -60,11 +58,13 @@ public class PluginPresetsPlugin extends Plugin
 {
 	private static final String PLUGIN_NAME = "Plugin Presets";
 	private static final String ICON_FILE = "panel_icon.png";
-	private static final String DEFAULT_PRESET_NAME = "Preset";
 	private static final Set<String> IGNORED_PLUGINS = Set.of("Twitch", "Login Screen", "Notes", "Discord");
 
 	@Getter
 	private static final File PRESETS_DIR = new File(RUNELITE_DIR, "presets");
+
+	@Getter
+	private static final String DEFAULT_PRESET_NAME = "Preset";
 
 	@Getter
 	private final List<PluginPreset> pluginPresets = new ArrayList<>();
@@ -195,7 +195,6 @@ public class PluginPresetsPlugin extends Plugin
 	public void deletePreset(final PluginPreset preset)
 	{
 		pluginPresets.remove(preset);
-		log.info("Deleted {}", preset.getName());
 		savePresets();
 		pluginPanel.rebuild();
 	}
@@ -204,7 +203,6 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		preset.setEnabledPlugins(getEnabledPlugins());
 		preset.setPluginSettings(getPluginSettings());
-		log.info("Overwritten {}", preset.getName());
 		savePresets();
 		pluginPanel.rebuild();
 	}
@@ -246,7 +244,6 @@ public class PluginPresetsPlugin extends Plugin
 				pluginManager.stopPlugin(plugin);
 			}
 		}
-		log.info("Loaded {}", preset.getName());
 	}
 
 	public void savePresets()
@@ -261,7 +258,7 @@ public class PluginPresetsPlugin extends Plugin
 		}
 	}
 
-	private void loadPresets()
+	public void loadPresets()
 	{
 		try
 		{
@@ -273,6 +270,14 @@ public class PluginPresetsPlugin extends Plugin
 		}
 	}
 
+	public void refreshPresets()
+	{
+		pluginPresets.clear();
+		loadPresets();
+		savePresets();
+		pluginPanel.rebuild();
+	}
+
 	public void setAsSelected(PluginPreset selectedPreset)
 	{
 		for (PluginPreset preset : pluginPresets)
@@ -282,5 +287,10 @@ public class PluginPresetsPlugin extends Plugin
 		selectedPreset.setSelected(true);
 		savePresets();
 		pluginPanel.rebuild();
+	}
+
+	public boolean stringContainsInvalidCharacters(String string)
+	{
+		return !(string.chars().allMatch(Character::isLetterOrDigit));
 	}
 }

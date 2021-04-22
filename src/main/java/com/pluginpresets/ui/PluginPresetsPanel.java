@@ -320,7 +320,16 @@ class PluginPresetsPanel extends JPanel
 
 	private void save()
 	{
-		preset.setName(nameInput.getText());
+		if (nameInput.getText().equals("") || plugin.stringContainsInvalidCharacters(nameInput.getText()))
+		{
+			String defaultPresetName = PluginPresetsPlugin.getDEFAULT_PRESET_NAME();
+			preset.setName(defaultPresetName);
+			nameInput.setText(defaultPresetName);
+		}
+		else
+		{
+			preset.setName(nameInput.getText());
+		}
 		plugin.savePresets();
 
 		nameInput.setEditable(false);

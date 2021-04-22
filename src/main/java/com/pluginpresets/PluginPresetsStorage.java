@@ -26,28 +26,54 @@ package com.pluginpresets;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class PluginPresetsStorage
 {
 	private static final File PRESETS_DIR = PluginPresetsPlugin.getPRESETS_DIR();
 
-	static void savePresets(List<PluginPreset> presets) throws IOException
+	private static void clearPresetFolder()
 	{
 		for (File file : PRESETS_DIR.listFiles())
 		{
 			file.delete();
 		}
+	}
+
+	static void savePresets(List<PluginPreset> presets) throws IOException
+	{
+		clearPresetFolder();
 
 		for (PluginPreset pluginPreset : presets)
 		{
-			File file = new File(PRESETS_DIR, pluginPreset.getName() + ".json");
+			File file = new File(PRESETS_DIR, String.format("%s.json", pluginPreset.getName()));
+			if (file.exists())
+			{
+				Gson gson = new Gson();
+				Reader reader = new FileReader(file);
+				PluginPreset pluginPresetFromFile = gson.fromJson(reader, new TypeToken<PluginPreset>()
+				{
+				}.getType());
+				reader.close();
+				if (pluginPresetFromFile.getId() != pluginPreset.getId())
+				{
+					int filenum = 1;
+					while (file.exists())
+					{
+						file = new File(PRESETS_DIR, String.format("%s (%d).json", pluginPreset.getName(), filenum));
+						filenum++;
+					}
+				}
+			}
 			Gson gson = new Gson();
 			Writer writer = new FileWriter(file);
 			gson.toJson(pluginPreset, writer);
@@ -58,15 +84,38 @@ public class PluginPresetsStorage
 
 	static List<PluginPreset> loadPresets() throws IOException
 	{
+		ArrayList<Long> loadedIds = new ArrayList<>();
 		List<PluginPreset> pluginPresetsFromFolder = new ArrayList<>();
+
 		for (File file : PRESETS_DIR.listFiles())
 		{
+			if (file.isDirectory())
+			{
+				log.warn(String.format("directory %s is not a valid plugin preset.", file));
+				continue;
+			}
+
 			Gson gson = new Gson();
-			PluginPreset presets = gson.fromJson(new FileReader(file), new TypeToken<PluginPreset>()
+			Reader reader = new FileReader(file);
+			PluginPreset pluginPreset = gson.fromJson(reader, new TypeToken<PluginPreset>()
 			{
 			}.getType());
-			pluginPresetsFromFolder.add(presets);
+			reader.close();
+
+			if (pluginPreset == null)
+			{
+				log.warn(String.format("file %s is not a valid plugin preset.", file));
+				continue;
+			}
+
+			long id = pluginPreset.getId();
+			if (!(loadedIds.contains(id)))
+			{
+				pluginPresetsFromFolder.add(pluginPreset);
+				loadedIds.add(id);
+			}
 		}
+
 		return pluginPresetsFromFolder;
 	}
 }

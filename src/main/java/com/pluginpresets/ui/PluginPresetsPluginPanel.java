@@ -49,7 +49,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 {
 	private static final ImageIcon ADD_ICON;
 	private static final ImageIcon ADD_HOVER_ICON;
+	private static final ImageIcon REFRESH_ICON;
+	private static final ImageIcon REFRESH_HOVER_ICON;
 
+	private final JLabel refreshPlugins = new JLabel(REFRESH_ICON);
 	private final JLabel addPreset = new JLabel(ADD_ICON);
 	private final JLabel title = new JLabel();
 	private final PluginErrorPanel noPresetsPanel = new PluginErrorPanel();
@@ -62,6 +65,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		final BufferedImage addIcon = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "add_icon.png");
 		ADD_ICON = new ImageIcon(addIcon);
 		ADD_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(addIcon, 0.53f));
+
+		final BufferedImage refreshIcon = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "refresh_icon.png");
+		REFRESH_ICON = new ImageIcon(refreshIcon);
+		REFRESH_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(refreshIcon, 0.53f));
 	}
 
 	public PluginPresetsPluginPanel(PluginPresetsPlugin pluginPresetsPlugin)
@@ -72,13 +79,20 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		setBorder(new EmptyBorder(10, 10, 10, 10));
 
 		JPanel northPanel = new JPanel(new BorderLayout());
-		northPanel.setBorder(new EmptyBorder(1, 0, 10, 0));
+		northPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
+		northPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
 		title.setText("Plugin Presets");
 		title.setForeground(Color.WHITE);
 
+		JPanel presetActions = new JPanel(new BorderLayout(10, 0));
+		presetActions.setBackground(ColorScheme.DARK_GRAY_COLOR);
+
+		presetActions.add(refreshPlugins, BorderLayout.CENTER);
+		presetActions.add(addPreset, BorderLayout.EAST);
+
 		northPanel.add(title, BorderLayout.WEST);
-		northPanel.add(addPreset, BorderLayout.EAST);
+		northPanel.add(presetActions, BorderLayout.EAST);
 
 		JPanel centerPanel = new JPanel(new BorderLayout());
 		centerPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -97,6 +111,28 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		presetView.add(noPresetsPanel, constraints);
 		constraints.gridy++;
 
+		refreshPlugins.setToolTipText("Refresh plugins");
+		refreshPlugins.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				plugin.refreshPresets();
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				refreshPlugins.setIcon(REFRESH_HOVER_ICON);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				refreshPlugins.setIcon(REFRESH_ICON);
+			}
+		});
+
 		addPreset.setToolTipText("Create new plugin preset");
 		addPreset.addMouseListener(new MouseAdapter()
 		{
@@ -104,8 +140,12 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			public void mousePressed(MouseEvent mouseEvent)
 			{
 				String customPresetName = JOptionPane.showInputDialog(PluginPresetsPluginPanel.this, "Give your new preset a name.", "New preset", JOptionPane.QUESTION_MESSAGE);
-				if (customPresetName != null)
+				if (!(customPresetName == null))
 				{
+					if (plugin.stringContainsInvalidCharacters(customPresetName))
+					{
+						customPresetName = "";
+					}
 					plugin.createPreset(customPresetName);
 				}
 			}
