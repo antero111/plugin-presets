@@ -54,12 +54,14 @@ class PluginPresetsPanel extends JPanel
 		BorderFactory.createMatteBorder(0, 0, 1, 0, ColorScheme.DARK_GRAY_COLOR),
 		BorderFactory.createLineBorder(ColorScheme.DARKER_GRAY_COLOR));
 
-	private static final ImageIcon LOAD_ICON;
-	private static final ImageIcon LOAD_HOVER_ICON;
+	private static final ImageIcon SWITCH_ON_ICON;
+	private static final ImageIcon SWITCH_ON_HOVER_ICON;
+
+	private static final ImageIcon SWITCH_OFF_ICON;
+	private static final ImageIcon SWITCH_OFF_HOVER_ICON;
 
 	private static final ImageIcon OVERWRITE_ICON;
 	private static final ImageIcon OVERWRITE_HOVER_ICON;
-
 	private static final ImageIcon DELETE_ICON;
 	private static final ImageIcon DELETE_HOVER_ICON;
 
@@ -78,9 +80,14 @@ class PluginPresetsPanel extends JPanel
 
 	static
 	{
-		final BufferedImage loadImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "load_icon.png");
-		LOAD_ICON = new ImageIcon(loadImg);
-		LOAD_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(loadImg, -100));
+		final BufferedImage switchOnImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_on_icon.png");
+		SWITCH_ON_ICON = new ImageIcon(switchOnImg);
+		SWITCH_ON_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(switchOnImg, -10));
+
+		final BufferedImage switchOffImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_off_icon.png");
+		final BufferedImage switchOffHoverImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_off_hover_icon.png");
+		SWITCH_OFF_ICON = new ImageIcon(switchOffImg);
+		SWITCH_OFF_HOVER_ICON = new ImageIcon(switchOffHoverImg);
 
 		final BufferedImage overwriteImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "overwrite_icon.png");
 		OVERWRITE_ICON = new ImageIcon(overwriteImg);
@@ -216,41 +223,60 @@ class PluginPresetsPanel extends JPanel
 		JPanel leftActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
 		leftActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		loadLabel.setIcon(LOAD_ICON);
-		loadLabel.setToolTipText("Load this preset");
-		loadLabel.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent mouseEvent)
-			{
-				plugin.loadPreset(preset);
-				plugin.setAsSelected(preset);
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent mouseEvent)
-			{
-				loadLabel.setIcon(LOAD_HOVER_ICON);
-			}
-
-			@Override
-			public void mouseExited(MouseEvent mouseEvent)
-			{
-				loadLabel.setIcon(LOAD_ICON);
-			}
-		});
-
-		leftActions.add(loadLabel);
-
 		if (preset.getSelected())
 		{
-			JLabel selectedLabel = new JLabel();
-			selectedLabel.setText("(Selected)");
-			selectedLabel.setFont(FontManager.getRunescapeSmallFont());
-			selectedLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR.darker().darker());
+			loadLabel.setToolTipText("Current preset");
+			loadLabel.setIcon(SWITCH_ON_ICON);
+			loadLabel.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent mouseEvent)
+				{
+					plugin.loadPreset(preset);
+					plugin.setAsSelected(preset);
+				}
 
-			leftActions.add(selectedLabel);
+				@Override
+				public void mouseEntered(MouseEvent mouseEvent)
+				{
+					loadLabel.setIcon(SWITCH_ON_HOVER_ICON);
+				}
+
+				@Override
+				public void mouseExited(MouseEvent mouseEvent)
+				{
+					loadLabel.setIcon(SWITCH_ON_ICON);
+				}
+			});
 		}
+		else
+		{
+			loadLabel.setToolTipText("Load this preset");
+			loadLabel.setIcon(SWITCH_OFF_ICON);
+			loadLabel.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent mouseEvent)
+				{
+					plugin.loadPreset(preset);
+					plugin.setAsSelected(preset);
+				}
+
+				@Override
+				public void mouseEntered(MouseEvent mouseEvent)
+				{
+					loadLabel.setIcon(SWITCH_OFF_HOVER_ICON);
+				}
+
+				@Override
+				public void mouseExited(MouseEvent mouseEvent)
+				{
+					loadLabel.setIcon(SWITCH_OFF_ICON);
+				}
+			});
+		}
+
+		leftActions.add(loadLabel);
 
 		JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
 		rightActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
@@ -262,7 +288,14 @@ class PluginPresetsPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				plugin.overwritePreset(preset);
+				int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
+					"Are you sure you want to overwrite this preset with your current plugin configurations?",
+					"Overwrite preset", JOptionPane.OK_CANCEL_OPTION);
+
+				if (confirm == 0)
+				{
+					plugin.overwritePreset(preset);
+				}
 			}
 
 			@Override
@@ -287,7 +320,7 @@ class PluginPresetsPanel extends JPanel
 			{
 				int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
 					"Are you sure you want to permanently delete this plugin preset?",
-					"Warning", JOptionPane.OK_CANCEL_OPTION);
+					"Delete preset", JOptionPane.OK_CANCEL_OPTION);
 
 				if (confirm == 0)
 				{
