@@ -66,11 +66,11 @@ public class PluginPresetsStorage
 				reader.close();
 				if (pluginPresetFromFile.getId() != pluginPreset.getId())
 				{
-					int filenum = 1;
+					int fileNumber = 1;
 					while (file.exists())
 					{
-						file = new File(PRESETS_DIR, String.format("%s (%d).json", pluginPreset.getName(), filenum));
-						filenum++;
+						file = new File(PRESETS_DIR, String.format("%s (%d).json", pluginPreset.getName(), fileNumber));
+						fileNumber++;
 					}
 				}
 			}

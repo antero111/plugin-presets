@@ -217,10 +217,10 @@ class PluginPresetsPanel extends JPanel
 		nameWrapper.add(nameActions, BorderLayout.EAST);
 
 		JPanel bottomContainer = new JPanel(new BorderLayout());
-		bottomContainer.setBorder(new EmptyBorder(8, 0, 8, 0));
+		bottomContainer.setBorder(new EmptyBorder(6, 0, 6, 0));
 		bottomContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		JPanel leftActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+		JPanel leftActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 3));
 		leftActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
 		if (preset.getSelected())

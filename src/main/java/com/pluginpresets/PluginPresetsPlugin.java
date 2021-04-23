@@ -33,8 +33,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -59,7 +60,7 @@ public class PluginPresetsPlugin extends Plugin
 {
 	private static final String PLUGIN_NAME = "Plugin Presets";
 	private static final String ICON_FILE = "panel_icon.png";
-	private static final Set<String> IGNORED_PLUGINS = Set.of("Twitch", "Login Screen", "Notes", "Discord");
+	private static final List<String> IGNORED_PLUGINS = Stream.of("Twitch", "Login Screen", "Notes", "Discord").collect(Collectors.toList());
 
 	@Getter
 	private static final File PRESETS_DIR = new File(RUNELITE_DIR, "presets");

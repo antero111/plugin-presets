@@ -76,7 +76,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		this.plugin = pluginPresetsPlugin;
 
 		setLayout(new BorderLayout());
-		setBorder(new EmptyBorder(10, 10, 10, 10));
+		setBorder(new EmptyBorder(11, 10, 10, 10));
 
 		JPanel northPanel = new JPanel(new BorderLayout());
 		northPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
