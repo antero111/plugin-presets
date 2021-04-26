@@ -39,7 +39,7 @@ import java.util.List;
 @Slf4j
 public class PluginPresetsStorage
 {
-	private static final File PRESETS_DIR = PluginPresetsPlugin.getPRESETS_DIR();
+	private static final File PRESETS_DIR = PluginPresetsPlugin.PRESETS_DIR;
 
 	private static void clearPresetFolder()
 	{

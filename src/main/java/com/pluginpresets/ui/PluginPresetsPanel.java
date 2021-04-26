@@ -355,7 +355,7 @@ class PluginPresetsPanel extends JPanel
 	{
 		if (nameInput.getText().equals("") || plugin.stringContainsInvalidCharacters(nameInput.getText()))
 		{
-			String defaultPresetName = PluginPresetsPlugin.getDEFAULT_PRESET_NAME();
+			String defaultPresetName = plugin.DEFAULT_PRESET_NAME;
 			preset.setName(defaultPresetName);
 			nameInput.setText(defaultPresetName);
 		}

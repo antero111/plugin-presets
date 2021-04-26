@@ -58,15 +58,12 @@ import static net.runelite.client.RuneLite.RUNELITE_DIR;
 )
 public class PluginPresetsPlugin extends Plugin
 {
+	public final String HELP_LINK = "https://github.com/antero111/plugin-presets#using-plugin-presets";
+	public final String DEFAULT_PRESET_NAME = "Preset";
+	public static final File PRESETS_DIR = new File(RUNELITE_DIR, "presets");
 	private static final String PLUGIN_NAME = "Plugin Presets";
 	private static final String ICON_FILE = "panel_icon.png";
 	private static final List<String> IGNORED_PLUGINS = Stream.of("Twitch", "Login Screen", "Notes", "Discord").collect(Collectors.toList());
-
-	@Getter
-	private static final String DEFAULT_PRESET_NAME = "Preset";
-
-	@Getter
-	private static final File PRESETS_DIR = new File(RUNELITE_DIR, "presets");
 	
 	@Getter
 	private final List<PluginPreset> pluginPresets = new ArrayList<>();

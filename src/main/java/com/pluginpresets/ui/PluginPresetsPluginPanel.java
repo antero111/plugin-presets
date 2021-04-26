@@ -44,14 +44,18 @@ import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.PluginErrorPanel;
 import net.runelite.client.util.ImageUtil;
+import net.runelite.client.util.LinkBrowser;
 
 public class PluginPresetsPluginPanel extends PluginPanel
 {
-	private static final ImageIcon ADD_ICON;
-	private static final ImageIcon ADD_HOVER_ICON;
+	private static final ImageIcon HELP_ICON;
+	private static final ImageIcon HELP_HOVER_ICON;
 	private static final ImageIcon REFRESH_ICON;
 	private static final ImageIcon REFRESH_HOVER_ICON;
+	private static final ImageIcon ADD_ICON;
+	private static final ImageIcon ADD_HOVER_ICON;
 
+	private final JLabel helpButton = new JLabel(HELP_ICON);
 	private final JLabel refreshPlugins = new JLabel(REFRESH_ICON);
 	private final JLabel addPreset = new JLabel(ADD_ICON);
 	private final JLabel title = new JLabel();
@@ -62,13 +66,17 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 	static
 	{
-		final BufferedImage addIcon = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "add_icon.png");
-		ADD_ICON = new ImageIcon(addIcon);
-		ADD_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(addIcon, 0.53f));
+		final BufferedImage helpIcon = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "help_icon.png");
+		HELP_ICON = new ImageIcon(helpIcon);
+		HELP_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(helpIcon, 0.53f));
 
 		final BufferedImage refreshIcon = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "refresh_icon.png");
 		REFRESH_ICON = new ImageIcon(refreshIcon);
 		REFRESH_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(refreshIcon, 0.53f));
+
+		final BufferedImage addIcon = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "add_icon.png");
+		ADD_ICON = new ImageIcon(addIcon);
+		ADD_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(addIcon, 0.53f));
 	}
 
 	public PluginPresetsPluginPanel(PluginPresetsPlugin pluginPresetsPlugin)
@@ -88,6 +96,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		JPanel presetActions = new JPanel(new BorderLayout(10, 0));
 		presetActions.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
+		presetActions.add(helpButton, BorderLayout.WEST);
 		presetActions.add(refreshPlugins, BorderLayout.CENTER);
 		presetActions.add(addPreset, BorderLayout.EAST);
 
@@ -110,6 +119,28 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		presetView.add(noPresetsPanel, constraints);
 		constraints.gridy++;
+
+		helpButton.setToolTipText("Need help?");
+		helpButton.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				LinkBrowser.browse(plugin.HELP_LINK);
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				helpButton.setIcon(HELP_HOVER_ICON);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				helpButton.setIcon(HELP_ICON);
+			}
+		});
 
 		refreshPlugins.setToolTipText("Refresh plugins");
 		refreshPlugins.addMouseListener(new MouseAdapter()
