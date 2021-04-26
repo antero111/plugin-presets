@@ -24,16 +24,16 @@ Note that Plugin Presets does not check if you have already saved your Runelite 
 
 <details>
   <summary>How to revert back to default Runelite settings?</summary>
-    If you need to revert back to default Runelite settings, delete the `settings.properties` file from `~/.runelite/` and reload your client. This does not affect any of your presets but your current plugin configurations will be set to default values. (This works for all plugins, not a Plugin Presets feature.)
+    If you need to revert back to default Runelite settings, delete the <code>settings.properties</code> file from <code>~/.runelite/</code> and reload your client. This does not affect any of your presets but your current plugin configurations will be set to default values. (This works for all plugins, not a Plugin Presets feature.)
 </details>
 
 ### Sharing your Plugin Presets
 
-Your presets are stored in `~/.runelite/presets/`. You can share these .json files with others, they don't contain information about your account, runelite notes, Discord or Twitch. **When sending presets to others, make sure to allways double check for sensetive information!**
+Your presets are stored in `~/.runelite/presets/`. You can share these .json files with others, they don't contain information about your account, runelite notes, Discord or Twitch. **When sending presets to others, make sure to always double check for sensetive information!**
 
 To "install" new presets, simply copy the .json file to the preset folder and then press the "refresh plugins" button. You can easily access your preset folder by right clicking the Plugin Preset icon in the Runelite sidebar.
 
-Note that these presets contains _all_ of your plugin configurations, so when installing presets from others, they might have changed eg. keybinds that you might have set up differently. Allways make sure to keep backups of your configurations when trying to install presets from others.
+Note that these presets contains _all_ of your plugin configurations, so when installing presets from others, they might have changed eg. keybinds that you might have set up differently. Make sure to always keep backups of your configurations when trying to install presets from others.
 
 ## Issues
 

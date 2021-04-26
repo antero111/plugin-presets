@@ -63,11 +63,11 @@ public class PluginPresetsPlugin extends Plugin
 	private static final List<String> IGNORED_PLUGINS = Stream.of("Twitch", "Login Screen", "Notes", "Discord").collect(Collectors.toList());
 
 	@Getter
-	private static final File PRESETS_DIR = new File(RUNELITE_DIR, "presets");
-
-	@Getter
 	private static final String DEFAULT_PRESET_NAME = "Preset";
 
+	@Getter
+	private static final File PRESETS_DIR = new File(RUNELITE_DIR, "presets");
+	
 	@Getter
 	private final List<PluginPreset> pluginPresets = new ArrayList<>();
 
@@ -205,6 +205,7 @@ public class PluginPresetsPlugin extends Plugin
 		preset.setEnabledPlugins(getEnabledPlugins());
 		preset.setPluginSettings(getPluginSettings());
 		savePresets();
+		setAsSelected(preset);
 		pluginPanel.rebuild();
 	}
 
