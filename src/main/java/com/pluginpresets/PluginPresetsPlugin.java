@@ -63,8 +63,8 @@ public class PluginPresetsPlugin extends Plugin
 	public static final File PRESETS_DIR = new File(RUNELITE_DIR, "presets");
 	private static final String PLUGIN_NAME = "Plugin Presets";
 	private static final String ICON_FILE = "panel_icon.png";
-	private static final List<String> IGNORED_PLUGINS = Stream.of("Twitch", "Login Screen", "Notes", "Discord").collect(Collectors.toList());
-	
+	private static final List<String> IGNORED_PLUGINS = Stream.of("Plugin Presets", "Configuration", "Xtea", "Twitch", "Notes", "Discord").collect(Collectors.toList());
+
 	@Getter
 	private final List<PluginPreset> pluginPresets = new ArrayList<>();
 
@@ -187,7 +187,7 @@ public class PluginPresetsPlugin extends Plugin
 		);
 		pluginPresets.add(preset);
 
-		setAsSelected(preset);
+		setAsSelected(preset, true);
 	}
 
 	public void deletePreset(final PluginPreset preset)
@@ -202,7 +202,7 @@ public class PluginPresetsPlugin extends Plugin
 		preset.setEnabledPlugins(getEnabledPlugins());
 		preset.setPluginSettings(getPluginSettings());
 		savePresets();
-		setAsSelected(preset);
+		setAsSelected(preset, true);
 		pluginPanel.rebuild();
 	}
 
@@ -232,16 +232,39 @@ public class PluginPresetsPlugin extends Plugin
 				continue;
 			}
 
-			pluginManager.setPluginEnabled(plugin, enabledPlugins.get(plugin.getName()));
+			// External Plugin Hub plugins that are not yet saved to the preset one is trying to load raises a null exception. 
+			// External plugins will stay as "ignored" (they wont go on/off when presets are loaded) until saved to a plugin preset. 
+			try
+			{
+				pluginManager.setPluginEnabled(plugin, enabledPlugins.get(plugin.getName()));
 
-			if (enabledPlugins.get(plugin.getName()))
-			{
-				pluginManager.startPlugin(plugin);
+				if (enabledPlugins.get(plugin.getName()))
+				{
+					pluginManager.startPlugin(plugin);
+				}
+				else
+				{
+					pluginManager.stopPlugin(plugin);
+				}
 			}
-			else
+			catch (NullPointerException ignore)
 			{
-				pluginManager.stopPlugin(plugin);
 			}
+		}
+	}
+
+	@SneakyThrows
+	public void unloadPresetSettings()
+	{
+		for (Plugin plugin : pluginManager.getPlugins())
+		{
+			if (IGNORED_PLUGINS.contains(plugin.getName()))
+			{
+				continue;
+			}
+
+			pluginManager.setPluginEnabled(plugin, false);
+			pluginManager.stopPlugin(plugin);
 		}
 	}
 
@@ -277,13 +300,10 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPanel.rebuild();
 	}
 
-	public void setAsSelected(PluginPreset selectedPreset)
+	public void setAsSelected(PluginPreset selectedPreset, Boolean select)
 	{
-		for (PluginPreset preset : pluginPresets)
-		{
-			preset.setSelected(false);
-		}
-		selectedPreset.setSelected(true);
+		pluginPresets.forEach(preset -> preset.setSelected(false));
+		selectedPreset.setSelected(select);
 		savePresets();
 		pluginPanel.rebuild();
 	}

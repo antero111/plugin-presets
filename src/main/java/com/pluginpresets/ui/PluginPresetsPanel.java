@@ -225,15 +225,15 @@ class PluginPresetsPanel extends JPanel
 
 		if (preset.getSelected())
 		{
-			loadLabel.setToolTipText("Current preset");
+			loadLabel.setToolTipText("Unload this preset");
 			loadLabel.setIcon(SWITCH_ON_ICON);
 			loadLabel.addMouseListener(new MouseAdapter()
 			{
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
-					plugin.loadPreset(preset);
-					plugin.setAsSelected(preset);
+					plugin.unloadPresetSettings();
+					plugin.setAsSelected(preset, false);
 				}
 
 				@Override
@@ -259,7 +259,7 @@ class PluginPresetsPanel extends JPanel
 				public void mousePressed(MouseEvent mouseEvent)
 				{
 					plugin.loadPreset(preset);
-					plugin.setAsSelected(preset);
+					plugin.setAsSelected(preset, true);
 				}
 
 				@Override
