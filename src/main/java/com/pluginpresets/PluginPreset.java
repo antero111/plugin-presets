@@ -25,7 +25,7 @@
 package com.pluginpresets;
 
 import java.util.HashMap;
-
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -39,5 +39,6 @@ public class PluginPreset
 	private String name;
 	private Boolean selected;
 	private HashMap<String, Boolean> enabledPlugins;
+	private List<String> externalPlugins;
 	private HashMap<String, HashMap<String, String>> pluginSettings;
 }

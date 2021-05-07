@@ -37,11 +37,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
+import javax.swing.SwingUtilities;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import net.runelite.client.config.ConfigDescriptor;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
@@ -49,6 +51,8 @@ import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.LinkBrowser;
 import net.runelite.client.plugins.PluginManager;
+import net.runelite.client.externalplugins.ExternalPluginManager;
+import net.runelite.client.events.ExternalPluginsChanged;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
 
 @PluginDescriptor(
@@ -73,6 +77,9 @@ public class PluginPresetsPlugin extends Plugin
 
 	@Inject
 	private PluginManager pluginManager;
+
+	@Inject
+	private ExternalPluginManager externalPluginManager;
 
 	@Inject
 	private ConfigManager configManager;
@@ -121,6 +128,12 @@ public class PluginPresetsPlugin extends Plugin
 		navigationButton = null;
 	}
 
+	@Subscribe
+	public void onExternalPluginsChanged(ExternalPluginsChanged externalPluginsChanged)
+	{
+		SwingUtilities.invokeLater(() -> pluginPanel.rebuild());
+	}
+
 	private HashMap<String, Boolean> getEnabledPlugins()
 	{
 		HashMap<String, Boolean> enabledPlugins = new HashMap<>();
@@ -133,6 +146,11 @@ public class PluginPresetsPlugin extends Plugin
 		});
 
 		return enabledPlugins;
+	}
+
+	private List<String> getInstalledExternalPlugins()
+	{
+		return externalPluginManager.getInstalledExternalPlugins();
 	}
 
 	private HashMap<String, HashMap<String, String>> getPluginSettings()
@@ -183,6 +201,7 @@ public class PluginPresetsPlugin extends Plugin
 			presetName,
 			false,
 			getEnabledPlugins(),
+			getInstalledExternalPlugins(),
 			getPluginSettings()
 		);
 		pluginPresets.add(preset);
@@ -197,9 +216,10 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPanel.rebuild();
 	}
 
-	public void overwritePreset(final PluginPreset preset)
+	public void updatePreset(final PluginPreset preset)
 	{
 		preset.setEnabledPlugins(getEnabledPlugins());
+		preset.setExternalPlugins(getInstalledExternalPlugins());
 		preset.setPluginSettings(getPluginSettings());
 		savePresets();
 		setAsSelected(preset, true);
@@ -305,6 +325,51 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPresets.forEach(preset -> preset.setSelected(false));
 		selectedPreset.setSelected(select);
 		savePresets();
+		pluginPanel.rebuild();
+	}
+
+	public boolean presetHasUnsavedExternalPlugins(PluginPreset preset)
+	{
+		List<String> externalPluginsInPreset = preset.getExternalPlugins();
+		for (String installedExternalPlugin : getInstalledExternalPlugins())
+		{
+			if (!(externalPluginsInPreset.contains(installedExternalPlugin)))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean missingExternalPlugins(PluginPreset preset)
+	{
+		List<String> installedExternalPlugins = getInstalledExternalPlugins();
+		for (String externalPluginInPreset : preset.getExternalPlugins())
+		{
+			if (!(installedExternalPlugins.contains(externalPluginInPreset)))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public List<String> getMissingExternalPlugins(PluginPreset preset)
+	{
+		List<String> missingPlugins = new ArrayList<>();
+		List<String> installedExternalPlugins = getInstalledExternalPlugins();
+		preset.getExternalPlugins().forEach(externalPluginInPreset -> {
+			if (!(installedExternalPlugins.contains(externalPluginInPreset)))
+			{
+				missingPlugins.add(externalPluginInPreset);
+			}
+		});
+		return missingPlugins;
+	}
+
+	public void installMissingExternalPlugins(List<String> plugins)
+	{
+		plugins.forEach(plugin -> externalPluginManager.install(plugin));
 		pluginPanel.rebuild();
 	}
 
