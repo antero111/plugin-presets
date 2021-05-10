@@ -30,11 +30,11 @@ Note that Plugin Presets does not check if you have already saved your RuneLite 
     If you need to revert back to default RuneLite settings, delete the <code>settings.properties</code> file from <code>~/.runelite/</code> and reload your client. This does not affect any of your presets but your current plugin configurations will be set to default values. (This works for all plugins, not a Plugin Presets feature.)
 </details>
 
-### Sharing your Plugin Presets
+## Sharing plugin presets
 
-Your presets are stored in `~/.runelite/presets/`. You can share these .json files with others, they don't contain information about your account, runelite notes, Discord or Twitch. **When sending presets to others, make sure to always double check for sensetive information!**
+Your presets are stored in `~/.runelite/presets/`. You can share these .json files with others, they don't contain information about your account, RuneLite notes, Discord or Twitch. **When sending presets to others, make sure to always double check for sensetive information!**
 
-To "install" new presets, simply copy the .json file to the preset folder and then press the "refresh plugins" button. You can easily access your preset folder by right clicking the Plugin Preset icon in the RuneLite sidebar.
+To "install" new presets, simply copy the .json file to the preset folder and then press the "refresh plugins" button. You can easily access your preset folder by right-clicking the Plugin Preset icon in the RuneLite sidebar.
 
 Note that these presets contains _all_ of your plugin configurations, so when installing presets from others, they might have changed eg. keybinds that you might have set up differently. Make sure to always keep backups of your configurations when trying to install presets from others.
 
@@ -43,6 +43,12 @@ Presets from others might have settings to plugins installed from the Plugin Hub
 ![Missing plugins demo](readme_visuals/missing_plugins_demo.png)
 
 If you don't want to install external plugins, enable the preset and update (overwrite) it with your new settings. This will discard the external plugin settings from the preset.
+
+Presets from others might have settings to plugins installed from the Plugin Hub. Plugin Presets will notify you when you have "uninstalled" plugins with a red warning sign. You can choose to install those plugins from the presets by clicking the red icon or installing them manually.  
+
+![Missing plugins demo](readme_visuals/missing_plugins_demo.png)
+
+If you don't want to install external plugins from the preset, enable the preset and update (overwrite) it with your new settings. This will discard the external plugin settings from the preset.
 
 ## Issues
 
