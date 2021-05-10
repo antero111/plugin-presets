@@ -20,7 +20,11 @@ Modifying presets happen by updating (overwriting) its configurations by pressin
 
 ![Plugin modify demo](readme_visuals/modify_preset_demo.gif)
 
+<<<<<<< HEAD
 When downloading external plugins from the Plugin Hub, new plugins won't be added to your existing presets. To fix this, simply update your presets with the new plugin loaded. Plugin Presets will notify you when you have plugins that are not saved to a certain preset with an orange pen icon.
+=======
+When downloading external plugins from the Plugin Hub, new plugins won't be added to your existing presets. To fix this, simply update your presets with the new plugin loaded. Plugin Presets will notify you when you have plugins that are not saved to a certain preset with a red pen icon.
+>>>>>>> c32c7a9e5a77dc33016a53ddd7aed0cfeb00ff5f
 
 ![Unsaved plugin demo](readme_visuals/unsaved_plugins_demo.png)
 
@@ -39,11 +43,19 @@ To "install" new presets, simply copy the .json file to the preset folder and th
 
 Note that these presets contains _all_ of your plugin configurations, so when installing presets from others, they might have changed eg. keybinds that you might have set up differently. Make sure to always keep backups of your configurations when trying to install presets from others.
 
+<<<<<<< HEAD
 Presets from others might have settings to plugins installed from the Plugin Hub. Plugin Presets will notify you when you have "uninstalled" plugins with a red warning sign.  
 
 ![Missing plugins demo](readme_visuals/missing_plugins_demo.png)
 
 If you don't want to install external plugins, enable the preset and update (overwrite) it with your new settings. This will discard the external plugin settings from the preset.
+=======
+Presets from others might have settings to plugins installed from the Plugin Hub. Plugin Presets will notify you when you have "uninstalled" plugins with a red warning sign. You can choose to install those plugins from the presets by clicking the red icon or installing them manually.  
+
+![Missing plugins demo](readme_visuals/missing_plugins_demo.png)
+
+If you don't want to install external plugins from the preset, enable the preset and update (overwrite) it with your new settings. This will discard the external plugin settings from the preset.
+>>>>>>> c32c7a9e5a77dc33016a53ddd7aed0cfeb00ff5f
 
 ## Issues
 
@@ -55,12 +67,21 @@ If you've experienced an issue with Plugin Presets, or have a recommendation on 
 
 Added
 
+<<<<<<< HEAD
 - "Unsaved" external plugin notification
 - Uninstalled external plugin notification  
+=======
+- "Unsaved" plugin notification
+- Uninstalled plugin notification  
+>>>>>>> c32c7a9e5a77dc33016a53ddd7aed0cfeb00ff5f
 - Plugin icon
 
 Changed
 
+<<<<<<< HEAD
+=======
+- Presets now keep track of their external plugins
+>>>>>>> c32c7a9e5a77dc33016a53ddd7aed0cfeb00ff5f
 - "Overwrite" to "update"
 
 ### 1.1

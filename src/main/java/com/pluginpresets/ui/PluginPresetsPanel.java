@@ -349,13 +349,11 @@ class PluginPresetsPanel extends JPanel
 						plugin.updatePreset(preset);
 					}
 				}
-
 				@Override
 				public void mouseEntered(MouseEvent mouseEvent)
 				{
 					updateLabel.setIcon(UPDATE_HOVER_ICON);
 				}
-
 				@Override
 				public void mouseExited(MouseEvent mouseEvent)
 				{
@@ -363,7 +361,6 @@ class PluginPresetsPanel extends JPanel
 				}
 			});
 		}
-
 		deleteLabel.setIcon(DELETE_ICON);
 		deleteLabel.setToolTipText("Delete preset");
 		deleteLabel.addMouseListener(new MouseAdapter()
