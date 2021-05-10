@@ -64,6 +64,7 @@ public class PluginPresetsStorage
 				{
 				}.getType());
 				reader.close();
+
 				if (pluginPresetFromFile.getId() != pluginPreset.getId())
 				{
 					int fileNumber = 1;

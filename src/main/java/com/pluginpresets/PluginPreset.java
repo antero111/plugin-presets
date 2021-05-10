@@ -25,7 +25,6 @@
 package com.pluginpresets;
 
 import java.util.HashMap;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

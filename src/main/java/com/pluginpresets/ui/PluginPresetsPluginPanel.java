@@ -164,19 +164,22 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			}
 		});
 
-		addPreset.setToolTipText("Create new plugin preset");
+		addPreset.setToolTipText("Create a new plugin preset");
 		addPreset.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				String customPresetName = JOptionPane.showInputDialog(PluginPresetsPluginPanel.this, "Give your new preset a name.", "New preset", JOptionPane.QUESTION_MESSAGE);
+				String customPresetName = JOptionPane.showInputDialog(PluginPresetsPluginPanel.this,
+					"Give your new preset a name.", "New preset", JOptionPane.QUESTION_MESSAGE);
+					
 				if (!(customPresetName == null))
 				{
 					if (plugin.stringContainsInvalidCharacters(customPresetName))
 					{
 						customPresetName = "";
 					}
+
 					plugin.createPreset(customPresetName);
 				}
 			}
