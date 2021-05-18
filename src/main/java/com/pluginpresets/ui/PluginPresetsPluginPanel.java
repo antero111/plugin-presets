@@ -33,8 +33,10 @@ import java.awt.BorderLayout;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.border.EmptyBorder;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
@@ -170,17 +172,34 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				String customPresetName = JOptionPane.showInputDialog(PluginPresetsPluginPanel.this,
-					"Give your new preset a name.", "New preset", JOptionPane.QUESTION_MESSAGE);
-					
-				if (!(customPresetName == null))
-				{
-					if (plugin.stringContainsInvalidCharacters(customPresetName))
-					{
-						customPresetName = "";
-					}
 
-					plugin.createPreset(customPresetName);
+				if (mouseEvent.getButton() == MouseEvent.BUTTON3)
+				{
+					JMenuItem importMenuOption = new JMenuItem();
+					importMenuOption.setText("Import preset from clipboard");
+					importMenuOption.addActionListener(e ->
+						plugin.importPresetFromClipboard());
+
+					JPopupMenu importPopupMenu = new JPopupMenu();
+					importPopupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
+					importPopupMenu.add(importMenuOption);
+
+					addPreset.setComponentPopupMenu(importPopupMenu);
+				}
+				else
+				{
+					String customPresetName = JOptionPane.showInputDialog(PluginPresetsPluginPanel.this,
+						"Give your new preset a name.", "New preset", JOptionPane.QUESTION_MESSAGE);
+
+					if (!(customPresetName == null))
+					{
+						if (plugin.stringContainsInvalidCharacters(customPresetName))
+						{
+							customPresetName = "";
+						}
+
+						plugin.createPreset(customPresetName);
+					}
 				}
 			}
 

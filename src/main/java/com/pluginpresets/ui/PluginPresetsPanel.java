@@ -29,8 +29,10 @@ import com.pluginpresets.PluginPreset;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -121,6 +123,17 @@ class PluginPresetsPanel extends JPanel
 
 		setLayout(new BorderLayout());
 		setBackground(ColorScheme.DARKER_GRAY_COLOR);
+
+		JMenuItem exportMenuOption = new JMenuItem();
+		exportMenuOption.setText("Export preset to clipboard");
+		exportMenuOption.addActionListener(e ->
+			plugin.exportPresetToClipboard(preset));
+
+		JPopupMenu exportPopupMenu = new JPopupMenu();
+		exportPopupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
+		exportPopupMenu.add(exportMenuOption);
+
+		setComponentPopupMenu(exportPopupMenu);
 
 		JPanel nameWrapper = new JPanel(new BorderLayout());
 		nameWrapper.setBackground(ColorScheme.DARKER_GRAY_COLOR);
@@ -349,11 +362,13 @@ class PluginPresetsPanel extends JPanel
 						plugin.updatePreset(preset);
 					}
 				}
+
 				@Override
 				public void mouseEntered(MouseEvent mouseEvent)
 				{
 					updateLabel.setIcon(UPDATE_HOVER_ICON);
 				}
+
 				@Override
 				public void mouseExited(MouseEvent mouseEvent)
 				{
