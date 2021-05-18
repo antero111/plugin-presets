@@ -24,19 +24,10 @@
  */
 package com.pluginpresets;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.pluginpresets.ui.PluginPresetsPluginPanel;
-import com.google.gson.reflect.TypeToken;
-import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -309,37 +300,11 @@ public class PluginPresetsPlugin extends Plugin
 
 	public void importPresetFromClipboard()
 	{
-		final String clipboardText;
-		try
-		{
-			clipboardText = Toolkit.getDefaultToolkit()
-				.getSystemClipboard()
-				.getData(DataFlavor.stringFlavor)
-				.toString();
-		}
-		catch (IOException | UnsupportedFlavorException ex)
+		PluginPreset newPreset = PluginPresetsSharingManager.importPresetFromClipboard();
+		if (newPreset == null)
 		{
 			return;
 		}
-
-		if (Strings.isNullOrEmpty(clipboardText))
-		{
-			return;
-		}
-
-		PluginPreset newPreset;
-		try
-		{
-			final Gson gson = new Gson();
-			newPreset = gson.fromJson(clipboardText, new TypeToken<PluginPreset>()
-			{
-			}.getType());
-		}
-		catch (JsonSyntaxException e)
-		{
-			return;
-		}
-
 		newPreset.setId(Instant.now().toEpochMilli());
 		newPreset.setSelected(false);
 
@@ -351,10 +316,7 @@ public class PluginPresetsPlugin extends Plugin
 
 	public void exportPresetToClipboard(final PluginPreset preset)
 	{
-		final Gson gson = new Gson();
-		final String json = gson.toJson(preset);
-		final StringSelection contents = new StringSelection(json);
-		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(contents, null);
+		PluginPresetsSharingManager.exportPresetToClipboard(preset);
 	}
 
 	public void setAsSelected(PluginPreset selectedPreset, Boolean select)
