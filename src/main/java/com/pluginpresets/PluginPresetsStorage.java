@@ -26,6 +26,7 @@ package com.pluginpresets;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.FileReader;
@@ -43,7 +44,7 @@ public class PluginPresetsStorage
 
 	private static void clearPresetFolder()
 	{
-		for (File file : PRESETS_DIR.listFiles())
+		for (File file : Objects.requireNonNull(PRESETS_DIR.listFiles()))
 		{
 			file.delete();
 		}
@@ -56,6 +57,7 @@ public class PluginPresetsStorage
 		for (PluginPreset pluginPreset : presets)
 		{
 			File file = new File(PRESETS_DIR, String.format("%s.json", pluginPreset.getName()));
+
 			if (file.exists())
 			{
 				Gson gson = new Gson();
@@ -75,6 +77,7 @@ public class PluginPresetsStorage
 					}
 				}
 			}
+
 			Gson gson = new Gson();
 			Writer writer = new FileWriter(file);
 			gson.toJson(pluginPreset, writer);
@@ -88,7 +91,7 @@ public class PluginPresetsStorage
 		ArrayList<Long> loadedIds = new ArrayList<>();
 		List<PluginPreset> pluginPresetsFromFolder = new ArrayList<>();
 
-		for (File file : PRESETS_DIR.listFiles())
+		for (File file : Objects.requireNonNull(PRESETS_DIR.listFiles()))
 		{
 			if (file.isDirectory())
 			{

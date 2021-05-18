@@ -151,6 +151,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			public void mousePressed(MouseEvent mouseEvent)
 			{
 				plugin.refreshPresets();
+				rebuild();
 			}
 
 			@Override

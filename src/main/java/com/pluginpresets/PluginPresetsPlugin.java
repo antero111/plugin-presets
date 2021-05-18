@@ -205,6 +205,9 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPresets.add(preset);
 
 		setAsSelected(preset, true);
+
+		refreshPresets();
+		pluginPanel.rebuild();
 	}
 
 	public void deletePreset(final PluginPreset preset)
@@ -285,28 +288,16 @@ public class PluginPresetsPlugin extends Plugin
 		}
 	}
 
+	@SneakyThrows
 	public void savePresets()
 	{
-		try
-		{
-			PluginPresetsStorage.savePresets(pluginPresets);
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
+		PluginPresetsStorage.savePresets(pluginPresets);
 	}
 
+	@SneakyThrows
 	public void loadPresets()
 	{
-		try
-		{
-			pluginPresets.addAll(PluginPresetsStorage.loadPresets());
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
+		pluginPresets.addAll(PluginPresetsStorage.loadPresets());
 	}
 
 	public void refreshPresets()
@@ -314,7 +305,6 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPresets.clear();
 		loadPresets();
 		savePresets();
-		pluginPanel.rebuild();
 	}
 
 	public void importPresetFromClipboard()
@@ -356,6 +346,7 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPresets.add(newPreset);
 		savePresets();
 		refreshPresets();
+		pluginPanel.rebuild();
 	}
 
 	public void exportPresetToClipboard(final PluginPreset preset)
