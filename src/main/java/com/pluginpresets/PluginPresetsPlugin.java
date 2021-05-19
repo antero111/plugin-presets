@@ -86,6 +86,8 @@ public class PluginPresetsPlugin extends Plugin
 
 	private PluginPresetsPluginPanel pluginPanel;
 
+	private PluginPresetsSharingManager sharingManager;
+
 	@Override
 	protected void startUp() throws Exception
 	{
@@ -95,6 +97,8 @@ public class PluginPresetsPlugin extends Plugin
 
 		pluginPanel = new PluginPresetsPluginPanel(this);
 		pluginPanel.rebuild();
+
+		sharingManager = new PluginPresetsSharingManager(pluginPanel);
 
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), ICON_FILE);
 
@@ -119,6 +123,7 @@ public class PluginPresetsPlugin extends Plugin
 		clientToolbar.removeNavigation(navigationButton);
 
 		pluginPanel = null;
+		sharingManager = null;
 		preset = null;
 		navigationButton = null;
 	}
@@ -300,7 +305,7 @@ public class PluginPresetsPlugin extends Plugin
 
 	public void importPresetFromClipboard()
 	{
-		PluginPreset newPreset = PluginPresetsSharingManager.importPresetFromClipboard();
+		PluginPreset newPreset = sharingManager.importPresetFromClipboard();
 		if (newPreset == null)
 		{
 			return;
@@ -316,7 +321,7 @@ public class PluginPresetsPlugin extends Plugin
 
 	public void exportPresetToClipboard(final PluginPreset preset)
 	{
-		PluginPresetsSharingManager.exportPresetToClipboard(preset);
+		sharingManager.exportPresetToClipboard(preset);
 	}
 
 	public void setAsSelected(PluginPreset selectedPreset, Boolean select)

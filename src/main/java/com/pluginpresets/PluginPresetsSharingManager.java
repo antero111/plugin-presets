@@ -28,17 +28,23 @@ import com.google.common.base.Strings;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.pluginpresets.ui.PluginPresetsPluginPanel;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class PluginPresetsSharingManager
 {
-	private static String getClipboardText()
+	private final PluginPresetsPluginPanel pluginPanel;
+
+	public PluginPresetsSharingManager(PluginPresetsPluginPanel pluginPanel)
+	{
+		this.pluginPanel = pluginPanel;
+	}
+
+	private String getClipboardText()
 	{
 		final String clipboardText;
 		try
@@ -48,22 +54,22 @@ public class PluginPresetsSharingManager
 				.getData(DataFlavor.stringFlavor)
 				.toString();
 		}
-		catch (IOException | UnsupportedFlavorException ex)
+		catch (IOException | UnsupportedFlavorException ignore)
 		{
-			log.warn("error reading clipboard", ex);
+			pluginPanel.renderNotification("Unable to read system clipboard.");
 			return null;
 		}
 
-		log.debug("Clipboard contents: {}", clipboardText);
 		if (Strings.isNullOrEmpty(clipboardText))
 		{
+			pluginPanel.renderNotification("Your clipboard is empty.");
 			return null;
 		}
 
 		return clipboardText;
 	}
 
-	static PluginPreset importPresetFromClipboard()
+	public PluginPreset importPresetFromClipboard()
 	{
 		PluginPreset newPreset;
 
@@ -82,20 +88,18 @@ public class PluginPresetsSharingManager
 		}
 		catch (JsonSyntaxException e)
 		{
-			log.debug("Malformed JSON for clipboard import", e);
+			pluginPanel.renderNotification("You do not have any valid presets in your clipboard.");
 			return null;
 		}
 
-		log.debug("Successfully imported preset {} from clipboard.", newPreset.getName());
 		return newPreset;
 	}
 
-	static void exportPresetToClipboard(final PluginPreset preset)
+	public void exportPresetToClipboard(final PluginPreset preset)
 	{
 		final Gson gson = new Gson();
 		final String json = gson.toJson(preset);
 		final StringSelection contents = new StringSelection(json);
 		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(contents, null);
-		log.debug("Successfully exported preset {} to clipboard.", preset.getName());
 	}
 }

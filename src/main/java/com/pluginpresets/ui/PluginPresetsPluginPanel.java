@@ -50,6 +50,8 @@ import net.runelite.client.util.LinkBrowser;
 
 public class PluginPresetsPluginPanel extends PluginPanel
 {
+	private static final ImageIcon NOTIFICATION_ICON;
+	private static final ImageIcon NOTIFICATION_HOVER_ICON;
 	private static final ImageIcon HELP_ICON;
 	private static final ImageIcon HELP_HOVER_ICON;
 	private static final ImageIcon REFRESH_ICON;
@@ -57,6 +59,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private static final ImageIcon ADD_ICON;
 	private static final ImageIcon ADD_HOVER_ICON;
 
+	private final JLabel errorNotification = new JLabel(NOTIFICATION_ICON);
 	private final JLabel helpButton = new JLabel(HELP_ICON);
 	private final JLabel refreshPlugins = new JLabel(REFRESH_ICON);
 	private final JLabel addPreset = new JLabel(ADD_ICON);
@@ -66,8 +69,14 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 	private final PluginPresetsPlugin plugin;
 
+	private Boolean showNotification = false;
+
 	static
 	{
+		final BufferedImage notificationIcon = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "warning_icon.png");
+		NOTIFICATION_ICON = new ImageIcon(notificationIcon);
+		NOTIFICATION_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(notificationIcon, 0.53f));
+
 		final BufferedImage helpIcon = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "help_icon.png");
 		HELP_ICON = new ImageIcon(helpIcon);
 		HELP_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(helpIcon, 0.53f));
@@ -94,6 +103,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		title.setText("Plugin Presets");
 		title.setForeground(Color.WHITE);
+		title.setBorder(new EmptyBorder(0, 0, 0, 40));
 
 		JPanel presetActions = new JPanel(new BorderLayout(10, 0));
 		presetActions.setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -103,6 +113,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		presetActions.add(addPreset, BorderLayout.EAST);
 
 		northPanel.add(title, BorderLayout.WEST);
+		northPanel.add(errorNotification, BorderLayout.CENTER);
 		northPanel.add(presetActions, BorderLayout.EAST);
 
 		JPanel centerPanel = new JPanel(new BorderLayout());
@@ -121,6 +132,27 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		presetView.add(noPresetsPanel, constraints);
 		constraints.gridy++;
+
+		errorNotification.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				rebuild();
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				errorNotification.setIcon(NOTIFICATION_HOVER_ICON);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				errorNotification.setIcon(NOTIFICATION_ICON);
+			}
+		});
 
 		helpButton.setToolTipText("Need help?");
 		helpButton.addMouseListener(new MouseAdapter()
@@ -246,10 +278,20 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		noPresetsPanel.setVisible(empty);
 		title.setVisible(!empty);
 
+		errorNotification.setVisible(showNotification);
+
 		presetView.add(noPresetsPanel, constraints);
 		constraints.gridy++;
 
 		repaint();
 		revalidate();
+	}
+
+	public void renderNotification(String errorMessage)
+	{
+		errorNotification.setToolTipText(errorMessage);
+		showNotification = true;
+		rebuild();
+		showNotification = false;
 	}
 }
