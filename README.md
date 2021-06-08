@@ -35,7 +35,7 @@ Note that Plugin Presets does not check if you have already saved your RuneLite 
 
 Your presets are stored in `~/.runelite/presets/`. You can share these .json files with others, they don't contain information about your account, RuneLite notes, Discord or Twitch. Alternatively you can right-click on of your presets and click the "Export preset to clipboard". This will copy the preset to your clipboard for easier sharing. **When sending presets to others, make sure to always double check for sensetive information!**
 
-To "install" new presets, simply copy the .json file to the preset folder and then press the "refresh plugins" button. Alternatively you can right-click the green + sign to import presets from clipboard. You can easily access your preset folder by right-clicking the Plugin Preset icon in the RuneLite sidebar.
+To "install" new presets, simply copy the .json file to the preset folder and then press the "refresh presets" button. Alternatively you can right-click the green + sign to import presets from clipboard. You can easily access your preset folder by right-clicking the Plugin Preset icon in the RuneLite sidebar.
 
 Note that these presets contains _all_ of your plugin configurations, so when installing presets from others, they might have changed eg. keybinds that you might have set up differently. Make sure to always keep backups of your configurations when trying to install presets from others.
 

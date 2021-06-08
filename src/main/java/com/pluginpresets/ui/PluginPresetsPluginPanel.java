@@ -176,7 +176,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			}
 		});
 
-		refreshPlugins.setToolTipText("Refresh plugins");
+		refreshPlugins.setToolTipText("Refresh presets");
 		refreshPlugins.addMouseListener(new MouseAdapter()
 		{
 			@Override
@@ -199,7 +199,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			}
 		});
 
-		addPreset.setToolTipText("Create a new plugin preset");
+		addPreset.setToolTipText("Create new plugin preset");
 		addPreset.addMouseListener(new MouseAdapter()
 		{
 			@Override
