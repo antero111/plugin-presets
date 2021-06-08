@@ -270,21 +270,6 @@ public class PluginPresetsPlugin extends Plugin
 	}
 
 	@SneakyThrows
-	public void unloadPresetSettings()
-	{
-		for (Plugin plugin : pluginManager.getPlugins())
-		{
-			if (IGNORED_PLUGINS.contains(plugin.getName()))
-			{
-				continue;
-			}
-
-			pluginManager.setPluginEnabled(plugin, false);
-			pluginManager.stopPlugin(plugin);
-		}
-	}
-
-	@SneakyThrows
 	public void savePresets()
 	{
 		PluginPresetsStorage.savePresets(pluginPresets);

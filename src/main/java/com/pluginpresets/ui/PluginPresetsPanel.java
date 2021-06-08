@@ -58,7 +58,6 @@ class PluginPresetsPanel extends JPanel
 		BorderFactory.createLineBorder(ColorScheme.DARKER_GRAY_COLOR));
 
 	private static final ImageIcon SWITCH_ON_ICON;
-	private static final ImageIcon SWITCH_ON_HOVER_ICON;
 
 	private static final ImageIcon SWITCH_OFF_ICON;
 	private static final ImageIcon SWITCH_OFF_HOVER_ICON;
@@ -92,7 +91,6 @@ class PluginPresetsPanel extends JPanel
 	{
 		final BufferedImage switchOnImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_on_icon.png");
 		SWITCH_ON_ICON = new ImageIcon(switchOnImg);
-		SWITCH_ON_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(switchOnImg, -10));
 
 		final BufferedImage switchOffImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_off_icon.png");
 		final BufferedImage switchOffHoverImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_off_hover_icon.png");
@@ -254,29 +252,8 @@ class PluginPresetsPanel extends JPanel
 
 		if (preset.getSelected())
 		{
-			loadLabel.setToolTipText("Unload this preset");
+			loadLabel.setToolTipText("Current preset");
 			loadLabel.setIcon(SWITCH_ON_ICON);
-			loadLabel.addMouseListener(new MouseAdapter()
-			{
-				@Override
-				public void mousePressed(MouseEvent mouseEvent)
-				{
-					plugin.unloadPresetSettings();
-					plugin.setAsSelected(preset, false);
-				}
-
-				@Override
-				public void mouseEntered(MouseEvent mouseEvent)
-				{
-					loadLabel.setIcon(SWITCH_ON_HOVER_ICON);
-				}
-
-				@Override
-				public void mouseExited(MouseEvent mouseEvent)
-				{
-					loadLabel.setIcon(SWITCH_ON_ICON);
-				}
-			});
 		}
 		else
 		{
