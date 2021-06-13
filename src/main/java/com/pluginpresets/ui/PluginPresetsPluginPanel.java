@@ -26,10 +26,14 @@ package com.pluginpresets.ui;
 
 import com.pluginpresets.PluginPreset;
 import com.pluginpresets.PluginPresetsPlugin;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.awt.BorderLayout;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -38,10 +42,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.border.EmptyBorder;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseAdapter;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.PluginErrorPanel;
@@ -58,18 +58,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private static final ImageIcon REFRESH_HOVER_ICON;
 	private static final ImageIcon ADD_ICON;
 	private static final ImageIcon ADD_HOVER_ICON;
-
-	private final JLabel errorNotification = new JLabel(NOTIFICATION_ICON);
-	private final JLabel helpButton = new JLabel(HELP_ICON);
-	private final JLabel refreshPlugins = new JLabel(REFRESH_ICON);
-	private final JLabel addPreset = new JLabel(ADD_ICON);
-	private final JLabel title = new JLabel();
-	private final PluginErrorPanel noPresetsPanel = new PluginErrorPanel();
-	private final JPanel presetView = new JPanel(new GridBagLayout());
-
-	private final PluginPresetsPlugin plugin;
-
-	private Boolean showNotification = false;
 
 	static
 	{
@@ -89,6 +77,16 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		ADD_ICON = new ImageIcon(addIcon);
 		ADD_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(addIcon, 0.53f));
 	}
+
+	private final JLabel errorNotification = new JLabel(NOTIFICATION_ICON);
+	private final JLabel helpButton = new JLabel(HELP_ICON);
+	private final JLabel refreshPlugins = new JLabel(REFRESH_ICON);
+	private final JLabel addPreset = new JLabel(ADD_ICON);
+	private final JLabel title = new JLabel();
+	private final PluginErrorPanel noPresetsPanel = new PluginErrorPanel();
+	private final JPanel presetView = new JPanel(new GridBagLayout());
+	private final PluginPresetsPlugin plugin;
+	private Boolean showNotification = false;
 
 	public PluginPresetsPluginPanel(PluginPresetsPlugin pluginPresetsPlugin)
 	{

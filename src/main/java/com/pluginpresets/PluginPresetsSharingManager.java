@@ -25,13 +25,13 @@
 package com.pluginpresets;
 
 import com.google.common.base.Strings;
-import com.google.gson.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 import com.pluginpresets.ui.PluginPresetsPluginPanel;
 import java.awt.Toolkit;
-import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 

@@ -26,8 +26,6 @@ package com.pluginpresets;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import java.util.Objects;
-import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -36,6 +34,8 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PluginPresetsStorage
