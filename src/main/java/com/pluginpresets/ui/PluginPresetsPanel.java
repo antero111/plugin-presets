@@ -141,6 +141,7 @@ class PluginPresetsPanel extends JPanel
 		save.setVisible(false);
 		save.setFont(FontManager.getRunescapeSmallFont());
 		save.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR);
+		save.setToolTipText("Save new name");
 		save.addMouseListener(new MouseAdapter()
 		{
 			@Override
@@ -165,6 +166,7 @@ class PluginPresetsPanel extends JPanel
 		cancel.setVisible(false);
 		cancel.setFont(FontManager.getRunescapeSmallFont());
 		cancel.setForeground(ColorScheme.PROGRESS_ERROR_COLOR);
+		cancel.setToolTipText("Cancel rename");
 		cancel.addMouseListener(new MouseAdapter()
 		{
 			@Override
@@ -188,6 +190,7 @@ class PluginPresetsPanel extends JPanel
 
 		rename.setFont(FontManager.getRunescapeSmallFont());
 		rename.setForeground(ColorScheme.LIGHT_GRAY_COLOR.darker());
+		rename.setToolTipText("Rename preset");
 		rename.addMouseListener(new MouseAdapter()
 		{
 			@Override
