@@ -40,18 +40,19 @@ import javax.swing.SwingUtilities;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.client.config.ConfigDescriptor;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.events.ExternalPluginsChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.LinkBrowser;
-import net.runelite.client.plugins.PluginManager;
-import net.runelite.client.events.ExternalPluginsChanged;
-import static net.runelite.client.RuneLite.RUNELITE_DIR;
 
 @PluginDescriptor(
 	name = "Plugin Presets",
@@ -60,13 +61,12 @@ import static net.runelite.client.RuneLite.RUNELITE_DIR;
 )
 public class PluginPresetsPlugin extends Plugin
 {
-	public final String HELP_LINK = "https://github.com/antero111/plugin-presets#using-plugin-presets";
-	public final String DEFAULT_PRESET_NAME = "Preset";
 	public static final File PRESETS_DIR = new File(RUNELITE_DIR, "presets");
 	private static final String PLUGIN_NAME = "Plugin Presets";
 	private static final String ICON_FILE = "panel_icon.png";
 	private static final List<String> IGNORED_PLUGINS = Stream.of("Plugin Presets", "Configuration", "Xtea", "Twitch", "Notes", "Discord").collect(Collectors.toList());
-
+	public final String HELP_LINK = "https://github.com/antero111/plugin-presets#using-plugin-presets";
+	public final String DEFAULT_PRESET_NAME = "Preset";
 	@Getter
 	private final List<PluginPreset> pluginPresets = new ArrayList<>();
 
@@ -87,6 +87,8 @@ public class PluginPresetsPlugin extends Plugin
 	private PluginPresetsPluginPanel pluginPanel;
 
 	private PluginPresetsSharingManager sharingManager;
+
+	private boolean configChangedFromLoadPreset = false;
 
 	@Override
 	protected void startUp() throws Exception
@@ -132,6 +134,39 @@ public class PluginPresetsPlugin extends Plugin
 	public void onExternalPluginsChanged(ExternalPluginsChanged externalPluginsChanged)
 	{
 		SwingUtilities.invokeLater(() -> pluginPanel.rebuild());
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged configChanged)
+	{
+		if (!(configChangedFromLoadPreset))
+		{
+			// Check if manually created preset matches existing one
+			HashMap<String, Boolean> enabledPlugins = getEnabledPlugins();
+			for (PluginPreset preset : pluginPresets)
+			{
+				if (preset.getEnabledPlugins().equals(enabledPlugins))
+				{
+					setAsSelected(preset, true);
+					return;
+				}
+			}
+
+			// No existing preset matches, warn from "unsaved" configurations
+			for (PluginPreset preset : pluginPresets)
+			{
+				try
+				{
+					if (preset.getSelected())
+					{
+						setAsSelected(preset, null);
+					}
+				}
+				catch (NullPointerException ignore)
+				{
+				}
+			}
+		}
 	}
 
 	private HashMap<String, Boolean> getEnabledPlugins()
@@ -225,6 +260,8 @@ public class PluginPresetsPlugin extends Plugin
 	@SneakyThrows
 	public void loadPreset(final PluginPreset preset)
 	{
+		configChangedFromLoadPreset = true;
+
 		// Load plugin settings.
 		for (HashMap.Entry<String, HashMap<String, String>> groupNames : preset.getPluginSettings().entrySet())
 		{
@@ -267,6 +304,8 @@ public class PluginPresetsPlugin extends Plugin
 			{
 			}
 		}
+
+		configChangedFromLoadPreset = false;
 	}
 
 	@SneakyThrows
@@ -312,7 +351,10 @@ public class PluginPresetsPlugin extends Plugin
 	public void setAsSelected(PluginPreset selectedPreset, Boolean select)
 	{
 		pluginPresets.forEach(preset -> preset.setSelected(false));
-		selectedPreset.setSelected(select);
+		if (!(selectedPreset == null))
+		{
+			selectedPreset.setSelected(select);
+		}
 		savePresets();
 		pluginPanel.rebuild();
 	}

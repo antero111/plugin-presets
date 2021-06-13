@@ -24,8 +24,18 @@
  */
 package com.pluginpresets.ui;
 
-import com.pluginpresets.PluginPresetsPlugin;
 import com.pluginpresets.PluginPreset;
+import com.pluginpresets.PluginPresetsPlugin;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -36,16 +46,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import java.awt.FlowLayout;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Color;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.util.List;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.components.FlatTextField;
@@ -74,19 +74,6 @@ class PluginPresetsPanel extends JPanel
 	private static final ImageIcon DELETE_ICON;
 	private static final ImageIcon DELETE_HOVER_ICON;
 
-	private final PluginPresetsPlugin plugin;
-
-	private final PluginPreset preset;
-
-	private final JLabel loadLabel = new JLabel();
-	private final JLabel updateLabel = new JLabel();
-	private final JLabel deleteLabel = new JLabel();
-
-	private final FlatTextField nameInput = new FlatTextField();
-	private final JLabel save = new JLabel("Save");
-	private final JLabel cancel = new JLabel("Cancel");
-	private final JLabel rename = new JLabel("Rename");
-
 	static
 	{
 		final BufferedImage switchOnImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_on_icon.png");
@@ -113,6 +100,16 @@ class PluginPresetsPanel extends JPanel
 		DELETE_ICON = new ImageIcon(deleteImg);
 		DELETE_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(deleteImg, -100));
 	}
+
+	private final PluginPresetsPlugin plugin;
+	private final PluginPreset preset;
+	private final JLabel loadLabel = new JLabel();
+	private final JLabel updateLabel = new JLabel();
+	private final JLabel deleteLabel = new JLabel();
+	private final FlatTextField nameInput = new FlatTextField();
+	private final JLabel save = new JLabel("Save");
+	private final JLabel cancel = new JLabel("Cancel");
+	private final JLabel rename = new JLabel("Rename");
 
 	PluginPresetsPanel(PluginPreset pluginPreset, PluginPresetsPlugin pluginPresetsPlugin)
 	{
@@ -250,7 +247,106 @@ class PluginPresetsPanel extends JPanel
 		JPanel leftActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 3));
 		leftActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		if (preset.getSelected())
+		if (unsavedPluginConfigurations())
+		{
+			loadLabel.setToolTipText("Load this preset");
+			loadLabel.setIcon(SWITCH_OFF_ICON);
+			loadLabel.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent mouseEvent)
+				{
+					int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
+						"Are you sure you want to load this preset?\n"
+							+ "You have unsaved plugin configurations and loading this preset will discard those.\n",
+						"Load preset", JOptionPane.YES_NO_OPTION);
+
+					if (confirm == 0)
+					{
+						plugin.loadPreset(preset);
+						plugin.setAsSelected(preset, true);
+					}
+				}
+
+				@Override
+				public void mouseEntered(MouseEvent mouseEvent)
+				{
+					loadLabel.setIcon(SWITCH_OFF_HOVER_ICON);
+				}
+
+				@Override
+				public void mouseExited(MouseEvent mouseEvent)
+				{
+					loadLabel.setIcon(SWITCH_OFF_ICON);
+				}
+			});
+
+			if (preset.getSelected() == null)
+			{
+				updateLabel.setIcon(UPDATE_WARNING_ICON);
+				updateLabel.setToolTipText("You have unsaved plugin configurations");
+				updateLabel.addMouseListener(new MouseAdapter()
+				{
+					@Override
+					public void mousePressed(MouseEvent mouseEvent)
+					{
+						int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
+							"Are you sure you want to update this preset with your current plugin configurations?",
+							"Update preset", JOptionPane.YES_NO_OPTION);
+
+						if (confirm == 0)
+						{
+							plugin.updatePreset(preset);
+						}
+					}
+
+					@Override
+					public void mouseEntered(MouseEvent mouseEvent)
+					{
+						updateLabel.setIcon(UPDATE_WARNING_HOVER_ICON);
+					}
+
+					@Override
+					public void mouseExited(MouseEvent mouseEvent)
+					{
+						updateLabel.setIcon(UPDATE_WARNING_ICON);
+					}
+				});
+			}
+			else
+			{
+				updateLabel.setIcon(UPDATE_ICON);
+				updateLabel.setToolTipText("Update preset");
+				updateLabel.addMouseListener(new MouseAdapter()
+				{
+					@Override
+					public void mousePressed(MouseEvent mouseEvent)
+					{
+						int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
+							"Are you sure you want to update this preset with your current plugin configurations?",
+							"Update preset", JOptionPane.YES_NO_OPTION);
+
+						if (confirm == 0)
+						{
+							plugin.updatePreset(preset);
+						}
+					}
+
+					@Override
+					public void mouseEntered(MouseEvent mouseEvent)
+					{
+						updateLabel.setIcon(UPDATE_HOVER_ICON);
+					}
+
+					@Override
+					public void mouseExited(MouseEvent mouseEvent)
+					{
+						updateLabel.setIcon(UPDATE_ICON);
+					}
+				});
+			}
+		}
+		else if (preset.getSelected())
 		{
 			loadLabel.setToolTipText("Current preset");
 			loadLabel.setIcon(SWITCH_ON_ICON);
@@ -323,36 +419,40 @@ class PluginPresetsPanel extends JPanel
 		}
 		else
 		{
-			updateLabel.setIcon(UPDATE_ICON);
-			updateLabel.setToolTipText("Update preset");
-			updateLabel.addMouseListener(new MouseAdapter()
+			if (!(unsavedPluginConfigurations()))
 			{
-				@Override
-				public void mousePressed(MouseEvent mouseEvent)
+				updateLabel.setIcon(UPDATE_ICON);
+				updateLabel.setToolTipText("Update preset");
+				updateLabel.addMouseListener(new MouseAdapter()
 				{
-					int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
-						"Are you sure you want to update this preset with your current plugin configurations?",
-						"Update preset", JOptionPane.YES_NO_OPTION);
-
-					if (confirm == 0)
+					@Override
+					public void mousePressed(MouseEvent mouseEvent)
 					{
-						plugin.updatePreset(preset);
+						int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
+							"Are you sure you want to update this preset with your current plugin configurations?",
+							"Update preset", JOptionPane.YES_NO_OPTION);
+
+						if (confirm == 0)
+						{
+							plugin.updatePreset(preset);
+						}
 					}
-				}
 
-				@Override
-				public void mouseEntered(MouseEvent mouseEvent)
-				{
-					updateLabel.setIcon(UPDATE_HOVER_ICON);
-				}
+					@Override
+					public void mouseEntered(MouseEvent mouseEvent)
+					{
+						updateLabel.setIcon(UPDATE_HOVER_ICON);
+					}
 
-				@Override
-				public void mouseExited(MouseEvent mouseEvent)
-				{
-					updateLabel.setIcon(UPDATE_ICON);
-				}
-			});
+					@Override
+					public void mouseExited(MouseEvent mouseEvent)
+					{
+						updateLabel.setIcon(UPDATE_ICON);
+					}
+				});
+			}
 		}
+
 		deleteLabel.setIcon(DELETE_ICON);
 		deleteLabel.setToolTipText("Delete preset");
 		deleteLabel.addMouseListener(new MouseAdapter()
@@ -424,6 +524,18 @@ class PluginPresetsPanel extends JPanel
 
 		add(nameWrapper, BorderLayout.NORTH);
 		add(bottomContainer, BorderLayout.CENTER);
+	}
+
+	private boolean unsavedPluginConfigurations()
+	{
+		for (PluginPreset preset : plugin.getPluginPresets())
+		{
+			if (preset.getSelected() == null)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void save()
