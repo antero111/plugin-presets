@@ -250,6 +250,8 @@ class PluginPresetsPanel extends JPanel
 		JPanel leftActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 3));
 		leftActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
+		List<String> newPlugins = plugin.getUnsavedExternalPlugins(preset);
+
 		if (unsavedPluginConfigurations())
 		{
 			loadLabel.setToolTipText("Load this preset");
@@ -286,35 +288,38 @@ class PluginPresetsPanel extends JPanel
 
 			if (preset.getSelected() == null)
 			{
-				updateLabel.setIcon(UPDATE_WARNING_ICON);
-				updateLabel.setToolTipText("You have unsaved plugin configurations");
-				updateLabel.addMouseListener(new MouseAdapter()
+				if (newPlugins.isEmpty())
 				{
-					@Override
-					public void mousePressed(MouseEvent mouseEvent)
+					updateLabel.setIcon(UPDATE_WARNING_ICON);
+					updateLabel.setToolTipText("You have unsaved plugin configurations");
+					updateLabel.addMouseListener(new MouseAdapter()
 					{
-						int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
-							"Are you sure you want to update this preset with your current plugin configurations?",
-							"Update preset", JOptionPane.YES_NO_OPTION);
-
-						if (confirm == 0)
+						@Override
+						public void mousePressed(MouseEvent mouseEvent)
 						{
-							plugin.updatePreset(preset);
+							int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
+								"Are you sure you want to update this preset with your current plugin configurations?",
+								"Update preset", JOptionPane.YES_NO_OPTION);
+	
+							if (confirm == 0)
+							{
+								plugin.updatePreset(preset);
+							}
 						}
-					}
-
-					@Override
-					public void mouseEntered(MouseEvent mouseEvent)
-					{
-						updateLabel.setIcon(UPDATE_WARNING_HOVER_ICON);
-					}
-
-					@Override
-					public void mouseExited(MouseEvent mouseEvent)
-					{
-						updateLabel.setIcon(UPDATE_WARNING_ICON);
-					}
-				});
+	
+						@Override
+						public void mouseEntered(MouseEvent mouseEvent)
+						{
+							updateLabel.setIcon(UPDATE_WARNING_HOVER_ICON);
+						}
+	
+						@Override
+						public void mouseExited(MouseEvent mouseEvent)
+						{
+							updateLabel.setIcon(UPDATE_WARNING_ICON);
+						}
+					});	
+				}
 			}
 			else
 			{
@@ -386,7 +391,6 @@ class PluginPresetsPanel extends JPanel
 		JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
 		rightActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		List<String> newPlugins = plugin.getUnsavedExternalPlugins(preset);
 		if (!(newPlugins.isEmpty()))
 		{
 			updateLabel.setIcon(UPDATE_WARNING_ICON);
