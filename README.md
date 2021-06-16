@@ -10,11 +10,11 @@ Firstly, download the Plugin Presets plugin from the RuneLite Plugin Hub and ena
 
 Click the green + sign to create a new _plugin preset_ from your current plugin configurations. Name your new preset and your current plugin settings are saved to that preset.
 
-_Plugin presets_ are "copies" of your current plugin configurations from the moment of creating or modifying a preset. Creating a new preset means that Plugin Presets saves a copy of your current plugin configurations. So to make new presets, simply modify your RuneLite plugin configurations as usual and create a new preset.
+_Plugin presets_ are "copies" of your current plugin configurations from the moment of creating or modifying a preset. Creating a new preset means that Plugin Presets saves a copy of your current plugin configurations to be used later. To make new presets, simply modify your RuneLite plugin configurations as usual and create a new preset.
 
 ![Plugin create demo](readme_visuals/create_preset_demo.gif)
 
-To load a preset, simply click the "load preset" button to enable configurations from that preset. **If you have "unsaved" configurations when loading to a different preset, those configurations are lost**.
+To load a preset, simply click the "load preset" button to enable configurations from that preset. **If you have "unsaved" configurations when loading to a different preset, those configurations are lost.**. Plugin Presets will notify you with an orange pen icon if you have unsaved plugin configurations.
 
 Modifying presets happen by updating (overwriting) its configurations by pressing the pen icon.
 
@@ -28,7 +28,7 @@ Note that Plugin Presets does not check if you have already saved your RuneLite 
 
 <details>
   <summary>How to revert back to default RuneLite settings</summary>
-    If you need to revert back to default RuneLite settings, delete the <code>settings.properties</code> file from <code>~/.runelite/</code> and reload your client. This does not affect any of your presets but your current plugin configurations will be set to default values. (This works for all plugins, not a Plugin Presets feature.)
+    If you need to revert back to default RuneLite settings, delete the <code>settings.properties</code> file from <code>~/.runelite/</code> and reload your client. This does not affect any of your plugin presets but <i>all</i> of your current plugin configurations will be set to default values. (This works for all plugins, not a Plugin Presets feature.)
 </details>
 
 ### Sharing plugin presets
@@ -37,7 +37,7 @@ Your presets are stored in `~/.runelite/presets/`. You can share these .json fil
 
 To "install" new presets, simply copy the .json file to the preset folder and then press the "refresh presets" button. Alternatively you can right-click the green + sign to import presets from clipboard. You can easily access your preset folder by right-clicking the Plugin Preset icon in the RuneLite sidebar.
 
-Note that these presets contains _all_ of your plugin configurations, so when installing presets from others, they might have changed eg. keybinds that you might have set up differently. Make sure to always keep backups of your configurations when trying to install presets from others.
+Note that these presets contains _all_ of your plugin configurations, so when installing presets from others, they might have changed eg. keybinds that you might have set up differently.
 
 Presets from others might have settings to plugins installed from the Plugin Hub. Plugin Presets will notify you when you have "uninstalled" plugins with a red warning sign.
 
@@ -51,38 +51,23 @@ If you've experienced an issue with Plugin Presets, or have a recommendation on 
 
 ## Changelog
 
-### 1.3
+#### 1.4
 
-Added
+Added unsaved plugin configuration detection/notification and tooltips to preset renaming.
+Removed preset unloading, caused unnessesscary issues and confusion. Fixed some tooltip typos.
 
-- Ability to import/export presets to and from clipboard
-- Error notificator
+#### 1.3
 
-Fixed
+Added the ability to import/export presets to and from clipboard. Added error notificator. Fixed it so that presets will now stay in alphabethical order when they are created.
 
-- Presets will now stay in alphabethical order when they are created
+#### 1.2
 
-### 1.2
+Added unsaved/uninstalled external plugin notification, plugin icon. Changed "overwrite" to "update".
 
-Added
+#### 1.1
 
-- Unsaved/uninstalled external plugin notification
-- Plugin icon
+Added the ability to unload a preset. Fixed unsaved Plugin Hub plugin handling
 
-Changed
+#### 1.0
 
-- "Overwrite" to "update"
-
-### 1.1
-
-Added
-
-- Ability to unload a preset
-
-Fixed
-
-- Unsaved Plugin Hub plugin handling
-
-### 1.0
-
-- Plugin added
+Plugin added
