@@ -142,31 +142,58 @@ public class PluginPresetsPlugin extends Plugin
 		if (!(configChangedFromLoadPreset))
 		{
 			// Check if manually created preset matches existing one
-			HashMap<String, Boolean> enabledPlugins = getEnabledPlugins();
-			for (PluginPreset preset : pluginPresets)
+			PluginPreset matchingPreset = getPresetThatMatchesCurrentConfigurations();
+			if (matchingPreset != null)
 			{
-				if (preset.getEnabledPlugins().equals(enabledPlugins))
-				{
-					SwingUtilities.invokeLater(() -> setAsSelected(preset, true));
-					return;
-				}
+				SwingUtilities.invokeLater(() -> setAsSelected(matchingPreset, true));
 			}
-
-			// No existing preset matches, warn from "unsaved" configurations
-			for (PluginPreset preset : pluginPresets)
+			else
 			{
-				try
-				{
-					if (preset.getSelected())
-					{
-						SwingUtilities.invokeLater(() -> setAsSelected(preset, null));
-					}
-				}
-				catch (NullPointerException ignore)
-				{
-				}
+				// No existing preset matches current configurations
+				warnFromUnsavedPluginConfigurations();
 			}
 		}
+	}
+
+	private PluginPreset getPresetThatMatchesCurrentConfigurations()
+	{
+		HashMap<String, Boolean> enabledPlugins = getEnabledPlugins();
+
+		for (PluginPreset preset : pluginPresets)
+		{
+			if (preset.getEnabledPlugins().equals(enabledPlugins))
+			{
+				return preset;
+			}
+		}
+
+		return null;
+	}
+
+	private void warnFromUnsavedPluginConfigurations()
+	{
+		PluginPreset selectedPreset = getSelectedPreset();
+		if (selectedPreset != null)
+		{
+			SwingUtilities.invokeLater(() -> displayUnsavedPluginConfigurationsWarning(selectedPreset));
+		}
+	}
+
+	private PluginPreset getSelectedPreset()
+	{
+		for (PluginPreset preset : pluginPresets)
+		{
+			if (preset.getSelected() != null && preset.getSelected())
+			{
+				return preset;
+			}
+		}
+		return null;
+	}
+
+	private void displayUnsavedPluginConfigurationsWarning(PluginPreset selectedPreset)
+	{
+		setAsSelected(selectedPreset, null);
 	}
 
 	private HashMap<String, Boolean> getEnabledPlugins()
