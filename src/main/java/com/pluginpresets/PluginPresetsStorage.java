@@ -43,7 +43,7 @@ public class PluginPresetsStorage
 {
 	private static final File PRESETS_DIR = PluginPresetsPlugin.PRESETS_DIR;
 
-	public static void savePresets(List<PluginPreset> pluginPresets)
+	public static void savePresets(final List<PluginPreset> pluginPresets)
 	{
 		clearPresetFolder();
 		pluginPresets.forEach(PluginPresetsStorage::storePluginPresetToJsonFile);
@@ -62,7 +62,7 @@ public class PluginPresetsStorage
 	}
 
 	@SneakyThrows
-	private static void storePluginPresetToJsonFile(PluginPreset pluginPreset)
+	private static void storePluginPresetToJsonFile(final PluginPreset pluginPreset)
 	{
 		File presetJsonFile = getPresetJsonFileFrom(pluginPreset);
 
@@ -74,12 +74,12 @@ public class PluginPresetsStorage
 		writePresetDataToJsonFile(pluginPreset, presetJsonFile);
 	}
 
-	private static File getPresetJsonFileFrom(PluginPreset pluginPreset)
+	private static File getPresetJsonFileFrom(final PluginPreset pluginPreset)
 	{
 		return new File(PRESETS_DIR, String.format("%s.json", pluginPreset.getName()));
 	}
 
-	private static File giveJsonFileCustomSuffixNumber(PluginPreset pluginPreset, File presetJsonFile)
+	private static File giveJsonFileCustomSuffixNumber(final PluginPreset pluginPreset, File presetJsonFile)
 	{
 		int fileNumber = 1;
 		while (presetJsonFile.exists())
@@ -90,12 +90,12 @@ public class PluginPresetsStorage
 		return presetJsonFile;
 	}
 
-	private static File createNewPresetFileWithCustomSuffix(PluginPreset pluginPreset, int fileNumber)
+	private static File createNewPresetFileWithCustomSuffix(final PluginPreset pluginPreset, final int fileNumber)
 	{
 		return new File(PRESETS_DIR, String.format("%s (%d).json", pluginPreset.getName(), fileNumber));
 	}
 
-	private static void writePresetDataToJsonFile(PluginPreset pluginPreset, File presetJsonFile) throws IOException
+	private static void writePresetDataToJsonFile(final PluginPreset pluginPreset, final File presetJsonFile) throws IOException
 	{
 		Gson gson = new Gson();
 		Writer writer = new FileWriter(presetJsonFile);
@@ -135,7 +135,7 @@ public class PluginPresetsStorage
 		return pluginPresetsFromFolder;
 	}
 
-	private static PluginPreset parsePluginPresetFrom(File file) throws IOException
+	private static PluginPreset parsePluginPresetFrom(final File file) throws IOException
 	{
 		Gson gson = new Gson();
 		Reader reader = new FileReader(file);
@@ -144,7 +144,7 @@ public class PluginPresetsStorage
 		return pluginPreset;
 	}
 
-	private static PluginPreset parsePresetDataFrom(Gson gson, Reader reader)
+	private static PluginPreset parsePresetDataFrom(final Gson gson, final Reader reader)
 	{
 		return gson.fromJson(reader, new TypeToken<PluginPreset>()
 		{

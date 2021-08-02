@@ -39,7 +39,7 @@ public class PluginPresetsSharingManager
 {
 	private final PluginPresetsPluginPanel pluginPanel;
 
-	public PluginPresetsSharingManager(PluginPresetsPluginPanel pluginPanel)
+	public PluginPresetsSharingManager(final PluginPresetsPluginPanel pluginPanel)
 	{
 		this.pluginPanel = pluginPanel;
 	}

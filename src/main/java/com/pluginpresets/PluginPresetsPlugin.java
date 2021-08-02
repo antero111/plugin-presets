@@ -175,7 +175,7 @@ public class PluginPresetsPlugin extends Plugin
 
 	private void warnFromUnsavedPluginConfigurations()
 	{
-		PluginPreset selectedPreset = getSelectedPreset();
+		final PluginPreset selectedPreset = getSelectedPreset();
 		if (selectedPreset != null)
 		{
 			SwingUtilities.invokeLater(() -> displayUnsavedPluginConfigurationsWarning(selectedPreset));
@@ -194,7 +194,7 @@ public class PluginPresetsPlugin extends Plugin
 		return null;
 	}
 
-	private void displayUnsavedPluginConfigurationsWarning(PluginPreset selectedPreset)
+	private void displayUnsavedPluginConfigurationsWarning(final PluginPreset selectedPreset)
 	{
 		setAsSelected(selectedPreset, null);
 	}
@@ -378,7 +378,7 @@ public class PluginPresetsPlugin extends Plugin
 		sharingManager.exportPresetToClipboard(preset);
 	}
 
-	public void setAsSelected(PluginPreset selectedPreset, Boolean select)
+	public void setAsSelected(final PluginPreset selectedPreset, final Boolean select)
 	{
 		pluginPresets.forEach(preset -> preset.setSelected(false));
 		if (selectedPreset != null)
@@ -389,7 +389,7 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPanel.rebuild();
 	}
 
-	public List<String> getUnsavedExternalPlugins(PluginPreset preset)
+	public List<String> getUnsavedExternalPlugins(final PluginPreset preset)
 	{
 		List<String> newPlugins = new ArrayList<>();
 		List<String> plugins = pluginManager.getPlugins().stream().map(Plugin::getName)
@@ -409,7 +409,7 @@ public class PluginPresetsPlugin extends Plugin
 		return newPlugins;
 	}
 
-	public List<String> getMissingExternalPlugins(PluginPreset preset)
+	public List<String> getMissingExternalPlugins(final PluginPreset preset)
 	{
 
 		List<String> missingPlugins = new ArrayList<>();
@@ -440,7 +440,7 @@ public class PluginPresetsPlugin extends Plugin
 		}
 	}
 
-	public boolean stringContainsInvalidCharacters(String string)
+	public boolean stringContainsInvalidCharacters(final String string)
 	{
 		return !(Pattern.compile("^[ A-Za-z0-9]+$").matcher(string).matches());
 	}
