@@ -49,6 +49,7 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.ExternalPluginsChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.PluginInstantiationException;
 import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
@@ -199,62 +200,9 @@ public class PluginPresetsPlugin extends Plugin
 		setAsSelected(selectedPreset, null);
 	}
 
-	private HashMap<String, Boolean> getEnabledPlugins()
-	{
-		HashMap<String, Boolean> enabledPlugins = new HashMap<>();
-
-		pluginManager.getPlugins().forEach(plugin -> {
-			if (!(IGNORED_PLUGINS.contains(plugin.getName())))
-			{
-				enabledPlugins.put(plugin.getName(), pluginManager.isPluginEnabled(plugin));
-			}
-		});
-
-		return enabledPlugins;
-	}
-
-	private HashMap<String, HashMap<String, String>> getPluginSettings()
-	{
-		HashMap<String, HashMap<String, String>> pluginSettings = new HashMap<>();
-
-		for (Plugin plugin : pluginManager.getPlugins())
-		{
-			if (IGNORED_PLUGINS.contains(plugin.getName()))
-			{
-				continue;
-			}
-
-			HashMap<String, String> pluginSettingKeyValue = new HashMap<>();
-
-			// Check if plugin has configurable settings to be saved
-			ConfigDescriptor pluginConfigProxy;
-			try
-			{
-				pluginConfigProxy = configManager.getConfigDescriptor(pluginManager.getPluginConfigProxy(plugin));
-			}
-			catch (NullPointerException ignore)
-			{
-				continue;
-			}
-
-			String groupName = pluginConfigProxy.getGroup().value();
-			pluginConfigProxy.getItems().forEach(configItemDescriptor -> {
-				String key = configItemDescriptor.getItem().keyName();
-				pluginSettingKeyValue.put(key, configManager.getConfiguration(groupName, key));
-			});
-
-			pluginSettings.put(groupName, pluginSettingKeyValue);
-		}
-
-		return pluginSettings;
-	}
-
 	public void createPreset(String presetName)
 	{
-		if (presetName.equals(""))
-		{
-			presetName = DEFAULT_PRESET_NAME + " " + (pluginPresets.size() + 1);
-		}
+		presetName = createDefaultPlaceholderNameIfNoNameSet(presetName);
 
 		preset = new PluginPreset(
 			Instant.now().toEpochMilli(),
@@ -269,6 +217,168 @@ public class PluginPresetsPlugin extends Plugin
 
 		refreshPresets();
 		pluginPanel.rebuild();
+	}
+
+	private String createDefaultPlaceholderNameIfNoNameSet(String presetName)
+	{
+		if (presetName.equals(""))
+		{
+			presetName = DEFAULT_PRESET_NAME + " " + (pluginPresets.size() + 1);
+		}
+		return presetName;
+	}
+
+	private HashMap<String, Boolean> getEnabledPlugins()
+	{
+		HashMap<String, Boolean> enabledPlugins = new HashMap<>();
+
+		pluginManager.getPlugins().forEach(plugin ->
+		{
+			String pluginName = plugin.getName();
+			if (!pluginIsIgnored(pluginName))
+			{
+				enabledPlugins.put(pluginName, pluginManager.isPluginEnabled(plugin));
+			}
+		});
+
+		return enabledPlugins;
+	}
+
+	private boolean pluginIsIgnored(String pluginName)
+	{
+		return IGNORED_PLUGINS.contains(pluginName);
+	}
+
+	private HashMap<String, HashMap<String, String>> getPluginSettings()
+	{
+		HashMap<String, HashMap<String, String>> pluginSettings = new HashMap<>();
+
+		for (Plugin plugin : pluginManager.getPlugins())
+		{
+			if (pluginIsIgnored(plugin.getName()))
+			{
+				continue;
+			}
+
+			HashMap<String, String> pluginSettingKeyValue = new HashMap<>();
+
+			// Check if plugin has configurable settings to be saved
+			ConfigDescriptor pluginConfigProxy;
+			try
+			{
+				pluginConfigProxy = getConfigProxy(plugin);
+			}
+			catch (NullPointerException ignore)
+			{
+				continue;
+			}
+
+			String groupName = pluginConfigProxy.getGroup().value();
+			pluginConfigProxy.getItems().forEach(configItemDescriptor ->
+			{
+				String key = configItemDescriptor.getItem().keyName();
+				pluginSettingKeyValue.put(key, configManager.getConfiguration(groupName, key));
+			});
+
+			pluginSettings.put(groupName, pluginSettingKeyValue);
+		}
+
+		return pluginSettings;
+	}
+
+	private ConfigDescriptor getConfigProxy(Plugin plugin)
+	{
+		return configManager.getConfigDescriptor(pluginManager.getPluginConfigProxy(plugin));
+	}
+
+	public void setAsSelected(final PluginPreset selectedPreset, final Boolean select)
+	{
+		pluginPresets.forEach(preset -> preset.setSelected(false));
+		if (presetIsValid(selectedPreset))
+		{
+			selectedPreset.setSelected(select);
+		}
+		savePresets();
+		pluginPanel.rebuild();
+	}
+
+	private Boolean presetIsValid(final PluginPreset selectedPreset)
+	{
+		return selectedPreset != null;
+	}
+
+	@SneakyThrows
+	public void savePresets()
+	{
+		PluginPresetsStorage.savePresets(pluginPresets);
+	}
+
+	public void refreshPresets()
+	{
+		pluginPresets.clear();
+		loadPresets();
+		savePresets();
+	}
+
+	@SneakyThrows
+	public void loadPreset(final PluginPreset preset)
+	{
+		// Prevents ConfigChanged event from running when programmatically turning plugins on/off
+		configChangedFromLoadPreset = true;
+
+		loadPluginSettingsFrom(preset);
+
+		startStopPlugins(preset);
+
+		configChangedFromLoadPreset = false;
+	}
+
+	private void loadPluginSettingsFrom(final PluginPreset preset)
+	{
+		for (HashMap.Entry<String, HashMap<String, String>> groupNames : preset.getPluginSettings().entrySet())
+		{
+			for (HashMap.Entry<String, String> keys : preset.getPluginSettings().get(groupNames.getKey()).entrySet())
+			{
+				if (keys.getValue() == null)
+				{
+					continue;
+				}
+
+				configManager.setConfiguration(groupNames.getKey(), keys.getKey(), keys.getValue());
+			}
+		}
+	}
+
+	private void startStopPlugins(final PluginPreset preset) throws PluginInstantiationException
+	{
+		HashMap<String, Boolean> enabledPlugins = preset.getEnabledPlugins();
+
+		for (Plugin plugin : pluginManager.getPlugins())
+		{
+			if (pluginIsIgnored(plugin.getName()))
+			{
+				continue;
+			}
+
+			// External Plugin Hub plugins that are not yet saved to a preset one is trying to load raises a null exception
+			// External plugins will stay as "ignored" (they wont go on/off when presets are loaded) until saved to a plugin preset
+			try
+			{
+				pluginManager.setPluginEnabled(plugin, enabledPlugins.get(plugin.getName()));
+
+				if (enabledPlugins.get(plugin.getName()))
+				{
+					pluginManager.startPlugin(plugin);
+				}
+				else
+				{
+					pluginManager.stopPlugin(plugin);
+				}
+			}
+			catch (NullPointerException ignore)
+			{
+			}
+		}
 	}
 
 	public void deletePreset(final PluginPreset preset)
@@ -288,79 +398,15 @@ public class PluginPresetsPlugin extends Plugin
 	}
 
 	@SneakyThrows
-	public void loadPreset(final PluginPreset preset)
-	{
-		configChangedFromLoadPreset = true;
-
-		// Load plugin settings
-		for (HashMap.Entry<String, HashMap<String, String>> groupNames : preset.getPluginSettings().entrySet())
-		{
-			for (HashMap.Entry<String, String> keys : preset.getPluginSettings().get(groupNames.getKey()).entrySet())
-			{
-				if (keys.getValue() == null)
-				{
-					continue;
-				}
-
-				configManager.setConfiguration(groupNames.getKey(), keys.getKey(), keys.getValue());
-			}
-		}
-
-		// Start/stop plugins
-		HashMap<String, Boolean> enabledPlugins = preset.getEnabledPlugins();
-		for (Plugin plugin : pluginManager.getPlugins())
-		{
-			if (IGNORED_PLUGINS.contains(plugin.getName()))
-			{
-				continue;
-			}
-
-			// External Plugin Hub plugins that are not yet saved to the preset one is trying to load raises a null exception
-			// External plugins will stay as "ignored" (they wont go on/off when presets are loaded) until saved to a plugin preset
-			try
-			{
-				pluginManager.setPluginEnabled(plugin, enabledPlugins.get(plugin.getName()));
-
-				if (enabledPlugins.get(plugin.getName()))
-				{
-					pluginManager.startPlugin(plugin);
-				}
-				else
-				{
-					pluginManager.stopPlugin(plugin);
-				}
-			}
-			catch (NullPointerException ignore)
-			{
-			}
-		}
-
-		configChangedFromLoadPreset = false;
-	}
-
-	@SneakyThrows
-	public void savePresets()
-	{
-		PluginPresetsStorage.savePresets(pluginPresets);
-	}
-
-	@SneakyThrows
 	public void loadPresets()
 	{
 		pluginPresets.addAll(PluginPresetsStorage.loadPresets());
 	}
 
-	public void refreshPresets()
-	{
-		pluginPresets.clear();
-		loadPresets();
-		savePresets();
-	}
-
 	public void importPresetFromClipboard()
 	{
 		PluginPreset newPreset = sharingManager.importPresetFromClipboard();
-		if (newPreset == null)
+		if (!presetIsValid(newPreset))
 		{
 			return;
 		}
@@ -378,30 +424,19 @@ public class PluginPresetsPlugin extends Plugin
 		sharingManager.exportPresetToClipboard(preset);
 	}
 
-	public void setAsSelected(final PluginPreset selectedPreset, final Boolean select)
-	{
-		pluginPresets.forEach(preset -> preset.setSelected(false));
-		if (selectedPreset != null)
-		{
-			selectedPreset.setSelected(select);
-		}
-		savePresets();
-		pluginPanel.rebuild();
-	}
-
 	public List<String> getUnsavedExternalPlugins(final PluginPreset preset)
 	{
 		List<String> newPlugins = new ArrayList<>();
-		List<String> plugins = pluginManager.getPlugins().stream().map(Plugin::getName)
-			.collect(Collectors.toList());
+		List<String> pluginNames = getPluginNames();
 		List<String> pluginsInPreset = new ArrayList<>(preset.getEnabledPlugins().keySet());
 
-		plugins.forEach(plugin -> {
-			if (!(IGNORED_PLUGINS.contains(plugin)))
+		pluginNames.forEach(pluginName ->
+		{
+			if (!pluginIsIgnored(pluginName))
 			{
-				if (!(pluginsInPreset.contains(plugin)))
+				if (!(pluginsInPreset.contains(pluginName)))
 				{
-					newPlugins.add(plugin);
+					newPlugins.add(pluginName);
 				}
 			}
 		});
@@ -413,21 +448,26 @@ public class PluginPresetsPlugin extends Plugin
 	{
 
 		List<String> missingPlugins = new ArrayList<>();
-		List<String> plugins = pluginManager.getPlugins().stream().map(Plugin::getName)
-			.collect(Collectors.toList());
+		List<String> plugins = getPluginNames();
 		List<String> pluginsInPreset = new ArrayList<>(preset.getEnabledPlugins().keySet());
 
-		pluginsInPreset.forEach(plugin -> {
-			if (!(IGNORED_PLUGINS.contains(plugin)))
+		pluginsInPreset.forEach(pluginName ->
+		{
+			if (!pluginIsIgnored(pluginName))
 			{
-				if (!(plugins.contains(plugin)))
+				if (!(plugins.contains(pluginName)))
 				{
-					missingPlugins.add(plugin);
+					missingPlugins.add(pluginName);
 				}
 			}
 		});
 
 		return missingPlugins;
+	}
+
+	private List<String> getPluginNames()
+	{
+		return pluginManager.getPlugins().stream().map(Plugin::getName).collect(Collectors.toList());
 	}
 
 	private void createPresetFolder()
