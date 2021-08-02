@@ -40,6 +40,7 @@ import javax.swing.SwingUtilities;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.client.config.ConfigDescriptor;
 import net.runelite.client.config.ConfigManager;
@@ -54,6 +55,7 @@ import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.LinkBrowser;
 
+@Slf4j
 @PluginDescriptor(
 	name = "Plugin Presets",
 	description = "Create presets of your plugin configurations.",
@@ -62,11 +64,12 @@ import net.runelite.client.util.LinkBrowser;
 public class PluginPresetsPlugin extends Plugin
 {
 	public static final File PRESETS_DIR = new File(RUNELITE_DIR, "presets");
+	private static final List<String> IGNORED_PLUGINS = Stream.of("Plugin Presets", "Configuration", "Xtea", "Twitch", "Notes", "Discord").collect(Collectors.toList());
 	private static final String PLUGIN_NAME = "Plugin Presets";
 	private static final String ICON_FILE = "panel_icon.png";
-	private static final List<String> IGNORED_PLUGINS = Stream.of("Plugin Presets", "Configuration", "Xtea", "Twitch", "Notes", "Discord").collect(Collectors.toList());
 	public final String HELP_LINK = "https://github.com/antero111/plugin-presets#using-plugin-presets";
 	public final String DEFAULT_PRESET_NAME = "Preset";
+
 	@Getter
 	private final List<PluginPreset> pluginPresets = new ArrayList<>();
 
@@ -91,9 +94,9 @@ public class PluginPresetsPlugin extends Plugin
 	private boolean configChangedFromLoadPreset = false;
 
 	@Override
-	protected void startUp() throws Exception
+	protected void startUp()
 	{
-		PRESETS_DIR.mkdirs();
+		createPresetFolder();
 
 		loadPresets();
 
@@ -119,7 +122,7 @@ public class PluginPresetsPlugin extends Plugin
 	}
 
 	@Override
-	protected void shutDown() throws Exception
+	protected void shutDown()
 	{
 		pluginPresets.clear();
 		clientToolbar.removeNavigation(navigationButton);
@@ -223,7 +226,7 @@ public class PluginPresetsPlugin extends Plugin
 
 			HashMap<String, String> pluginSettingKeyValue = new HashMap<>();
 
-			// Check if plugin has configurable settings to be saved.
+			// Check if plugin has configurable settings to be saved
 			ConfigDescriptor pluginConfigProxy;
 			try
 			{
@@ -289,7 +292,7 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		configChangedFromLoadPreset = true;
 
-		// Load plugin settings.
+		// Load plugin settings
 		for (HashMap.Entry<String, HashMap<String, String>> groupNames : preset.getPluginSettings().entrySet())
 		{
 			for (HashMap.Entry<String, String> keys : preset.getPluginSettings().get(groupNames.getKey()).entrySet())
@@ -303,7 +306,7 @@ public class PluginPresetsPlugin extends Plugin
 			}
 		}
 
-		// Start/stop plugins.
+		// Start/stop plugins
 		HashMap<String, Boolean> enabledPlugins = preset.getEnabledPlugins();
 		for (Plugin plugin : pluginManager.getPlugins())
 		{
@@ -312,8 +315,8 @@ public class PluginPresetsPlugin extends Plugin
 				continue;
 			}
 
-			// External Plugin Hub plugins that are not yet saved to the preset one is trying to load raises a null exception. 
-			// External plugins will stay as "ignored" (they wont go on/off when presets are loaded) until saved to a plugin preset. 
+			// External Plugin Hub plugins that are not yet saved to the preset one is trying to load raises a null exception
+			// External plugins will stay as "ignored" (they wont go on/off when presets are loaded) until saved to a plugin preset
 			try
 			{
 				pluginManager.setPluginEnabled(plugin, enabledPlugins.get(plugin.getName()));
@@ -378,7 +381,7 @@ public class PluginPresetsPlugin extends Plugin
 	public void setAsSelected(PluginPreset selectedPreset, Boolean select)
 	{
 		pluginPresets.forEach(preset -> preset.setSelected(false));
-		if (!(selectedPreset == null))
+		if (selectedPreset != null)
 		{
 			selectedPreset.setSelected(select);
 		}
@@ -408,6 +411,7 @@ public class PluginPresetsPlugin extends Plugin
 
 	public List<String> getMissingExternalPlugins(PluginPreset preset)
 	{
+
 		List<String> missingPlugins = new ArrayList<>();
 		List<String> plugins = pluginManager.getPlugins().stream().map(Plugin::getName)
 			.collect(Collectors.toList());
@@ -424,6 +428,16 @@ public class PluginPresetsPlugin extends Plugin
 		});
 
 		return missingPlugins;
+	}
+
+	private void createPresetFolder()
+	{
+		final boolean presetFolderWasCreated = PRESETS_DIR.mkdirs();
+
+		if (!presetFolderWasCreated)
+		{
+			log.warn(String.format("Could not create %s", PRESETS_DIR.getAbsolutePath()));
+		}
 	}
 
 	public boolean stringContainsInvalidCharacters(String string)
