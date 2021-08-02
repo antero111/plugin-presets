@@ -35,6 +35,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -42,51 +43,67 @@ public class PluginPresetsStorage
 {
 	private static final File PRESETS_DIR = PluginPresetsPlugin.PRESETS_DIR;
 
+	public static void savePresets(List<PluginPreset> pluginPresets)
+	{
+		clearPresetFolder();
+		pluginPresets.forEach(PluginPresetsStorage::storePluginPresetToJsonFile);
+	}
+
 	private static void clearPresetFolder()
 	{
 		for (File file : Objects.requireNonNull(PRESETS_DIR.listFiles()))
 		{
-			file.delete();
-		}
-	}
-
-	static void savePresets(List<PluginPreset> presets) throws IOException
-	{
-		clearPresetFolder();
-
-		for (PluginPreset pluginPreset : presets)
-		{
-			File file = new File(PRESETS_DIR, String.format("%s.json", pluginPreset.getName()));
-
-			if (file.exists())
+			final boolean fileWasDeleted = file.delete();
+			if (!fileWasDeleted)
 			{
-				Gson gson = new Gson();
-				Reader reader = new FileReader(file);
-				PluginPreset pluginPresetFromFile = gson.fromJson(reader, new TypeToken<PluginPreset>()
-				{
-				}.getType());
-				reader.close();
-
-				if (pluginPresetFromFile.getId() != pluginPreset.getId())
-				{
-					int fileNumber = 1;
-					while (file.exists())
-					{
-						file = new File(PRESETS_DIR, String.format("%s (%d).json", pluginPreset.getName(), fileNumber));
-						fileNumber++;
-					}
-				}
+				log.warn(String.format("Could not delete %s", file.getName()));
 			}
-
-			Gson gson = new Gson();
-			Writer writer = new FileWriter(file);
-			gson.toJson(pluginPreset, writer);
-			writer.flush();
-			writer.close();
 		}
 	}
 
-	static List<PluginPreset> loadPresets() throws IOException
+	@SneakyThrows
+	private static void storePluginPresetToJsonFile(PluginPreset pluginPreset)
+	{
+		File presetJsonFile = getPresetJsonFileFrom(pluginPreset);
+
+		if (presetJsonFile.exists())
+		{
+			presetJsonFile = giveJsonFileCustomSuffixNumber(pluginPreset, presetJsonFile);
+		}
+
+		writePresetDataToJsonFile(pluginPreset, presetJsonFile);
+	}
+
+	private static File getPresetJsonFileFrom(PluginPreset pluginPreset)
+	{
+		return new File(PRESETS_DIR, String.format("%s.json", pluginPreset.getName()));
+	}
+
+	private static File giveJsonFileCustomSuffixNumber(PluginPreset pluginPreset, File presetJsonFile)
+	{
+		int fileNumber = 1;
+		while (presetJsonFile.exists())
+		{
+			presetJsonFile = createNewPresetFileWithCustomSuffix(pluginPreset, fileNumber);
+			fileNumber++;
+		}
+		return presetJsonFile;
+	}
+
+	private static File createNewPresetFileWithCustomSuffix(PluginPreset pluginPreset, int fileNumber)
+	{
+		return new File(PRESETS_DIR, String.format("%s (%d).json", pluginPreset.getName(), fileNumber));
+	}
+
+	private static void writePresetDataToJsonFile(PluginPreset pluginPreset, File presetJsonFile) throws IOException
+	{
+		Gson gson = new Gson();
+		Writer writer = new FileWriter(presetJsonFile);
+		gson.toJson(pluginPreset, writer);
+		writer.close();
+	}
+
+	public static List<PluginPreset> loadPresets() throws IOException
 	{
 		ArrayList<Long> loadedIds = new ArrayList<>();
 		List<PluginPreset> pluginPresetsFromFolder = new ArrayList<>();
@@ -95,20 +112,15 @@ public class PluginPresetsStorage
 		{
 			if (file.isDirectory())
 			{
-				log.warn(String.format("directory %s is not a valid plugin preset.", file));
+				log.warn(String.format("Directory %s is not a valid plugin preset", file));
 				continue;
 			}
 
-			Gson gson = new Gson();
-			Reader reader = new FileReader(file);
-			PluginPreset pluginPreset = gson.fromJson(reader, new TypeToken<PluginPreset>()
-			{
-			}.getType());
-			reader.close();
+			PluginPreset pluginPreset = parsePluginPresetFrom(file);
 
 			if (pluginPreset == null)
 			{
-				log.warn(String.format("file %s is not a valid plugin preset.", file));
+				log.warn(String.format("File %s is not a valid plugin preset", file));
 				continue;
 			}
 
@@ -121,5 +133,21 @@ public class PluginPresetsStorage
 		}
 
 		return pluginPresetsFromFolder;
+	}
+
+	private static PluginPreset parsePluginPresetFrom(File file) throws IOException
+	{
+		Gson gson = new Gson();
+		Reader reader = new FileReader(file);
+		PluginPreset pluginPreset = parsePresetDataFrom(gson, reader);
+		reader.close();
+		return pluginPreset;
+	}
+
+	private static PluginPreset parsePresetDataFrom(Gson gson, Reader reader)
+	{
+		return gson.fromJson(reader, new TypeToken<PluginPreset>()
+		{
+		}.getType());
 	}
 }
