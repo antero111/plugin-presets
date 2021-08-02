@@ -147,7 +147,7 @@ public class PluginPresetsPlugin extends Plugin
 			{
 				if (preset.getEnabledPlugins().equals(enabledPlugins))
 				{
-					setAsSelected(preset, true);
+					SwingUtilities.invokeLater(() -> setAsSelected(preset, true));
 					return;
 				}
 			}
@@ -159,7 +159,7 @@ public class PluginPresetsPlugin extends Plugin
 				{
 					if (preset.getSelected())
 					{
-						setAsSelected(preset, null);
+						SwingUtilities.invokeLater(() -> setAsSelected(preset, null));
 					}
 				}
 				catch (NullPointerException ignore)
