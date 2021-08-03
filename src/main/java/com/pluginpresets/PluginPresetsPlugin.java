@@ -32,6 +32,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -325,59 +327,90 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		// Prevents ConfigChanged event from running when programmatically turning plugins on/off
 		configChangedFromLoadPreset = true;
-
-		loadPluginSettingsFrom(preset);
-
+		loadPluginSettings(preset);
 		startStopPlugins(preset);
-
 		configChangedFromLoadPreset = false;
 	}
 
-	private void loadPluginSettingsFrom(final PluginPreset preset)
+	private void loadPluginSettings(final PluginPreset preset)
 	{
-		for (HashMap.Entry<String, HashMap<String, String>> groupNames : preset.getPluginSettings().entrySet())
-		{
-			for (HashMap.Entry<String, String> keys : preset.getPluginSettings().get(groupNames.getKey()).entrySet())
-			{
-				if (keys.getValue() == null)
-				{
-					continue;
-				}
+		Set<Entry<String, HashMap<String, String>>> groupNames = preset.getPluginSettings().entrySet();
+		setConfigurationsForEveryGroupName(groupNames, preset);
+	}
 
-				configManager.setConfiguration(groupNames.getKey(), keys.getKey(), keys.getValue());
+	private void setConfigurationsForEveryGroupName(Set<Entry<String, HashMap<String, String>>> groupNames, PluginPreset preset)
+	{
+		for (Entry<String, HashMap<String, String>> groupName : groupNames)
+		{
+			String groupNameKey = groupName.getKey();
+			Set<Entry<String, String>> keys = preset.getPluginSettings().get(groupNameKey).entrySet();
+			setConfigurationsForEveryKey(keys, groupNameKey);
+		}
+	}
+
+	private void setConfigurationsForEveryKey(Set<Entry<String, String>> keys, String groupNameKey)
+	{
+		for (Entry<String, String> key : keys)
+		{
+			String keyValue = key.getValue();
+			if (keyValue != null)
+			{
+				configManager.setConfiguration(groupNameKey, key.getKey(), keyValue);
 			}
 		}
 	}
 
 	private void startStopPlugins(final PluginPreset preset) throws PluginInstantiationException
 	{
-		HashMap<String, Boolean> enabledPlugins = preset.getEnabledPlugins();
-
 		for (Plugin plugin : pluginManager.getPlugins())
 		{
-			if (pluginIsIgnored(plugin.getName()))
+			if (!pluginIsIgnored(plugin.getName()))
 			{
-				continue;
+				Boolean enabledOrDisabled = getPluginState(preset.getEnabledPlugins(), plugin);
+				enablePreset(plugin, enabledOrDisabled);
 			}
+		}
+	}
 
-			// External Plugin Hub plugins that are not yet saved to a preset one is trying to load raises a null exception
-			// External plugins will stay as "ignored" (they wont go on/off when presets are loaded) until saved to a plugin preset
-			try
-			{
-				pluginManager.setPluginEnabled(plugin, enabledPlugins.get(plugin.getName()));
+	private Boolean getPluginState(HashMap<String, Boolean> enabledPluginsInPreset, Plugin plugin)
+	{
+		return enabledPluginsInPreset.get(plugin.getName());
+	}
 
-				if (enabledPlugins.get(plugin.getName()))
-				{
-					pluginManager.startPlugin(plugin);
-				}
-				else
-				{
-					pluginManager.stopPlugin(plugin);
-				}
-			}
-			catch (NullPointerException ignore)
-			{
-			}
+	private void enablePreset(Plugin plugin, Boolean enabledOrDisabled) throws PluginInstantiationException
+	{
+		// External Plugin Hub plugins that are not yet saved to a preset one is trying to load raises a null exception
+		// External plugins will stay as "ignored" (they wont go on/off when presets are loaded) until saved to a plugin preset
+		try
+		{
+			setPluginEnabledAndStartPlugin(plugin, enabledOrDisabled);
+		}
+		catch (NullPointerException ignore)
+		{
+		}
+	}
+
+	private void setPluginEnabledAndStartPlugin(Plugin plugin, Boolean enabledOrDisabled) throws PluginInstantiationException
+	{
+		setPluginEnabled(plugin, enabledOrDisabled);
+		startOrStopPlugin(plugin, enabledOrDisabled);
+	}
+
+	private void setPluginEnabled(Plugin plugin, Boolean enabledOrDisabled)
+	{
+		// Turns the RuneLite settings switch on/off
+		pluginManager.setPluginEnabled(plugin, enabledOrDisabled);
+	}
+
+	private void startOrStopPlugin(Plugin plugin, Boolean enabledOrDisabled) throws PluginInstantiationException
+	{
+		if (enabledOrDisabled)
+		{
+			pluginManager.startPlugin(plugin);
+		}
+		else
+		{
+			pluginManager.stopPlugin(plugin);
 		}
 	}
 
