@@ -104,7 +104,7 @@ public class PluginPresetsPlugin extends Plugin
 		loadPresets();
 
 		pluginPanel = new PluginPresetsPluginPanel(this);
-		pluginPanel.rebuild();
+		rebuildPluginUi();
 
 		sharingManager = new PluginPresetsSharingManager(pluginPanel);
 
@@ -139,7 +139,7 @@ public class PluginPresetsPlugin extends Plugin
 	@Subscribe
 	public void onExternalPluginsChanged(ExternalPluginsChanged externalPluginsChanged)
 	{
-		SwingUtilities.invokeLater(() -> pluginPanel.rebuild());
+		SwingUtilities.invokeLater(this::rebuildPluginUi);
 	}
 
 	@Subscribe
@@ -218,7 +218,7 @@ public class PluginPresetsPlugin extends Plugin
 		setAsSelected(preset, true);
 
 		refreshPresets();
-		pluginPanel.rebuild();
+		rebuildPluginUi();
 	}
 
 	private String createDefaultPlaceholderNameIfNoNameSet(String presetName)
@@ -301,7 +301,7 @@ public class PluginPresetsPlugin extends Plugin
 			selectedPreset.setSelected(select);
 		}
 		savePresets();
-		pluginPanel.rebuild();
+		rebuildPluginUi();
 	}
 
 	private Boolean presetIsValid(final PluginPreset selectedPreset)
@@ -418,7 +418,7 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		pluginPresets.remove(preset);
 		savePresets();
-		pluginPanel.rebuild();
+		rebuildPluginUi();
 	}
 
 	public void updatePreset(final PluginPreset preset)
@@ -427,7 +427,7 @@ public class PluginPresetsPlugin extends Plugin
 		preset.setPluginSettings(getPluginSettings());
 		savePresets();
 		setAsSelected(preset, true);
-		pluginPanel.rebuild();
+		rebuildPluginUi();
 	}
 
 	@SneakyThrows
@@ -449,7 +449,7 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPresets.add(newPreset);
 		savePresets();
 		refreshPresets();
-		pluginPanel.rebuild();
+		rebuildPluginUi();
 	}
 
 	public void exportPresetToClipboard(final PluginPreset preset)
@@ -511,6 +511,10 @@ public class PluginPresetsPlugin extends Plugin
 		{
 			log.warn(String.format("Could not create %s", PRESETS_DIR.getAbsolutePath()));
 		}
+	}
+
+	public void rebuildPluginUi() {
+		pluginPanel.rebuild();
 	}
 
 	public boolean stringContainsInvalidCharacters(final String string)

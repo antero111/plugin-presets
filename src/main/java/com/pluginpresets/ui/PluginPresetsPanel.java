@@ -557,11 +557,14 @@ class PluginPresetsPanel extends JPanel
 		{
 			preset.setName(nameInput.getText());
 		}
-		plugin.savePresets();
 
 		nameInput.setEditable(false);
 		updateNameActions(false);
 		requestFocusInWindow();
+
+		plugin.savePresets();
+		plugin.refreshPresets();
+		plugin.rebuildPluginUi();
 	}
 
 	private void cancel()
