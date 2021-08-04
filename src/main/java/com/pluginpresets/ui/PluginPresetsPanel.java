@@ -547,16 +547,7 @@ class PluginPresetsPanel extends JPanel
 
 	private void save()
 	{
-		if (nameInput.getText().equals("") || plugin.stringContainsInvalidCharacters(nameInput.getText()))
-		{
-			String defaultPresetName = plugin.DEFAULT_PRESET_NAME;
-			preset.setName(defaultPresetName);
-			nameInput.setText(defaultPresetName);
-		}
-		else
-		{
-			preset.setName(nameInput.getText());
-		}
+		updatePresetName();
 
 		nameInput.setEditable(false);
 		updateNameActions(false);
@@ -565,6 +556,35 @@ class PluginPresetsPanel extends JPanel
 		plugin.savePresets();
 		plugin.refreshPresets();
 		plugin.rebuildPluginUi();
+	}
+
+	private void updatePresetName()
+	{
+		String nameInputText = nameInput.getText();
+		if (!nameIsInvalid(nameInputText))
+		{
+			preset.setName(nameInputText);
+		}
+		else
+		{
+			if (nameIsInvalid(preset.getName()))
+			{
+				setDefaultPresetName();
+			}
+			// Else keep the old name
+		}
+	}
+
+	private boolean nameIsInvalid(String name)
+	{
+		return nameInput.getText().equals("") || plugin.stringContainsInvalidCharacters(name);
+	}
+
+	private void setDefaultPresetName()
+	{
+		String defaultPresetName = plugin.DEFAULT_PRESET_NAME;
+		preset.setName(defaultPresetName);
+		nameInput.setText(defaultPresetName);
 	}
 
 	private void cancel()
