@@ -255,37 +255,39 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		HashMap<String, HashMap<String, String>> pluginSettings = new HashMap<>();
 
-		for (Plugin plugin : pluginManager.getPlugins())
+		pluginManager.getPlugins().forEach(plugin ->
 		{
-			if (pluginIsIgnored(plugin.getName()))
+			if (!pluginIsIgnored(plugin.getName()) && pluginHasConfigurableSettingsToBeSaved(plugin))
 			{
-				continue;
+				HashMap<String, String> pluginSettingKeyValue = new HashMap<>();
+
+				ConfigDescriptor pluginConfigProxy = getConfigProxy(plugin);
+				String groupName = pluginConfigProxy.getGroup().value();
+
+				pluginConfigProxy.getItems().forEach(configItemDescriptor ->
+				{
+					String key = configItemDescriptor.getItem().keyName();
+					pluginSettingKeyValue.put(key, configManager.getConfiguration(groupName, key));
+				});
+				
+				pluginSettings.put(groupName, pluginSettingKeyValue);
 			}
-
-			HashMap<String, String> pluginSettingKeyValue = new HashMap<>();
-
-			// Check if plugin has configurable settings to be saved
-			ConfigDescriptor pluginConfigProxy;
-			try
-			{
-				pluginConfigProxy = getConfigProxy(plugin);
-			}
-			catch (NullPointerException ignore)
-			{
-				continue;
-			}
-
-			String groupName = pluginConfigProxy.getGroup().value();
-			pluginConfigProxy.getItems().forEach(configItemDescriptor ->
-			{
-				String key = configItemDescriptor.getItem().keyName();
-				pluginSettingKeyValue.put(key, configManager.getConfiguration(groupName, key));
-			});
-
-			pluginSettings.put(groupName, pluginSettingKeyValue);
-		}
+		});
 
 		return pluginSettings;
+	}
+
+	private Boolean pluginHasConfigurableSettingsToBeSaved(Plugin plugin)
+	{
+		try
+		{
+			getConfigProxy(plugin);
+		}
+		catch (NullPointerException ignore)
+		{
+			return false;
+		}
+		return true;
 	}
 
 	private ConfigDescriptor getConfigProxy(Plugin plugin)
@@ -513,7 +515,8 @@ public class PluginPresetsPlugin extends Plugin
 		}
 	}
 
-	public void rebuildPluginUi() {
+	public void rebuildPluginUi()
+	{
 		pluginPanel.rebuild();
 	}
 
