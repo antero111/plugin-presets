@@ -237,7 +237,7 @@ public class PluginPresetsPlugin extends Plugin
 		pluginManager.getPlugins().forEach(plugin ->
 		{
 			String pluginName = plugin.getName();
-			if (!pluginIsIgnored(pluginName))
+			if (pluginIsNotIgnored(pluginName))
 			{
 				enabledPlugins.put(pluginName, pluginManager.isPluginEnabled(plugin));
 			}
@@ -246,9 +246,9 @@ public class PluginPresetsPlugin extends Plugin
 		return enabledPlugins;
 	}
 
-	private boolean pluginIsIgnored(String pluginName)
+	private boolean pluginIsNotIgnored(String pluginName)
 	{
-		return IGNORED_PLUGINS.contains(pluginName);
+		return !IGNORED_PLUGINS.contains(pluginName);
 	}
 
 	private HashMap<String, HashMap<String, String>> getPluginSettings()
@@ -257,7 +257,7 @@ public class PluginPresetsPlugin extends Plugin
 
 		pluginManager.getPlugins().forEach(plugin ->
 		{
-			if (!pluginIsIgnored(plugin.getName()) && pluginHasConfigurableSettingsToBeSaved(plugin))
+			if (pluginIsNotIgnored(plugin.getName()) && pluginHasConfigurableSettingsToBeSaved(plugin))
 			{
 				HashMap<String, String> pluginSettingKeyValue = new HashMap<>();
 
@@ -366,7 +366,7 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		for (Plugin plugin : pluginManager.getPlugins())
 		{
-			if (!pluginIsIgnored(plugin.getName()))
+			if (pluginIsNotIgnored(plugin.getName()))
 			{
 				Boolean enabledOrDisabled = getPluginState(preset.getEnabledPlugins(), plugin);
 				enablePreset(plugin, enabledOrDisabled);
@@ -467,7 +467,7 @@ public class PluginPresetsPlugin extends Plugin
 
 		pluginNames.forEach(pluginName ->
 		{
-			if (!pluginIsIgnored(pluginName))
+			if (pluginIsNotIgnored(pluginName))
 			{
 				if (!(pluginsInPreset.contains(pluginName)))
 				{
@@ -488,7 +488,7 @@ public class PluginPresetsPlugin extends Plugin
 
 		pluginsInPreset.forEach(pluginName ->
 		{
-			if (!pluginIsIgnored(pluginName))
+			if (pluginIsNotIgnored(pluginName))
 			{
 				if (!(plugins.contains(pluginName)))
 				{
