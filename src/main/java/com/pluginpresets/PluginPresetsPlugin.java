@@ -511,7 +511,7 @@ public class PluginPresetsPlugin extends Plugin
 
 		if (!presetFolderWasCreated)
 		{
-			log.warn(String.format("Could not create %s", PRESETS_DIR.getAbsolutePath()));
+			log.info(String.format("Folder already exists %s", PRESETS_DIR.getAbsolutePath()));
 		}
 	}
 
