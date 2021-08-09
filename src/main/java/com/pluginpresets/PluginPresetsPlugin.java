@@ -145,7 +145,7 @@ public class PluginPresetsPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
 	{
-		if (!(configChangedFromLoadPreset))
+		if (!(configChangedFromLoadPreset) && !(configChanged.getKey().equals("pluginpresetsplugin")))
 		{
 			// Check if manually created preset matches existing one
 			PluginPreset matchingPreset = getPresetThatMatchesCurrentConfigurations();
