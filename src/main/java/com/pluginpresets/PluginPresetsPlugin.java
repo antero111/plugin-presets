@@ -145,20 +145,32 @@ public class PluginPresetsPlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
 	{
-		if (!(configChangedFromLoadPreset) && !(configChanged.getKey().equals("pluginpresetsplugin")))
+		if (validConfigChange(configChanged))
 		{
-			// Check if manually created preset matches existing one
-			PluginPreset matchingPreset = getPresetThatMatchesCurrentConfigurations();
-			if (matchingPreset != null)
+			if (currentConfigurationsMatchSomePreset())
 			{
-				SwingUtilities.invokeLater(() -> setAsSelected(matchingPreset, true));
+				setMatchingPresetAsSelected();
 			}
 			else
 			{
-				// No existing preset matches current configurations
 				warnFromUnsavedPluginConfigurations();
 			}
 		}
+	}
+
+	private boolean validConfigChange(ConfigChanged configChanged)
+	{
+		return !(configChangedFromLoadPreset) && !(configChanged.getKey().equals("pluginpresetsplugin"));
+	}
+
+	private Boolean currentConfigurationsMatchSomePreset()
+	{
+		PluginPreset matchingPreset = getPresetThatMatchesCurrentConfigurations();
+		if (matchingPreset != null)
+		{
+			return presetMatchesCurrentConfigurations(matchingPreset);
+		}
+		return false;
 	}
 
 	private PluginPreset getPresetThatMatchesCurrentConfigurations()
@@ -174,6 +186,37 @@ public class PluginPresetsPlugin extends Plugin
 		}
 
 		return null;
+	}
+
+	private Boolean presetMatchesCurrentConfigurations(PluginPreset preset)
+	{
+		HashMap<String, HashMap<String, String>> currentPluginSettings = getPluginSettings();
+		// For every plugin
+		for (Entry<String, HashMap<String, String>> pluginSettingsFromPreset : preset.getPluginSettings().entrySet())
+		{
+			// For every plugin setting
+			HashMap<String, String> currentSettingsForPlugin = currentPluginSettings.get(pluginSettingsFromPreset.getKey());
+			for (Entry<String, String> settingKeyValuePair : pluginSettingsFromPreset.getValue().entrySet())
+			{
+				String presetSettingValue = settingKeyValuePair.getValue();
+				String currentSettingValue = currentSettingsForPlugin.get(settingKeyValuePair.getKey());
+				if (presetSettingValue != null && currentSettingValue != null)
+				{
+					// If values don't match then given preset does not match current configurations
+					if (!presetSettingValue.equals(currentSettingValue))
+					{
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
+
+	private void setMatchingPresetAsSelected()
+	{
+		PluginPreset matchingPreset = getPresetThatMatchesCurrentConfigurations();
+		SwingUtilities.invokeLater(() -> setAsSelected(matchingPreset, true));
 	}
 
 	private void warnFromUnsavedPluginConfigurations()
@@ -269,7 +312,7 @@ public class PluginPresetsPlugin extends Plugin
 					String key = configItemDescriptor.getItem().keyName();
 					pluginSettingKeyValue.put(key, configManager.getConfiguration(groupName, key));
 				});
-				
+
 				pluginSettings.put(groupName, pluginSettingKeyValue);
 			}
 		});
