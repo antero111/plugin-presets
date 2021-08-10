@@ -49,7 +49,11 @@ If you don't want to install external plugins, enable the preset and update (ove
 
 If you've experienced an issue with Plugin Presets, or have a recommendation on how to improve it, please [create an issue](https://github.com/antero111/plugin-presets/issues/new) with the relevant details.
 
-## Changelog
+### Changelog
+
+#### 1.5
+
+Plugin now warns from unsaved configurations when making changes to plugin configurations. Fixed presets not staying in alphabethical order when renaming them. Preset renaming improvements. Preset names now contains more valid characters. Fixed bug causing all presets disappearing when turning the plugin off.
 
 #### 1.4
 
