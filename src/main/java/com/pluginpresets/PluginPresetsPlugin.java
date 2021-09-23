@@ -46,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.client.config.ConfigDescriptor;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.config.RuneLiteConfig;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.ExternalPluginsChanged;
@@ -81,6 +82,9 @@ public class PluginPresetsPlugin extends Plugin
 
 	@Inject
 	private PluginManager pluginManager;
+
+	@Inject
+	private RuneLiteConfig runeLiteConfig;
 
 	@Inject
 	private ConfigManager configManager;
@@ -316,6 +320,17 @@ public class PluginPresetsPlugin extends Plugin
 				pluginSettings.put(groupName, pluginSettingKeyValue);
 			}
 		});
+
+		HashMap<String, String> runeliteConfigSettingKeyValues = new HashMap<>();
+
+		configManager.getConfigDescriptor(runeLiteConfig).getItems().forEach(configItemDescriptor ->
+		{
+			String keyName = configItemDescriptor.getItem().keyName();
+			String configuration = configManager.getConfiguration(RuneLiteConfig.GROUP_NAME, keyName);
+			runeliteConfigSettingKeyValues.put(keyName, configuration);
+		});
+
+		pluginSettings.put(RuneLiteConfig.GROUP_NAME, runeliteConfigSettingKeyValues);
 
 		return pluginSettings;
 	}
