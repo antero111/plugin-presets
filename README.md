@@ -1,4 +1,4 @@
-# RuneLite Plugin Presets plugin
+# RuneLite Plugin Presets plugin [![](https://img.shields.io/endpoint?url=https://i.pluginhub.info/shields/installs/plugin/plugin-presets)](https://runelite.net/plugin-hub)
 
 This plugin adds the ability to create presets of your RuneLite plugin configurations.
 
@@ -50,6 +50,10 @@ If you don't want to install external plugins, enable the preset and update (ove
 If you've experienced an issue with Plugin Presets, or have a recommendation on how to improve it, please [create an issue](https://github.com/antero111/plugin-presets/issues/new) with the relevant details.
 
 ### Changelog
+
+#### 1.6
+
+Presets now include RuneLite client settings. Added ability to ignore certain plugin setting keys, fixes some sensitive data showing in shareable presets.
 
 #### 1.5
 
