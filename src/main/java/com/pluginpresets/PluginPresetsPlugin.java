@@ -577,6 +577,6 @@ public class PluginPresetsPlugin extends Plugin
 
 	public boolean stringContainsInvalidCharacters(final String string)
 	{
-		return !(Pattern.compile("^[ A-Öa-ö0-9-_.,()+]+$").matcher(string).matches());
+		return !(Pattern.compile("(?i)^[ a-ö0-9-_.,;=()+!]+$").matcher(string).matches());
 	}
 }
