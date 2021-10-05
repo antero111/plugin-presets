@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -92,9 +91,6 @@ public class PluginPresetsPlugin extends Plugin
 
 	private NavigationButton navigationButton;
 
-	@Getter(AccessLevel.PACKAGE)
-	private PluginPreset preset;
-
 	private PluginPresetsPluginPanel pluginPanel;
 
 	private PluginPresetsSharingManager sharingManager;
@@ -137,7 +133,6 @@ public class PluginPresetsPlugin extends Plugin
 
 		pluginPanel = null;
 		sharingManager = null;
-		preset = null;
 		navigationButton = null;
 	}
 
@@ -254,7 +249,7 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		presetName = createDefaultPlaceholderNameIfNoNameSet(presetName);
 
-		preset = new PluginPreset(
+		PluginPreset preset = new PluginPreset(
 			Instant.now().toEpochMilli(),
 			presetName,
 			false,
