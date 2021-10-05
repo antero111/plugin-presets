@@ -110,25 +110,19 @@ public class PluginPresetsStorage
 
 		for (File file : Objects.requireNonNull(PRESETS_DIR.listFiles()))
 		{
-			if (file.isDirectory())
+			if (file.isFile())
 			{
-				log.warn(String.format("Directory %s is not a valid plugin preset", file));
-				continue;
-			}
+				PluginPreset pluginPreset = parsePluginPresetFrom(file);
 
-			PluginPreset pluginPreset = parsePluginPresetFrom(file);
-
-			if (pluginPreset == null)
-			{
-				log.warn(String.format("File %s is not a valid plugin preset", file));
-				continue;
-			}
-
-			long id = pluginPreset.getId();
-			if (!(loadedIds.contains(id)))
-			{
-				pluginPresetsFromFolder.add(pluginPreset);
-				loadedIds.add(id);
+				if (pluginPreset != null)
+				{
+					long id = pluginPreset.getId();
+					if (!(loadedIds.contains(id)))
+					{
+						pluginPresetsFromFolder.add(pluginPreset);
+						loadedIds.add(id);
+					}
+				}
 			}
 		}
 
