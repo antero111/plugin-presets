@@ -158,7 +158,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				LinkBrowser.browse(plugin.HELP_LINK);
+				LinkBrowser.browse(PluginPresetsPlugin.HELP_LINK);
 			}
 
 			@Override
@@ -222,7 +222,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 					String customPresetName = JOptionPane.showInputDialog(PluginPresetsPluginPanel.this,
 						"Give your new preset a name.", "New preset", JOptionPane.QUESTION_MESSAGE);
 
-					if (!(customPresetName == null))
+					if (customPresetName != null)
 					{
 						if (plugin.stringContainsInvalidCharacters(customPresetName))
 						{

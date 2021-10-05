@@ -300,25 +300,25 @@ class PluginPresetsPanel extends JPanel
 							int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
 								"Are you sure you want to update this preset with your current plugin configurations?",
 								"Update preset", JOptionPane.YES_NO_OPTION);
-	
+
 							if (confirm == 0)
 							{
 								plugin.updatePreset(preset);
 							}
 						}
-	
+
 						@Override
 						public void mouseEntered(MouseEvent mouseEvent)
 						{
 							updateLabel.setIcon(UPDATE_WARNING_HOVER_ICON);
 						}
-	
+
 						@Override
 						public void mouseExited(MouseEvent mouseEvent)
 						{
 							updateLabel.setIcon(UPDATE_WARNING_ICON);
 						}
-					});	
+					});
 				}
 			}
 			else
@@ -535,9 +535,9 @@ class PluginPresetsPanel extends JPanel
 
 	private boolean unsavedPluginConfigurations()
 	{
-		for (PluginPreset preset : plugin.getPluginPresets())
+		for (PluginPreset p : plugin.getPluginPresets())
 		{
-			if (preset.getSelected() == null)
+			if (p.getSelected() == null)
 			{
 				return true;
 			}
@@ -561,13 +561,13 @@ class PluginPresetsPanel extends JPanel
 	private void updatePresetName()
 	{
 		String nameInputText = nameInput.getText();
-		if (!nameIsInvalid(nameInputText))
+		if (nameIsValid(nameInputText))
 		{
 			preset.setName(nameInputText);
 		}
 		else
 		{
-			if (nameIsInvalid(preset.getName()))
+			if (!nameIsValid(preset.getName()))
 			{
 				setDefaultPresetName();
 			}
@@ -575,14 +575,14 @@ class PluginPresetsPanel extends JPanel
 		}
 	}
 
-	private boolean nameIsInvalid(String name)
+	private boolean nameIsValid(String name)
 	{
-		return nameInput.getText().equals("") || plugin.stringContainsInvalidCharacters(name);
+		return !nameInput.getText().equals("") && !plugin.stringContainsInvalidCharacters(name);
 	}
 
 	private void setDefaultPresetName()
 	{
-		String defaultPresetName = plugin.DEFAULT_PRESET_NAME;
+		String defaultPresetName = PluginPresetsPlugin.DEFAULT_PRESET_NAME;
 		preset.setName(defaultPresetName);
 		nameInput.setText(defaultPresetName);
 	}

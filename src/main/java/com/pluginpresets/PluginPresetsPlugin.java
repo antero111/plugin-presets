@@ -68,12 +68,12 @@ import net.runelite.client.util.LinkBrowser;
 public class PluginPresetsPlugin extends Plugin
 {
 	public static final File PRESETS_DIR = new File(RUNELITE_DIR, "presets");
+	public static final String HELP_LINK = "https://github.com/antero111/plugin-presets#using-plugin-presets";
+	public static final String DEFAULT_PRESET_NAME = "Preset";
 	private static final List<String> IGNORED_PLUGINS = Stream.of("Plugin Presets", "Configuration", "Xtea").collect(Collectors.toList());
 	private static final List<String> IGNORED_KEYS = Stream.of("channel", "oauth", "username", "notesData").collect(Collectors.toList());
 	private static final String PLUGIN_NAME = "Plugin Presets";
 	private static final String ICON_FILE = "panel_icon.png";
-	public final String HELP_LINK = "https://github.com/antero111/plugin-presets#using-plugin-presets";
-	public final String DEFAULT_PRESET_NAME = "Preset";
 
 	@Getter
 	private final List<PluginPreset> pluginPresets = new ArrayList<>();
@@ -315,7 +315,8 @@ public class PluginPresetsPlugin extends Plugin
 				pluginConfigProxy.getItems().forEach(configItemDescriptor ->
 				{
 					String key = configItemDescriptor.getItem().keyName();
-					if (!keyIsIgnored(key)) {
+					if (!keyIsIgnored(key))
+					{
 						pluginSettingKeyValue.put(key, configManager.getConfiguration(groupName, key));
 					}
 				});
@@ -337,8 +338,9 @@ public class PluginPresetsPlugin extends Plugin
 
 		return pluginSettings;
 	}
-	
-	private boolean keyIsIgnored(String key) {
+
+	private boolean keyIsIgnored(String key)
+	{
 		return IGNORED_KEYS.contains(key);
 	}
 
@@ -527,17 +529,14 @@ public class PluginPresetsPlugin extends Plugin
 	public List<String> getUnsavedExternalPlugins(final PluginPreset preset)
 	{
 		List<String> newPlugins = new ArrayList<>();
-		List<String> pluginNames = getPluginNames();
+		List<String> pluginNames = getAllPluginNames();
 		List<String> pluginsInPreset = new ArrayList<>(preset.getEnabledPlugins().keySet());
 
 		pluginNames.forEach(pluginName ->
 		{
-			if (pluginIsNotIgnored(pluginName))
+			if (pluginIsNotIgnored(pluginName) && !(pluginsInPreset.contains(pluginName)))
 			{
-				if (!(pluginsInPreset.contains(pluginName)))
-				{
-					newPlugins.add(pluginName);
-				}
+				newPlugins.add(pluginName);
 			}
 		});
 
@@ -546,26 +545,22 @@ public class PluginPresetsPlugin extends Plugin
 
 	public List<String> getMissingExternalPlugins(final PluginPreset preset)
 	{
-
 		List<String> missingPlugins = new ArrayList<>();
-		List<String> plugins = getPluginNames();
+		List<String> pluginNames = getAllPluginNames();
 		List<String> pluginsInPreset = new ArrayList<>(preset.getEnabledPlugins().keySet());
 
 		pluginsInPreset.forEach(pluginName ->
 		{
-			if (pluginIsNotIgnored(pluginName))
+			if (pluginIsNotIgnored(pluginName) && !(pluginNames.contains(pluginName)))
 			{
-				if (!(plugins.contains(pluginName)))
-				{
-					missingPlugins.add(pluginName);
-				}
+				missingPlugins.add(pluginName);
 			}
 		});
 
 		return missingPlugins;
 	}
 
-	private List<String> getPluginNames()
+	private List<String> getAllPluginNames()
 	{
 		return pluginManager.getPlugins().stream().map(Plugin::getName).collect(Collectors.toList());
 	}
