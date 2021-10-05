@@ -147,14 +147,7 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		if (validConfigChange(configChanged))
 		{
-			if (currentConfigurationsMatchSomePreset())
-			{
-				setMatchingPresetAsSelected();
-			}
-			else
-			{
-				warnFromUnsavedPluginConfigurations();
-			}
+			handleValidConfigChange();
 		}
 	}
 
@@ -163,23 +156,32 @@ public class PluginPresetsPlugin extends Plugin
 		return !(configChangedFromLoadPreset) && !(configChanged.getKey().equals("pluginpresetsplugin"));
 	}
 
-	private Boolean currentConfigurationsMatchSomePreset()
+	private void handleValidConfigChange()
 	{
-		PluginPreset matchingPreset = getPresetThatMatchesCurrentConfigurations();
-		if (matchingPreset != null)
+		PluginPreset matchingPreset = getPresetMatchingCurrentConfigurations();
+		if (presetIsValid(matchingPreset))
 		{
-			return presetMatchesCurrentConfigurations(matchingPreset);
+			setMatchingPresetAsSelected(matchingPreset);
 		}
-		return false;
+		else
+		{
+			warnFromUnsavedPluginConfigurations();
+		}
 	}
 
-	private PluginPreset getPresetThatMatchesCurrentConfigurations()
+	private Boolean presetIsValid(final PluginPreset preset)
+	{
+		return preset != null;
+	}
+
+	private PluginPreset getPresetMatchingCurrentConfigurations()
 	{
 		HashMap<String, Boolean> enabledPlugins = getEnabledPlugins();
 
 		for (PluginPreset preset : pluginPresets)
 		{
-			if (preset.getEnabledPlugins().equals(enabledPlugins))
+			if (preset.getEnabledPlugins().equals(enabledPlugins)
+				&& presetMatchesCurrentConfigurations(preset))
 			{
 				return preset;
 			}
@@ -191,41 +193,33 @@ public class PluginPresetsPlugin extends Plugin
 	private Boolean presetMatchesCurrentConfigurations(PluginPreset preset)
 	{
 		HashMap<String, HashMap<String, String>> currentPluginSettings = getPluginSettings();
-		// For every plugin
 		for (Entry<String, HashMap<String, String>> pluginSettingsFromPreset : preset.getPluginSettings().entrySet())
 		{
-			// For every plugin setting
 			HashMap<String, String> currentSettingsForPlugin = currentPluginSettings.get(pluginSettingsFromPreset.getKey());
 			for (Entry<String, String> settingKeyValuePair : pluginSettingsFromPreset.getValue().entrySet())
 			{
 				String presetSettingValue = settingKeyValuePair.getValue();
 				String currentSettingValue = currentSettingsForPlugin.get(settingKeyValuePair.getKey());
-				if (presetSettingValue != null && currentSettingValue != null)
+				if (presetSettingValue != null
+					&& currentSettingValue != null
+					&& !(presetSettingValue.equals(currentSettingValue)))
 				{
-					// If values don't match then given preset does not match current configurations
-					if (!presetSettingValue.equals(currentSettingValue))
-					{
-						return false;
-					}
+					return false;
 				}
 			}
 		}
 		return true;
 	}
 
-	private void setMatchingPresetAsSelected()
+	private void setMatchingPresetAsSelected(PluginPreset matchingPreset)
 	{
-		PluginPreset matchingPreset = getPresetThatMatchesCurrentConfigurations();
-		SwingUtilities.invokeLater(() -> setAsSelected(matchingPreset, true));
+		SwingUtilities.invokeLater(() -> setPresetAsSelected(matchingPreset));
 	}
 
 	private void warnFromUnsavedPluginConfigurations()
 	{
 		final PluginPreset selectedPreset = getSelectedPreset();
-		if (selectedPreset != null)
-		{
-			SwingUtilities.invokeLater(() -> displayUnsavedPluginConfigurationsWarning(selectedPreset));
-		}
+		SwingUtilities.invokeLater(() -> displayUnsavedPluginConfigurationsWarning(selectedPreset));
 	}
 
 	private PluginPreset getSelectedPreset()
@@ -242,7 +236,7 @@ public class PluginPresetsPlugin extends Plugin
 
 	private void displayUnsavedPluginConfigurationsWarning(final PluginPreset selectedPreset)
 	{
-		setAsSelected(selectedPreset, null);
+		setSelectedPresetAsNull(selectedPreset);
 	}
 
 	public void createPreset(String presetName)
@@ -258,7 +252,7 @@ public class PluginPresetsPlugin extends Plugin
 		);
 		pluginPresets.add(preset);
 
-		setAsSelected(preset, true);
+		setPresetAsSelected(preset);
 
 		refreshPresets();
 		rebuildPluginUi();
@@ -357,20 +351,26 @@ public class PluginPresetsPlugin extends Plugin
 		return configManager.getConfigDescriptor(pluginManager.getPluginConfigProxy(plugin));
 	}
 
-	public void setAsSelected(final PluginPreset selectedPreset, final Boolean select)
+	public void setSelectedPresetAsNull(final PluginPreset selectedPreset)
 	{
 		pluginPresets.forEach(preset -> preset.setSelected(false));
 		if (presetIsValid(selectedPreset))
 		{
-			selectedPreset.setSelected(select);
+			selectedPreset.setSelected(null);
 		}
 		savePresets();
 		rebuildPluginUi();
 	}
 
-	private Boolean presetIsValid(final PluginPreset selectedPreset)
+	public void setPresetAsSelected(final PluginPreset selectedPreset)
 	{
-		return selectedPreset != null;
+		pluginPresets.forEach(preset -> preset.setSelected(false));
+		if (presetIsValid(selectedPreset))
+		{
+			selectedPreset.setSelected(true);
+		}
+		savePresets();
+		rebuildPluginUi();
 	}
 
 	@SneakyThrows
@@ -426,12 +426,14 @@ public class PluginPresetsPlugin extends Plugin
 
 	private void startStopPlugins(final PluginPreset preset) throws PluginInstantiationException
 	{
+		List<String> unsavedExternalPlugins = getUnsavedExternalPlugins(preset);
 		for (Plugin plugin : pluginManager.getPlugins())
 		{
-			if (pluginIsNotIgnored(plugin.getName()))
+			String name = plugin.getName();
+			if (pluginIsNotIgnored(name) && !unsavedExternalPlugins.contains(name))
 			{
 				Boolean enabledOrDisabled = getPluginState(preset.getEnabledPlugins(), plugin);
-				enablePreset(plugin, enabledOrDisabled);
+				setPluginEnabledAndStartPlugin(plugin, enabledOrDisabled);
 			}
 		}
 	}
@@ -439,19 +441,6 @@ public class PluginPresetsPlugin extends Plugin
 	private Boolean getPluginState(HashMap<String, Boolean> enabledPluginsInPreset, Plugin plugin)
 	{
 		return enabledPluginsInPreset.get(plugin.getName());
-	}
-
-	private void enablePreset(Plugin plugin, Boolean enabledOrDisabled) throws PluginInstantiationException
-	{
-		// External Plugin Hub plugins that are not yet saved to a preset one is trying to load raises a null exception
-		// External plugins will stay as "ignored" (they wont go on/off when presets are loaded) until saved to a plugin preset
-		try
-		{
-			setPluginEnabledAndStartPlugin(plugin, enabledOrDisabled);
-		}
-		catch (NullPointerException ignore)
-		{
-		}
 	}
 
 	private void setPluginEnabledAndStartPlugin(Plugin plugin, Boolean enabledOrDisabled) throws PluginInstantiationException
@@ -490,7 +479,7 @@ public class PluginPresetsPlugin extends Plugin
 		preset.setEnabledPlugins(getEnabledPlugins());
 		preset.setPluginSettings(getPluginSettings());
 		savePresets();
-		setAsSelected(preset, true);
+		setPresetAsSelected(preset);
 		rebuildPluginUi();
 	}
 

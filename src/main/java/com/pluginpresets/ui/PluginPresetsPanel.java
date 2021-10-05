@@ -269,7 +269,7 @@ class PluginPresetsPanel extends JPanel
 					if (confirm == 0)
 					{
 						plugin.loadPreset(preset);
-						plugin.setAsSelected(preset, true);
+						plugin.setPresetAsSelected(preset);
 					}
 				}
 
@@ -369,7 +369,7 @@ class PluginPresetsPanel extends JPanel
 				public void mousePressed(MouseEvent mouseEvent)
 				{
 					plugin.loadPreset(preset);
-					plugin.setAsSelected(preset, true);
+					plugin.setPresetAsSelected(preset);
 				}
 
 				@Override
