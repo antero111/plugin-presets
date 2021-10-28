@@ -69,8 +69,8 @@ public class PluginPresetsPlugin extends Plugin
 	public static final File PRESETS_DIR = new File(RUNELITE_DIR, "presets");
 	public static final String HELP_LINK = "https://github.com/antero111/plugin-presets#using-plugin-presets";
 	public static final String DEFAULT_PRESET_NAME = "Preset";
-	private static final List<String> IGNORED_PLUGINS = Stream.of("Plugin Presets", "Configuration", "Xtea").collect(Collectors.toList());
-	private static final List<String> IGNORED_KEYS = Stream.of("channel", "oauth", "username", "notesData").collect(Collectors.toList());
+	private static final List<String> DEFAULT_IGNORED_PLUGINS = Stream.of("Plugin Presets", "Configuration", "Xtea").collect(Collectors.toList());
+	private static final List<String> DEFAULT_IGNORED_PLUGIN_KEYS = Stream.of("channel", "oauth", "username", "notesData").collect(Collectors.toList());
 	private static final String PLUGIN_NAME = "Plugin Presets";
 	private static final String ICON_FILE = "panel_icon.png";
 
@@ -285,7 +285,7 @@ public class PluginPresetsPlugin extends Plugin
 
 	private boolean pluginIsNotIgnored(String pluginName)
 	{
-		return !IGNORED_PLUGINS.contains(pluginName);
+		return !DEFAULT_IGNORED_PLUGINS.contains(pluginName);
 	}
 
 	private HashMap<String, HashMap<String, String>> getPluginSettings()
@@ -330,7 +330,7 @@ public class PluginPresetsPlugin extends Plugin
 
 	private boolean keyIsIgnored(String key)
 	{
-		return IGNORED_KEYS.contains(key);
+		return DEFAULT_IGNORED_PLUGIN_KEYS.contains(key);
 	}
 
 	private Boolean pluginHasConfigurableSettingsToBeSaved(Plugin plugin)
@@ -399,27 +399,17 @@ public class PluginPresetsPlugin extends Plugin
 	private void loadPluginSettings(final PluginPreset preset)
 	{
 		Set<Entry<String, HashMap<String, String>>> groupNames = preset.getPluginSettings().entrySet();
-		setConfigurationsForEveryGroupName(groupNames, preset);
-	}
-
-	private void setConfigurationsForEveryGroupName(Set<Entry<String, HashMap<String, String>>> groupNames, PluginPreset preset)
-	{
 		for (Entry<String, HashMap<String, String>> groupName : groupNames)
 		{
 			String groupNameKey = groupName.getKey();
 			Set<Entry<String, String>> keys = preset.getPluginSettings().get(groupNameKey).entrySet();
-			setConfigurationsForEveryKey(keys, groupNameKey);
-		}
-	}
-
-	private void setConfigurationsForEveryKey(Set<Entry<String, String>> keys, String groupNameKey)
-	{
-		for (Entry<String, String> key : keys)
-		{
-			String keyValue = key.getValue();
-			if (keyValue != null)
+			for (Entry<String, String> key : keys)
 			{
-				configManager.setConfiguration(groupNameKey, key.getKey(), keyValue);
+				String keyValue = key.getValue();
+				if (keyValue != null)
+				{
+					configManager.setConfiguration(groupNameKey, key.getKey(), keyValue);
+				}
 			}
 		}
 	}
@@ -429,18 +419,13 @@ public class PluginPresetsPlugin extends Plugin
 		List<String> unsavedExternalPlugins = getUnsavedExternalPlugins(preset);
 		for (Plugin plugin : pluginManager.getPlugins())
 		{
-			String name = plugin.getName();
-			if (pluginIsNotIgnored(name) && !unsavedExternalPlugins.contains(name))
+			String pluginName = plugin.getName();
+			if (pluginIsNotIgnored(pluginName) && !unsavedExternalPlugins.contains(pluginName))
 			{
-				Boolean enabledOrDisabled = getPluginState(preset.getEnabledPlugins(), plugin);
+				Boolean enabledOrDisabled = preset.getEnabledPlugins().get(plugin.getName());
 				setPluginEnabledAndStartPlugin(plugin, enabledOrDisabled);
 			}
 		}
-	}
-
-	private Boolean getPluginState(HashMap<String, Boolean> enabledPluginsInPreset, Plugin plugin)
-	{
-		return enabledPluginsInPreset.get(plugin.getName());
 	}
 
 	private void setPluginEnabledAndStartPlugin(Plugin plugin, Boolean enabledOrDisabled) throws PluginInstantiationException
