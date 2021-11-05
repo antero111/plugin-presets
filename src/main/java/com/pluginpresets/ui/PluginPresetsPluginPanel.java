@@ -224,11 +224,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 					if (customPresetName != null)
 					{
-						if (plugin.stringContainsInvalidCharacters(customPresetName))
-						{
-							customPresetName = "";
-						}
-
 						plugin.createPreset(customPresetName);
 					}
 				}

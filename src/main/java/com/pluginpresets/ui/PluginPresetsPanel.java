@@ -297,13 +297,21 @@ class PluginPresetsPanel extends JPanel
 						@Override
 						public void mousePressed(MouseEvent mouseEvent)
 						{
-							int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
+							Object[] options = {"Yes", "No", "Show Changes"};
+							int confirm = JOptionPane.showOptionDialog(
+								PluginPresetsPanel.this,
 								"Are you sure you want to update this preset with your current plugin configurations?",
-								"Update preset", JOptionPane.YES_NO_OPTION);
+								"Update preset",
+								JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]
+							);
 
 							if (confirm == 0)
 							{
 								plugin.updatePreset(preset);
+							}
+							else if (confirm == 2)
+							{
+								openChangeInspector();
 							}
 						}
 
@@ -330,6 +338,7 @@ class PluginPresetsPanel extends JPanel
 					@Override
 					public void mousePressed(MouseEvent mouseEvent)
 					{
+						// TODO: add show changes
 						int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
 							"Are you sure you want to update this preset with your current plugin configurations?",
 							"Update preset", JOptionPane.YES_NO_OPTION);
@@ -565,14 +574,12 @@ class PluginPresetsPanel extends JPanel
 		{
 			preset.setName(nameInputText);
 		}
-		else
+		else if (!nameIsValid(preset.getName()))
 		{
-			if (!nameIsValid(preset.getName()))
-			{
-				setDefaultPresetName();
-			}
-			// Else keep the old name
+			// If old name is not valid, create a custom default one
+			setDefaultPresetName();
 		}
+		// Else keep the old name
 	}
 
 	private boolean nameIsValid(String name)
@@ -637,5 +644,10 @@ class PluginPresetsPanel extends JPanel
 		{
 			return message + " plugins.";
 		}
+	}
+
+	private void openChangeInspector()
+	{
+		new ChangeInspector(this, plugin.getChanges(preset));
 	}
 }

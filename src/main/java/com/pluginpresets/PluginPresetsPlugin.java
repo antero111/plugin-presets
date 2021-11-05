@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -199,6 +200,92 @@ public class PluginPresetsPlugin extends Plugin
 		return null;
 	}
 
+	// TODO: combine with presetMatchesCurrentConfigurations
+	public Map<String, ArrayList<String[]>> getChanges(PluginPreset preset)
+	{
+		List<String> userIgnoredPlugins = getUserIgnoredPlugins();
+		Set<Entry<String, Boolean>> enabledPlugins = getEnabledPlugins().entrySet();
+		HashMap<String, Boolean> presetEnabledPlugins = preset.getEnabledPlugins();
+
+		HashMap<String, ArrayList<String[]>> changes = new HashMap<>();
+
+		// Compare current plugin on/off configurations to preset 
+		for (Entry<String, Boolean> currentPluginSetting : enabledPlugins)
+		{
+			String pluginName = currentPluginSetting.getKey();
+			Boolean presetPluginValue = presetEnabledPlugins.get(pluginName);
+			Boolean pluginValue = currentPluginSetting.getValue();
+
+			if (presetPluginValue != null
+				&& !presetPluginValue.equals(pluginValue)
+				&& !userIgnoredPlugins.contains(pluginName))
+			{
+				ArrayList<String[]> jo = new ArrayList<>();
+				jo.add(new String[]{"Plugin", presetPluginValue.toString(), pluginValue.toString()});
+				changes.put(pluginName, jo);
+			}
+		}
+
+		List<String> userIgnoredPluginSettings = getUserIgnoredPluginSettings();
+		List<String> userIgnoredPluginConfigNames = getUserIgnoredPluginConfigNames();
+
+		// Compare current plugin configurations to preset
+		HashMap<String, HashMap<String, String>> currentPluginSettings = getPluginSettings();
+		for (Entry<String, HashMap<String, String>> pluginSettingsFromPreset : preset.getPluginSettings().entrySet())
+		{
+			HashMap<String, String> currentSettingsForPlugin = currentPluginSettings.get(pluginSettingsFromPreset.getKey());
+			for (Entry<String, String> settingKeyValuePair : pluginSettingsFromPreset.getValue().entrySet())
+			{
+				String settingKey = settingKeyValuePair.getKey();
+				String presetSettingValue = settingKeyValuePair.getValue();
+				String currentSettingValue = currentSettingsForPlugin.get(settingKey);
+				String pluginConfigName = pluginSettingsFromPreset.getKey();
+
+				if (presetSettingValue != null
+					&& currentSettingValue != null
+					&& !presetSettingValue.equals(currentSettingValue)
+					&& !userIgnoredPluginSettings.contains(settingKey)
+					&& !userIgnoredPluginConfigNames.contains(pluginConfigName))
+				{
+					String pluginName = pluginConfigNameToPluginName(pluginConfigName);
+					if (changes.get(pluginName) == null)
+					{
+						ArrayList<String[]> jo = new ArrayList<>();
+						jo.add(new String[]{settingKey, presetSettingValue, currentSettingValue});
+						changes.put(pluginName, jo);
+					}
+					else
+					{
+						ArrayList<String[]> arrayList = changes.get(pluginName);
+						arrayList.add(new String[]{settingKey, presetSettingValue, currentSettingValue});
+						changes.put(pluginName, arrayList);
+					}
+
+				}
+			}
+		}
+		return changes;
+	}
+
+	private String pluginConfigNameToPluginName(String configName)
+	{
+		for (Plugin plugin : pluginManager.getPlugins())
+		{
+			try
+			{
+				String cname = configManager.getConfigDescriptor(pluginManager.getPluginConfigProxy(plugin)).getGroup().value();
+				if (cname.equals(configName))
+				{
+					return plugin.getName();
+				}
+			}
+			catch (NullPointerException ignored)
+			{
+			}
+		}
+		return null;
+	}
+
 	private Boolean presetMatchesCurrentConfigurations(PluginPreset preset)
 	{
 		List<String> userIgnoredPlugins = getUserIgnoredPlugins();
@@ -321,7 +408,7 @@ public class PluginPresetsPlugin extends Plugin
 
 	private String createDefaultPlaceholderNameIfNoNameSet(String presetName)
 	{
-		if (presetName.equals(""))
+		if (presetName.equals("") || stringContainsInvalidCharacters(presetName))
 		{
 			presetName = DEFAULT_PRESET_NAME + " " + (pluginPresets.size() + 1);
 		}
