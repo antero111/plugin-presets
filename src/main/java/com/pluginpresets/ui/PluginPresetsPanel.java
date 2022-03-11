@@ -22,6 +22,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.pluginpresets.ui;
 
 import com.pluginpresets.PluginPreset;
@@ -35,7 +36,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -43,6 +46,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -297,22 +301,24 @@ class PluginPresetsPanel extends JPanel
 						@Override
 						public void mousePressed(MouseEvent mouseEvent)
 						{
-							Object[] options = {"Yes", "No", "Show Changes"};
-							int confirm = JOptionPane.showOptionDialog(
-								PluginPresetsPanel.this,
-								"Are you sure you want to update this preset with your current plugin configurations?",
-								"Update preset",
-								JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]
-							);
+							// Object[] options = {"Yes", "No", "Show Changes"};
+							// int confirm = JOptionPane.showOptionDialog(
+							// 	PluginPresetsPanel.this,
+							// 	"Are you sure you want to update this preset with your current plugin configurations?",
+							// 	"Update preset",
+							// 	JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]
+							// );
 
-							if (confirm == 0)
-							{
-								plugin.updatePreset(preset);
-							}
-							else if (confirm == 2)
-							{
-								openChangeInspector();
-							}
+							// if (confirm == 0)
+							// {
+							// 	plugin.updatePreset(preset);
+							// }
+							// else if (confirm == 2)
+							// {
+							// 	openChangeInspector();
+							// }
+							openChangeInspector();
+
 						}
 
 						@Override
@@ -648,6 +654,13 @@ class PluginPresetsPanel extends JPanel
 
 	private void openChangeInspector()
 	{
-		new ChangeInspector(this, plugin.getChanges(preset));
+		Map<String, ArrayList<String[]>> changes = plugin.getChanges(preset);
+		ChangeInspectorDialog changeInspector = plugin.getChangeInspectorManager().create(
+			SwingUtilities.windowForComponent(this),
+			plugin,
+			preset.getName(),
+			changes);
+		changeInspector.setLocation(getLocationOnScreen());
+		changeInspector.setVisible(true);
 	}
-}
+}	

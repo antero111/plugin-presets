@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -74,6 +75,7 @@ public class PluginPresetsPlugin extends Plugin
 	private static final List<String> DEFAULT_IGNORED_PLUGINS = Stream.of("Plugin Presets", "Configuration", "Xtea").collect(Collectors.toList());
 	private static final List<String> DEFAULT_IGNORED_PLUGIN_KEYS = Stream.of("channel", "oauth", "username", "notesData").collect(Collectors.toList());
 	private static final String PLUGIN_NAME = "Plugin Presets";
+	private static final String PLUGIN_CONFIG_NAME = "pluginpresets";
 	private static final String ICON_FILE = "panel_icon.png";
 
 	@Getter
@@ -93,6 +95,10 @@ public class PluginPresetsPlugin extends Plugin
 
 	@Inject
 	private ConfigManager configManager;
+
+	@Getter
+	@Inject
+	private ChangeInspectorManager changeInspectorManager;
 
 	private NavigationButton navigationButton;
 
@@ -200,7 +206,6 @@ public class PluginPresetsPlugin extends Plugin
 		return null;
 	}
 
-	// TODO: combine with presetMatchesCurrentConfigurations
 	public Map<String, ArrayList<String[]>> getChanges(PluginPreset preset)
 	{
 		List<String> userIgnoredPlugins = getUserIgnoredPlugins();
@@ -220,9 +225,11 @@ public class PluginPresetsPlugin extends Plugin
 				&& !presetPluginValue.equals(pluginValue)
 				&& !userIgnoredPlugins.contains(pluginName))
 			{
-				ArrayList<String[]> jo = new ArrayList<>();
-				jo.add(new String[]{"Plugin", presetPluginValue.toString(), pluginValue.toString()});
-				changes.put(pluginName, jo);
+				ArrayList<String[]> pluginChange = new ArrayList<>();
+				String presetValueString = presetPluginValue.toString() == "true" ? "On" : "Off";
+				String pluginValueString = pluginValue.toString() == "true" ? "On" : "Off";
+				pluginChange.add(new String[]{"Plugin", presetValueString, pluginValueString});
+				changes.put(pluginName, pluginChange);
 			}
 		}
 
@@ -248,19 +255,23 @@ public class PluginPresetsPlugin extends Plugin
 					&& !userIgnoredPluginConfigNames.contains(pluginConfigName))
 				{
 					String pluginName = pluginConfigNameToPluginName(pluginConfigName);
+					if (pluginName == null)
+					{
+						pluginName = "RuneLite";
+					}
+					
 					if (changes.get(pluginName) == null)
 					{
-						ArrayList<String[]> jo = new ArrayList<>();
-						jo.add(new String[]{settingKey, presetSettingValue, currentSettingValue});
-						changes.put(pluginName, jo);
+						ArrayList<String[]> settingChange = new ArrayList<>();
+						settingChange.add(new String[]{settingKey, presetSettingValue, currentSettingValue});
+						changes.put(pluginName, settingChange);
 					}
 					else
 					{
-						ArrayList<String[]> arrayList = changes.get(pluginName);
-						arrayList.add(new String[]{settingKey, presetSettingValue, currentSettingValue});
-						changes.put(pluginName, arrayList);
+						ArrayList<String[]> settingChange = changes.get(pluginName);
+						settingChange.add(new String[]{settingKey, presetSettingValue, currentSettingValue});
+						changes.put(pluginName, settingChange);
 					}
-
 				}
 			}
 		}
@@ -288,50 +299,30 @@ public class PluginPresetsPlugin extends Plugin
 
 	private Boolean presetMatchesCurrentConfigurations(PluginPreset preset)
 	{
-		List<String> userIgnoredPlugins = getUserIgnoredPlugins();
-		Set<Entry<String, Boolean>> enabledPlugins = getEnabledPlugins().entrySet();
-		HashMap<String, Boolean> presetEnabledPlugins = preset.getEnabledPlugins();
+		Map<String, ArrayList<String[]>> changes = getChanges(preset);
+		return changes.size() == 0;
+	}
 
-		// Compare current plugin on/off configurations to preset 
-		for (Entry<String, Boolean> currentPluginSetting : enabledPlugins)
+	public void ignorePlugin(String pluginName)
+	{
+		ArrayList<String> userIgnoredPlugins = new ArrayList<>(getUserIgnoredPlugins());
+		if (!userIgnoredPlugins.contains(pluginName))
 		{
-			String pluginName = currentPluginSetting.getKey();
-			Boolean presetPluginValue = presetEnabledPlugins.get(pluginName);
-			Boolean pluginValue = currentPluginSetting.getValue();
-
-			if (presetPluginValue != null
-				&& !presetPluginValue.equals(pluginValue)
-				&& !userIgnoredPlugins.contains(pluginName))
-			{
-				return false;
-			}
+			userIgnoredPlugins.add(pluginName);
+			String ignores = String.join(",", userIgnoredPlugins);
+			configManager.setConfiguration(PLUGIN_CONFIG_NAME, "userIgnoredPlugins", ignores);
 		}
+	}
 
-		List<String> userIgnoredPluginSettings = getUserIgnoredPluginSettings();
-		List<String> userIgnoredPluginConfigNames = getUserIgnoredPluginConfigNames();
-
-		// Compare current plugin configurations to preset
-		HashMap<String, HashMap<String, String>> currentPluginSettings = getPluginSettings();
-		for (Entry<String, HashMap<String, String>> pluginSettingsFromPreset : preset.getPluginSettings().entrySet())
+	public void ignorePluginSetting(String pluginSetting)
+	{
+		ArrayList<String> userIgnoredPluginSettings = new ArrayList<>(getUserIgnoredPluginSettings());
+		if (!userIgnoredPluginSettings.contains(pluginSetting))
 		{
-			HashMap<String, String> currentSettingsForPlugin = currentPluginSettings.get(pluginSettingsFromPreset.getKey());
-			for (Entry<String, String> settingKeyValuePair : pluginSettingsFromPreset.getValue().entrySet())
-			{
-				String settingKey = settingKeyValuePair.getKey();
-				String presetSettingValue = settingKeyValuePair.getValue();
-				String currentSettingValue = currentSettingsForPlugin.get(settingKey);
-
-				if (presetSettingValue != null
-					&& currentSettingValue != null
-					&& !presetSettingValue.equals(currentSettingValue)
-					&& !userIgnoredPluginSettings.contains(settingKey)
-					&& !userIgnoredPluginConfigNames.contains(pluginSettingsFromPreset.getKey()))
-				{
-					return false;
-				}
-			}
+			userIgnoredPluginSettings.add(pluginSetting);
+			String ignores = String.join(",", userIgnoredPluginSettings);
+			configManager.setConfiguration(PLUGIN_CONFIG_NAME, "userIgnoredPluginSettings", ignores);
 		}
-		return true;
 	}
 
 	private List<String> getUserIgnoredPluginSettings()
@@ -349,7 +340,8 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		List<String> userIgnoredPlugins = getUserIgnoredPlugins();
 		List<String> userIgnoredPluginConfigNames = new ArrayList<>();
-		getNotIgnoredPlugins().forEach(plugin -> {
+		getNotIgnoredPlugins().forEach(plugin ->
+		{
 			if (userIgnoredPlugins.contains(plugin.getName()) && pluginHasConfigurableSettingsToBeSaved(plugin))
 			{
 				userIgnoredPluginConfigNames.add(getConfigProxy(plugin).getGroup().value());
