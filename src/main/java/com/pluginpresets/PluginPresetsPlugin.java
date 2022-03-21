@@ -68,8 +68,8 @@ public class PluginPresetsPlugin extends Plugin
 	public static final File PRESETS_DIR = new File(RUNELITE_DIR, "presets");
 	public static final String HELP_LINK = "https://github.com/antero111/plugin-presets#using-plugin-presets";
 	public static final String DEFAULT_PRESET_NAME = "Preset";
-	private static final List<String> IGNORED_PLUGINS = Stream.of("Plugin Presets", "Configuration", "Xtea").collect(Collectors.toList());
-	private static final List<String> IGNORED_KEYS = Stream.of("channel", "oauth", "username", "notesData").collect(Collectors.toList());
+	public static final List<String> IGNORED_PLUGINS = Stream.of("Plugin Presets", "Configuration", "Xtea").collect(Collectors.toList());
+	public static final List<String> IGNORED_KEYS = Stream.of("channel", "oauth", "username", "notesData").collect(Collectors.toList());
 	private static final String PLUGIN_NAME = "Plugin Presets";
 	private static final String ICON_FILE = "panel_icon.png";
 
@@ -94,6 +94,8 @@ public class PluginPresetsPlugin extends Plugin
 
 	private PluginPresetsSharingManager sharingManager;
 
+	private PluginPresetFactory pluginPresetFactory;
+
 	private boolean configChangedFromLoadPreset = false;
 
 	@Override
@@ -107,6 +109,8 @@ public class PluginPresetsPlugin extends Plugin
 		rebuildPluginUi();
 
 		sharingManager = new PluginPresetsSharingManager(pluginPanel);
+
+		pluginPresetFactory = new PluginPresetFactory(this, pluginManager, configManager, runeLiteConfig);
 
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), ICON_FILE);
 
@@ -240,30 +244,13 @@ public class PluginPresetsPlugin extends Plugin
 
 	public void createPreset(String presetName)
 	{
-		presetName = createDefaultPlaceholderNameIfNoNameSet(presetName);
-
-		PluginPreset preset = new PluginPreset(
-			Instant.now().toEpochMilli(),
-			presetName,
-			false,
-			getEnabledPlugins(),
-			getPluginSettings()
-		);
+		PluginPreset preset = pluginPresetFactory.createPluginPreset(presetName);
 		pluginPresets.add(preset);
 
 		setPresetAsSelected(preset);
 
 		refreshPresets();
 		rebuildPluginUi();
-	}
-
-	private String createDefaultPlaceholderNameIfNoNameSet(String presetName)
-	{
-		if (presetName.equals(""))
-		{
-			presetName = DEFAULT_PRESET_NAME + " " + (pluginPresets.size() + 1);
-		}
-		return presetName;
 	}
 
 	private HashMap<String, Boolean> getEnabledPlugins()
