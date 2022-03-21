@@ -26,7 +26,6 @@ package com.pluginpresets.ui;
 
 import com.pluginpresets.PluginPreset;
 import com.pluginpresets.PluginPresetsPlugin;
-import com.pluginpresets.Utils;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;

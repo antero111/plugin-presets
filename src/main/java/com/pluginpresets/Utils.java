@@ -28,8 +28,6 @@ import java.util.regex.Pattern;
 
 public class Utils
 {
-
-
 	/**
 	 * Checks whether given string is valid for a preset filename.
 	 */
