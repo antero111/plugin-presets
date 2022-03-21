@@ -31,6 +31,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -86,7 +87,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final PluginErrorPanel noPresetsPanel = new PluginErrorPanel();
 	private final JPanel presetView = new JPanel(new GridBagLayout());
 	private final PluginPresetsPlugin plugin;
-	private Boolean showNotification = false;
 
 	public PluginPresetsPluginPanel(PluginPresetsPlugin pluginPresetsPlugin)
 	{
@@ -103,15 +103,18 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		title.setForeground(Color.WHITE);
 		title.setBorder(new EmptyBorder(0, 0, 0, 40));
 
-		JPanel presetActions = new JPanel(new BorderLayout(10, 0));
+		JPanel presetActions = new JPanel(new GridBagLayout());
 		presetActions.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-		presetActions.add(helpButton, BorderLayout.WEST);
-		presetActions.add(refreshPlugins, BorderLayout.CENTER);
-		presetActions.add(addPreset, BorderLayout.EAST);
+		GridBagConstraints constraints = new GridBagConstraints();
+		constraints.insets = new Insets(0, 5, 0, 5);
+
+		presetActions.add(errorNotification, constraints);
+		presetActions.add(helpButton, constraints);
+		presetActions.add(refreshPlugins, constraints);
+		presetActions.add(addPreset, constraints);
 
 		northPanel.add(title, BorderLayout.WEST);
-		northPanel.add(errorNotification, BorderLayout.CENTER);
 		northPanel.add(presetActions, BorderLayout.EAST);
 
 		JPanel centerPanel = new JPanel(new BorderLayout());
@@ -119,7 +122,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		presetView.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-		GridBagConstraints constraints = new GridBagConstraints();
 		constraints.fill = GridBagConstraints.HORIZONTAL;
 		constraints.weightx = 1;
 		constraints.gridx = 0;
@@ -136,7 +138,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				rebuild();
+				errorNotification.setVisible(false);
 			}
 
 			@Override
@@ -203,8 +205,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-
-				if (mouseEvent.getButton() == MouseEvent.BUTTON3)
+				if (mouseEvent.getButton() == MouseEvent.BUTTON3) // Right click
 				{
 					JMenuItem importMenuOption = new JMenuItem();
 					importMenuOption.setText("Import preset from clipboard");
@@ -276,7 +277,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		noPresetsPanel.setVisible(empty);
 		title.setVisible(!empty);
 
-		errorNotification.setVisible(showNotification);
+		errorNotification.setVisible(false);
 
 		presetView.add(noPresetsPanel, constraints);
 		constraints.gridy++;
@@ -288,8 +289,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	public void renderNotification(String errorMessage)
 	{
 		errorNotification.setToolTipText(errorMessage);
-		showNotification = true;
-		rebuild();
-		showNotification = false;
+		errorNotification.setVisible(true);
 	}
 }
