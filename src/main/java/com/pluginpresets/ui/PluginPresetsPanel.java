@@ -26,6 +26,7 @@ package com.pluginpresets.ui;
 
 import com.pluginpresets.PluginPreset;
 import com.pluginpresets.PluginPresetsPlugin;
+import com.pluginpresets.Utils;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -577,7 +578,7 @@ class PluginPresetsPanel extends JPanel
 
 	private boolean nameIsValid(String name)
 	{
-		return !nameInput.getText().equals("") && !plugin.stringContainsInvalidCharacters(name);
+		return !nameInput.getText().equals("") && !Utils.stringContainsInvalidCharacters(name);
 	}
 
 	private void setDefaultPresetName()

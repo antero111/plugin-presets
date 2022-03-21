@@ -26,6 +26,7 @@ package com.pluginpresets.ui;
 
 import com.pluginpresets.PluginPreset;
 import com.pluginpresets.PluginPresetsPlugin;
+import com.pluginpresets.Utils;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -225,7 +226,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 					if (customPresetName != null)
 					{
-						if (plugin.stringContainsInvalidCharacters(customPresetName))
+						if (Utils.stringContainsInvalidCharacters(customPresetName))
 						{
 							customPresetName = "";
 						}

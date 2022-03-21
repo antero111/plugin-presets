@@ -34,7 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -562,10 +561,5 @@ public class PluginPresetsPlugin extends Plugin
 	public void rebuildPluginUi()
 	{
 		pluginPanel.rebuild();
-	}
-
-	public boolean stringContainsInvalidCharacters(final String string)
-	{
-		return !(Pattern.compile("(?i)^[ a-ö0-9-_.,;=()+!]+$").matcher(string).matches());
 	}
 }
