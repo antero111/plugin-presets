@@ -24,24 +24,19 @@
  */
 package com.pluginpresets;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * PluginPreset
+ * InnerPluginConfig
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PluginPreset
+public class InnerPluginConfig
 {
-	private long id;
-	private String name;
-	private Boolean selected;
-	private HashMap<String, Boolean> enabledPlugins;
-	private HashMap<String, HashMap<String, String>> pluginSettings;
-	private ArrayList<PluginConfig> pluginConfigs;
+	private String name; // Show Clickboxes
+	private String key; // showClickboxes
+	private String value; // False
 }

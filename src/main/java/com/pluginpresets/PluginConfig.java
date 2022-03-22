@@ -25,23 +25,20 @@
 package com.pluginpresets;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * PluginPreset
+ * PluginConfig
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PluginPreset
+public class PluginConfig
 {
-	private long id;
-	private String name;
-	private Boolean selected;
-	private HashMap<String, Boolean> enabledPlugins;
-	private HashMap<String, HashMap<String, String>> pluginSettings;
-	private ArrayList<PluginConfig> pluginConfigs;
+	private String name; // "Agility"
+	private String configName; // "agilityPlugin"
+	private Boolean enabled; // "Off"
+	private ArrayList<InnerPluginConfig> settings; // List of settings
 }

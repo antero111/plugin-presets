@@ -25,7 +25,9 @@
 package com.pluginpresets;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
+import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigDescriptor;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.RuneLiteConfig;
@@ -49,6 +51,57 @@ public class PluginPresetFactory
 
 	public PluginPreset createPluginPreset(String presetName)
 	{
+		ArrayList<PluginConfig> pluginConfigs = new ArrayList<>();
+
+		pluginManager.getPlugins().forEach(plugin ->
+		{
+			String name = plugin.getName();
+			if (!PluginPresetsPlugin.IGNORED_PLUGINS.contains(name))
+			{
+				Config pluginConfigProxy = pluginManager.getPluginConfigProxy(plugin);
+
+				boolean enabled = pluginManager.isPluginEnabled(plugin);
+				
+				ArrayList<InnerPluginConfig> innerPluginConfigs = new ArrayList<>();
+				String configName = null;
+
+				if (pluginConfigProxy != null)
+				{
+					ConfigDescriptor configDescriptor = configManager.getConfigDescriptor(pluginConfigProxy);
+					configName = configDescriptor.getGroup().value();
+
+					configDescriptor.getItems().forEach(i ->
+						{
+							if (!PluginPresetsPlugin.IGNORED_KEYS.contains(i.key()))
+							{
+								InnerPluginConfig innerPluginConfig = new InnerPluginConfig(i.name(), i.key(), configManager.getConfiguration(configDescriptor.getGroup().value(), i.key()));
+								innerPluginConfigs.add(innerPluginConfig);
+							}
+
+						}
+					);
+
+				}
+				PluginConfig pluginConfig = new PluginConfig(name, configName, enabled, innerPluginConfigs);
+				pluginConfigs.add(pluginConfig);
+			}
+		});
+
+
+		// Add RuneLite settings
+		ArrayList<InnerPluginConfig> runeliteInnerPluginConfigs = new ArrayList<>();
+		PluginConfig runeliteConfig = new PluginConfig("RuneLite", RuneLiteConfig.GROUP_NAME, true, runeliteInnerPluginConfigs);
+		configManager.getConfigDescriptor(runeLiteConfig).getItems().forEach(i ->
+		{
+			if (!PluginPresetsPlugin.IGNORED_KEYS.contains(i.key()))
+			{
+				InnerPluginConfig innerPluginConfig = new InnerPluginConfig(i.name(), i.key(), configManager.getConfiguration(RuneLiteConfig.GROUP_NAME, i.key()));
+				runeliteInnerPluginConfigs.add(innerPluginConfig);
+			}
+		});
+
+		pluginConfigs.add(runeliteConfig);
+
 		presetName = createDefaultPlaceholderNameIfNoNameSet(presetName);
 
 		return new PluginPreset(
@@ -56,7 +109,8 @@ public class PluginPresetFactory
 			presetName,
 			false,
 			getEnabledPlugins(),
-			getPluginSettings()
+			getPluginSettings(),
+			pluginConfigs
 		);
 	}
 
