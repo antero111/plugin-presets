@@ -144,4 +144,14 @@ public class PluginPresetsStorage
 		{
 		}.getType());
 	}
+
+	public static void createPresetFolder()
+	{
+		final boolean presetFolderWasCreated = PRESETS_DIR.mkdirs();
+
+		if (presetFolderWasCreated)
+		{
+			log.info(String.format("Preset folder created at %s", PRESETS_DIR.getAbsolutePath()));
+		}
+	}
 }

@@ -36,7 +36,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -105,7 +104,6 @@ class PluginPresetsPanel extends JPanel
 	private final PluginPresetsPlugin plugin;
 	private final PluginPreset preset;
 	private final JLabel loadLabel = new JLabel();
-	private final JLabel updateLabel = new JLabel();
 	private final JLabel deleteLabel = new JLabel();
 	private final FlatTextField nameInput = new FlatTextField();
 	private final JLabel save = new JLabel("Save");
@@ -251,126 +249,21 @@ class PluginPresetsPanel extends JPanel
 		JPanel leftActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 3));
 		leftActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		List<String> newPlugins = plugin.getUnsavedExternalPlugins(preset);
-
-		if (unsavedPluginConfigurations())
+		if (plugin.getMatchingPresets().contains(preset))
 		{
-			loadLabel.setToolTipText("Load this preset");
-			loadLabel.setIcon(SWITCH_OFF_ICON);
-			loadLabel.addMouseListener(new MouseAdapter()
-			{
-				@Override
-				public void mousePressed(MouseEvent mouseEvent)
-				{
-					int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
-						"Are you sure you want to load this preset?\n"
-							+ "You have unsaved plugin configurations and loading this preset will discard those.\n",
-						"Load preset", JOptionPane.YES_NO_OPTION);
-
-					if (confirm == 0)
-					{
-						plugin.loadPreset(preset);
-						plugin.setPresetAsSelected(preset);
-					}
-				}
-
-				@Override
-				public void mouseEntered(MouseEvent mouseEvent)
-				{
-					loadLabel.setIcon(SWITCH_OFF_HOVER_ICON);
-				}
-
-				@Override
-				public void mouseExited(MouseEvent mouseEvent)
-				{
-					loadLabel.setIcon(SWITCH_OFF_ICON);
-				}
-			});
-
-			if (preset.getSelected() == null)
-			{
-				if (newPlugins.isEmpty())
-				{
-					updateLabel.setIcon(UPDATE_WARNING_ICON);
-					updateLabel.setToolTipText("You have unsaved plugin configurations");
-					updateLabel.addMouseListener(new MouseAdapter()
-					{
-						@Override
-						public void mousePressed(MouseEvent mouseEvent)
-						{
-							int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
-								"Are you sure you want to update this preset with your current plugin configurations?",
-								"Update preset", JOptionPane.YES_NO_OPTION);
-
-							if (confirm == 0)
-							{
-								plugin.updatePreset(preset);
-							}
-						}
-
-						@Override
-						public void mouseEntered(MouseEvent mouseEvent)
-						{
-							updateLabel.setIcon(UPDATE_WARNING_HOVER_ICON);
-						}
-
-						@Override
-						public void mouseExited(MouseEvent mouseEvent)
-						{
-							updateLabel.setIcon(UPDATE_WARNING_ICON);
-						}
-					});
-				}
-			}
-			else
-			{
-				updateLabel.setIcon(UPDATE_ICON);
-				updateLabel.setToolTipText("Update preset");
-				updateLabel.addMouseListener(new MouseAdapter()
-				{
-					@Override
-					public void mousePressed(MouseEvent mouseEvent)
-					{
-						int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
-							"Are you sure you want to update this preset with your current plugin configurations?",
-							"Update preset", JOptionPane.YES_NO_OPTION);
-
-						if (confirm == 0)
-						{
-							plugin.updatePreset(preset);
-						}
-					}
-
-					@Override
-					public void mouseEntered(MouseEvent mouseEvent)
-					{
-						updateLabel.setIcon(UPDATE_HOVER_ICON);
-					}
-
-					@Override
-					public void mouseExited(MouseEvent mouseEvent)
-					{
-						updateLabel.setIcon(UPDATE_ICON);
-					}
-				});
-			}
-		}
-		else if (preset.getSelected())
-		{
-			loadLabel.setToolTipText("Current preset");
 			loadLabel.setIcon(SWITCH_ON_ICON);
+			loadLabel.setToolTipText("Current configurations match this preset");
 		}
 		else
 		{
-			loadLabel.setToolTipText("Load this preset");
 			loadLabel.setIcon(SWITCH_OFF_ICON);
+			loadLabel.setToolTipText("Load this preset");
 			loadLabel.addMouseListener(new MouseAdapter()
 			{
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
 					plugin.loadPreset(preset);
-					plugin.setPresetAsSelected(preset);
 				}
 
 				@Override
@@ -387,79 +280,179 @@ class PluginPresetsPanel extends JPanel
 			});
 		}
 
+		// 	if (preset.getSelected() == null)
+		// 	{
+		// 		if (newPlugins.isEmpty())
+		// 		{
+		// 			updateLabel.setIcon(UPDATE_WARNING_ICON);
+		// 			updateLabel.setToolTipText("You have unsaved plugin configurations");
+		// 			updateLabel.addMouseListener(new MouseAdapter()
+		// 			{
+		// 				@Override
+		// 				public void mousePressed(MouseEvent mouseEvent)
+		// 				{
+		// 					int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
+		// 						"Are you sure you want to update this preset with your current plugin configurations?",
+		// 						"Update preset", JOptionPane.YES_NO_OPTION);
+
+		// 					if (confirm == 0)
+		// 					{
+		// 						plugin.updatePreset(preset);
+		// 					}
+		// 				}
+
+		// 				@Override
+		// 				public void mouseEntered(MouseEvent mouseEvent)
+		// 				{
+		// 					updateLabel.setIcon(UPDATE_WARNING_HOVER_ICON);
+		// 				}
+
+		// 				@Override
+		// 				public void mouseExited(MouseEvent mouseEvent)
+		// 				{
+		// 					updateLabel.setIcon(UPDATE_WARNING_ICON);
+		// 				}
+		// 			});
+		// 		}
+		// 	}
+		// 	else
+		// 	{
+		// 		updateLabel.setIcon(UPDATE_ICON);
+		// 		updateLabel.setToolTipText("Update preset");
+		// 		updateLabel.addMouseListener(new MouseAdapter()
+		// 		{
+		// 			@Override
+		// 			public void mousePressed(MouseEvent mouseEvent)
+		// 			{
+		// 				int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
+		// 					"Are you sure you want to update this preset with your current plugin configurations?",
+		// 					"Update preset", JOptionPane.YES_NO_OPTION);
+
+		// 				if (confirm == 0)
+		// 				{
+		// 					plugin.updatePreset(preset);
+		// 				}
+		// 			}
+
+		// 			@Override
+		// 			public void mouseEntered(MouseEvent mouseEvent)
+		// 			{
+		// 				updateLabel.setIcon(UPDATE_HOVER_ICON);
+		// 			}
+
+		// 			@Override
+		// 			public void mouseExited(MouseEvent mouseEvent)
+		// 			{
+		// 				updateLabel.setIcon(UPDATE_ICON);
+		// 			}
+		// 		});
+		// 	}
+		// }
+		// else if (preset.getSelected())
+		// {
+		// 	loadLabel.setToolTipText("Current preset");
+		// 	loadLabel.setIcon(SWITCH_ON_ICON);
+		// }
+		// else
+		// {
+		// 	loadLabel.setToolTipText("Load this preset");
+		// 	loadLabel.setIcon(SWITCH_OFF_ICON);
+		// 	loadLabel.addMouseListener(new MouseAdapter()
+		// 	{
+		// 		@Override
+		// 		public void mousePressed(MouseEvent mouseEvent)
+		// 		{
+		// 			// plugin.loadPreset(preset);
+		// 			// plugin.setPresetAsSelected(preset);
+		// 		}
+
+		// 		@Override
+		// 		public void mouseEntered(MouseEvent mouseEvent)
+		// 		{
+		// 			loadLabel.setIcon(SWITCH_OFF_HOVER_ICON);
+		// 		}
+
+		// 		@Override
+		// 		public void mouseExited(MouseEvent mouseEvent)
+		// 		{
+		// 			loadLabel.setIcon(SWITCH_OFF_ICON);
+		// 		}
+		// 	});
+		// }
+
 		leftActions.add(loadLabel);
 
 		JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
 		rightActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		if (!(newPlugins.isEmpty()))
-		{
-			updateLabel.setIcon(UPDATE_WARNING_ICON);
-			updateLabel.setToolTipText("You have installed a new plugin, update this preset to include your new plugin");
-			updateLabel.addMouseListener(new MouseAdapter()
-			{
-				@Override
-				public void mousePressed(MouseEvent mouseEvent)
-				{
-					int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
-						"Are you sure you want to update this preset with your current plugin configurations?\n"
-							+ "This preset will now include settings to " + pluginListToString(newPlugins),
-						"Update preset", JOptionPane.YES_NO_OPTION);
+		// if (!(newPlugins.isEmpty()))
+		// {
+		// 	updateLabel.setIcon(UPDATE_WARNING_ICON);
+		// 	updateLabel.setToolTipText("You have installed a new plugin, update this preset to include your new plugin");
+		// 	updateLabel.addMouseListener(new MouseAdapter()
+		// 	{
+		// 		@Override
+		// 		public void mousePressed(MouseEvent mouseEvent)
+		// 		{
+		// 			int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
+		// 				"Are you sure you want to update this preset with your current plugin configurations?\n"
+		// 					+ "This preset will now include settings to " + Utils.pluginListToString(newPlugins),
+		// 				"Update preset", JOptionPane.YES_NO_OPTION);
 
-					if (confirm == 0)
-					{
-						plugin.updatePreset(preset);
-					}
-				}
+		// 			if (confirm == 0)
+		// 			{
+		// 				plugin.updatePreset(preset);
+		// 			}
+		// 		}
 
-				@Override
-				public void mouseEntered(MouseEvent mouseEvent)
-				{
-					updateLabel.setIcon(UPDATE_WARNING_HOVER_ICON);
-				}
+		// 		@Override
+		// 		public void mouseEntered(MouseEvent mouseEvent)
+		// 		{
+		// 			updateLabel.setIcon(UPDATE_WARNING_HOVER_ICON);
+		// 		}
 
-				@Override
-				public void mouseExited(MouseEvent mouseEvent)
-				{
-					updateLabel.setIcon(UPDATE_WARNING_ICON);
-				}
-			});
-		}
-		else
-		{
-			if (!(unsavedPluginConfigurations()))
-			{
-				updateLabel.setIcon(UPDATE_ICON);
-				updateLabel.setToolTipText("Update preset");
-				updateLabel.addMouseListener(new MouseAdapter()
-				{
-					@Override
-					public void mousePressed(MouseEvent mouseEvent)
-					{
-						int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
-							"Are you sure you want to update this preset with your current plugin configurations?",
-							"Update preset", JOptionPane.YES_NO_OPTION);
+		// 		@Override
+		// 		public void mouseExited(MouseEvent mouseEvent)
+		// 		{
+		// 			updateLabel.setIcon(UPDATE_WARNING_ICON);
+		// 		}
+		// 	});
+		// }
+		// else
+		// {
+		// 	if (!(unsavedPluginConfigurations()))
+		// 	{
+		// 		updateLabel.setIcon(UPDATE_ICON);
+		// 		updateLabel.setToolTipText("Update preset");
+		// 		updateLabel.addMouseListener(new MouseAdapter()
+		// 		{
+		// 			@Override
+		// 			public void mousePressed(MouseEvent mouseEvent)
+		// 			{
+		// 				int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
+		// 					"Are you sure you want to update this preset with your current plugin configurations?",
+		// 					"Update preset", JOptionPane.YES_NO_OPTION);
 
-						if (confirm == 0)
-						{
-							plugin.updatePreset(preset);
-						}
-					}
+		// 				if (confirm == 0)
+		// 				{
+		// 					plugin.updatePreset(preset);
+		// 				}
+		// 			}
 
-					@Override
-					public void mouseEntered(MouseEvent mouseEvent)
-					{
-						updateLabel.setIcon(UPDATE_HOVER_ICON);
-					}
+		// 			@Override
+		// 			public void mouseEntered(MouseEvent mouseEvent)
+		// 			{
+		// 				updateLabel.setIcon(UPDATE_HOVER_ICON);
+		// 			}
 
-					@Override
-					public void mouseExited(MouseEvent mouseEvent)
-					{
-						updateLabel.setIcon(UPDATE_ICON);
-					}
-				});
-			}
-		}
+		// 			@Override
+		// 			public void mouseExited(MouseEvent mouseEvent)
+		// 			{
+		// 				updateLabel.setIcon(UPDATE_ICON);
+		// 			}
+		// 		});
+		// 	}
+		// }
 
 		deleteLabel.setIcon(DELETE_ICON);
 		deleteLabel.setToolTipText("Delete preset");
@@ -491,39 +484,40 @@ class PluginPresetsPanel extends JPanel
 			}
 		});
 
-		List<String> missingPlugins = plugin.getMissingExternalPlugins(preset);
-		if (!(missingPlugins.isEmpty()))
-		{
-			final JLabel warningLabel = new JLabel();
-			warningLabel.setIcon(WARNING_ICON);
-			warningLabel.setToolTipText("This preset has settings to plugins you have not installed");
-			warningLabel.addMouseListener(new MouseAdapter()
-			{
-				@Override
-				public void mousePressed(MouseEvent mouseEvent)
-				{
-					JOptionPane.showMessageDialog(PluginPresetsPanel.this,
-						"This preset has settings to " + pluginListToString(missingPlugins)
-							+ "\nInstall missing plugins from the Plugin Hub or update this preset with your current configurations to discard this.",
-						"Missing external plugins", JOptionPane.ERROR_MESSAGE);
-				}
+		// List<String> missingPlugins = plugin.getMissingExternalPlugins(preset);
+		// if (!(missingPlugins.isEmpty()))
+		// {
+		// 	final JLabel warningLabel = new JLabel();
+		// 	warningLabel.setIcon(WARNING_ICON);
+		// 	warningLabel.setToolTipText("This preset has settings to plugins you have not installed");
+		// 	warningLabel.addMouseListener(new MouseAdapter()
+		// 	{
+		// 		@Override
+		// 		public void mousePressed(MouseEvent mouseEvent)
+		// 		{
+		// 			JOptionPane.showMessageDialog(PluginPresetsPanel.this,
+		// 				"This preset has settings to " + Utils.pluginListToString(missingPlugins)
+		// 					+ "\nInstall missing plugins from the Plugin Hub or update this preset with your current configurations to discard this.",
+		// 				"Missing external plugins", JOptionPane.ERROR_MESSAGE);
+		// 		}
 
-				@Override
-				public void mouseEntered(MouseEvent mouseEvent)
-				{
-					warningLabel.setIcon(WARNING_ICON_HOVER);
-				}
+		// 		@Override
+		// 		public void mouseEntered(MouseEvent mouseEvent)
+		// 		{
+		// 			warningLabel.setIcon(WARNING_ICON_HOVER);
+		// 		}
 
-				@Override
-				public void mouseExited(MouseEvent mouseEvent)
-				{
-					warningLabel.setIcon(WARNING_ICON);
-				}
-			});
+		// 		@Override
+		// 		public void mouseExited(MouseEvent mouseEvent)
+		// 		{
+		// 			warningLabel.setIcon(WARNING_ICON);
+		// 		}
+		// 	});
 
-			rightActions.add(warningLabel);
-		}
+		// 	rightActions.add(warningLabel);
+		// }
 
+		JLabel updateLabel = new JLabel();
 		rightActions.add(updateLabel);
 		rightActions.add(deleteLabel);
 
@@ -532,18 +526,6 @@ class PluginPresetsPanel extends JPanel
 
 		add(nameWrapper, BorderLayout.NORTH);
 		add(bottomContainer, BorderLayout.CENTER);
-	}
-
-	private boolean unsavedPluginConfigurations()
-	{
-		for (PluginPreset p : plugin.getPluginPresets())
-		{
-			if (p.getSelected() == null)
-			{
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private void save()
@@ -606,37 +588,6 @@ class PluginPresetsPanel extends JPanel
 		{
 			nameInput.getTextField().requestFocusInWindow();
 			nameInput.getTextField().selectAll();
-		}
-	}
-
-	private String pluginListToString(List<String> plugins)
-	{
-		StringBuilder message = new StringBuilder(plugins.get(0));
-		for (int i = 1; i < plugins.size(); i++)
-		{
-			if (i == plugins.size() - 1)
-			{
-				message.append(" and ").append(plugins.get(i));
-				break;
-			}
-
-			message.append(", ");
-
-			if (i % 4 == 0)
-			{
-				message.append("\n");
-			}
-
-			message.append(plugins.get(i));
-		}
-
-		if (plugins.size() == 1)
-		{
-			return message + " plugin.";
-		}
-		else
-		{
-			return message + " plugins.";
 		}
 	}
 }

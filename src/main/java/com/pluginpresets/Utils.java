@@ -24,6 +24,7 @@
  */
 package com.pluginpresets;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class Utils
@@ -34,5 +35,42 @@ public class Utils
 	public static boolean stringContainsInvalidCharacters(final String string)
 	{
 		return !(Pattern.compile("(?i)^[ a-ö0-9-_.,;=()+!]+$").matcher(string).matches());
+	}
+
+	/**
+	 * Add commas to list of strings.
+	 *
+	 * @param plugins list of strings
+	 * @return list of string append with commas
+	 */
+	public static String pluginListToString(List<String> plugins)
+	{
+		StringBuilder message = new StringBuilder(plugins.get(0));
+		for (int i = 1; i < plugins.size(); i++)
+		{
+			if (i == plugins.size() - 1)
+			{
+				message.append(" and ").append(plugins.get(i));
+				break;
+			}
+
+			message.append(", ");
+
+			if (i % 4 == 0)
+			{
+				message.append("\n");
+			}
+
+			message.append(plugins.get(i));
+		}
+
+		if (plugins.size() == 1)
+		{
+			return message + " plugin.";
+		}
+		else
+		{
+			return message + " plugins.";
+		}
 	}
 }
