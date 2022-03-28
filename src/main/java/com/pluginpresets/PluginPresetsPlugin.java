@@ -81,6 +81,10 @@ public class PluginPresetsPlugin extends Plugin
 	@Inject
 	private ConfigManager configManager;
 
+	@Getter
+	@Inject
+	private PresetCreatorManager presetCreatorManager;
+
 	private NavigationButton navigationButton;
 
 	private PluginPresetsPluginPanel pluginPanel;
@@ -160,6 +164,7 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		PluginPreset preset = presetManager.createPluginPreset(presetName);
 		pluginPresets.add(preset);
+		presetCreatorManager.close();
 
 		savePresets();
 		rebuildPluginUi();
@@ -201,13 +206,16 @@ public class PluginPresetsPlugin extends Plugin
 	public void importPresetFromClipboard()
 	{
 		PluginPreset newPreset = sharingManager.importPresetFromClipboard();
+		presetCreatorManager.close();
+
 		if (newPreset == null)
 		{
 			return;
 		}
-		newPreset.setId(Instant.now().toEpochMilli());
 
+		newPreset.setId(Instant.now().toEpochMilli());
 		pluginPresets.add(newPreset);
+
 		savePresets();
 		refreshPresets();
 		rebuildPluginUi();
