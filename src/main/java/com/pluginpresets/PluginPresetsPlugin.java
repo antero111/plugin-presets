@@ -36,6 +36,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.client.config.ConfigManager;
@@ -69,6 +70,10 @@ public class PluginPresetsPlugin extends Plugin
 	@Getter
 	private final List<PluginPreset> pluginPresets = new ArrayList<>();
 
+	@Getter
+	@Setter
+	private PluginPreset editedPreset = null;
+
 	@Inject
 	private ClientToolbar clientToolbar;
 
@@ -91,6 +96,7 @@ public class PluginPresetsPlugin extends Plugin
 
 	private PluginPresetsSharingManager sharingManager;
 
+	@Getter
 	private PluginPresetsPresetManager presetManager;
 
 	@Override
@@ -105,6 +111,7 @@ public class PluginPresetsPlugin extends Plugin
 		presetManager = new PluginPresetsPresetManager(this, pluginManager, configManager, runeLiteConfig);
 
 		loadPresets();
+
 		rebuildPluginUi();
 
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), ICON_FILE);
@@ -133,6 +140,7 @@ public class PluginPresetsPlugin extends Plugin
 		sharingManager = null;
 		presetManager = null;
 		navigationButton = null;
+		editedPreset = null;
 	}
 
 	@Subscribe

@@ -58,21 +58,18 @@ class PluginPresetsPanel extends JPanel
 		BorderFactory.createLineBorder(ColorScheme.DARKER_GRAY_COLOR));
 
 	private static final ImageIcon SWITCH_ON_ICON;
-
 	private static final ImageIcon SWITCH_OFF_ICON;
 	private static final ImageIcon SWITCH_OFF_HOVER_ICON;
-
 	private static final ImageIcon WARNING_ICON;
 	private static final ImageIcon WARNING_ICON_HOVER;
-
 	private static final ImageIcon UPDATE_ICON;
 	private static final ImageIcon UPDATE_HOVER_ICON;
-
 	private static final ImageIcon UPDATE_WARNING_ICON;
 	private static final ImageIcon UPDATE_WARNING_HOVER_ICON;
-
 	private static final ImageIcon DELETE_ICON;
 	private static final ImageIcon DELETE_HOVER_ICON;
+	private static final ImageIcon EDIT_ICON;
+	private static final ImageIcon EDIT_HOVER_ICON;
 
 	static
 	{
@@ -99,6 +96,10 @@ class PluginPresetsPanel extends JPanel
 		final BufferedImage deleteImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "delete_icon.png");
 		DELETE_ICON = new ImageIcon(deleteImg);
 		DELETE_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(deleteImg, -100));
+
+		final BufferedImage editIcon = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "edit_icon.png");
+		EDIT_ICON = new ImageIcon(editIcon);
+		EDIT_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(editIcon, 0.53f));
 	}
 
 	private final PluginPresetsPlugin plugin;
@@ -109,6 +110,7 @@ class PluginPresetsPanel extends JPanel
 	private final JLabel save = new JLabel("Save");
 	private final JLabel cancel = new JLabel("Cancel");
 	private final JLabel rename = new JLabel("Rename");
+	private final JLabel updateLabel = new JLabel();
 
 	PluginPresetsPanel(PluginPreset pluginPreset, PluginPresetsPlugin pluginPresetsPlugin)
 	{
@@ -517,7 +519,31 @@ class PluginPresetsPanel extends JPanel
 		// 	rightActions.add(warningLabel);
 		// }
 
-		JLabel updateLabel = new JLabel();
+		updateLabel.setIcon(EDIT_ICON);
+		updateLabel.setToolTipText("Edit preset configurations");
+		updateLabel.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				plugin.setEditedPreset(preset);
+				plugin.rebuildPluginUi();
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				updateLabel.setIcon(EDIT_HOVER_ICON);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				updateLabel.setIcon(EDIT_ICON);
+			}
+		});
+
+
 		rightActions.add(updateLabel);
 		rightActions.add(deleteLabel);
 
