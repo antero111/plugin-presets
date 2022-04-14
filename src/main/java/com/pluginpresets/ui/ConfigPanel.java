@@ -1,10 +1,10 @@
 package com.pluginpresets.ui;
 
 import com.pluginpresets.PluginConfig;
-import com.pluginpresets.PluginPreset;
 import com.pluginpresets.PluginPresetsPlugin;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -20,32 +20,54 @@ import net.runelite.client.util.ImageUtil;
 
 public class ConfigPanel extends JPanel
 {
-	private static final ImageIcon DELETE_ICON;
-	private static final ImageIcon DELETE_HOVER_ICON;
+	private static final ImageIcon SWITCH_ON_ICON;
+	private static final ImageIcon SWITCH_ON_HOVER_ICON;
+	private static final ImageIcon SWITCH_OFF_ICON;
+	private static final ImageIcon SWITCH_OFF_HOVER_ICON;
+	private static final ImageIcon UPDATE_ICON;
+	private static final ImageIcon UPDATE_HOVER_ICON;
 
 	static
 	{
-		final BufferedImage deleteImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "delete_icon.png");
-		DELETE_ICON = new ImageIcon(deleteImg);
-		DELETE_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(deleteImg, -100));
+		final BufferedImage switchOnImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_on_icon.png");
+		SWITCH_ON_ICON = new ImageIcon(switchOnImg);
+		SWITCH_ON_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(switchOnImg, 20));
+
+		final BufferedImage switchOffImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_off_icon.png");
+		final BufferedImage switchOffHoverImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_off_hover_icon.png");
+		SWITCH_OFF_ICON = new ImageIcon(switchOffImg);
+		SWITCH_OFF_HOVER_ICON = new ImageIcon(switchOffHoverImg);
+
+		final BufferedImage updateImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "refresh_icon.png");
+		UPDATE_ICON = new ImageIcon(updateImg);
+		UPDATE_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(updateImg, -100));
 	}
 
-	private final PluginConfig config;
+	private final PluginConfig presetConfig;
+	private final PluginConfig currentConfig;
 	private final JLabel title = new JLabel();
 	private final JPanel settings = new JPanel(new GridBagLayout());
-	private final JLabel deleteLabel = new JLabel();
+	private final JLabel switchLabel = new JLabel();
+	private final JLabel updateLabel = new JLabel();
+	private final boolean presetHasConfigurations;
 
-	public ConfigPanel(PluginConfig config, PluginPreset preset, PluginPresetsPlugin plugin)
+	public ConfigPanel(PluginConfig currentConfig, PluginConfig presetConfig, PluginPresetsPlugin plugin)
 	{
-		this.config = config;
+		this.presetConfig = presetConfig;
+		this.currentConfig = currentConfig;
+
+		presetHasConfigurations = presetHasConfigurations();
+		boolean configsMatch = configsMatch();
 
 		setLayout(new BorderLayout());
-		setBorder(new EmptyBorder(0, 10, 0, 0));
+		setBorder(new EmptyBorder(3, 10, 3, 0));
 
-		JPanel topActions = new JPanel(new BorderLayout());
-
-		title.setText(config.getName());
-		title.setForeground(Color.WHITE);
+		title.setText(currentConfig.getName());
+		Color titleColor = presetHasConfigurations ? Color.WHITE : ColorScheme.LIGHT_GRAY_COLOR;
+		title.setForeground(titleColor);
+		// 0 width is to prevent the title causing the panel to grow in y direction on long plugin names
+		// 16 height is UPDATE_ICONs height
+		title.setPreferredSize(new Dimension(0, 16));
 		title.addMouseListener(new MouseAdapter()
 		{
 			@Override
@@ -63,43 +85,111 @@ public class ConfigPanel extends JPanel
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				title.setForeground(Color.WHITE);
+				title.setForeground(titleColor);
 			}
 		});
 
-		JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 3));
-
-		deleteLabel.setIcon(DELETE_ICON);
-		deleteLabel.setToolTipText("Remove plugin configuration");
-		deleteLabel.addMouseListener(new MouseAdapter()
+		JLabel statusLabel = new JLabel();
+		if (presetHasConfigurations)
 		{
-			@Override
-			public void mousePressed(MouseEvent mouseEvent)
+			switchLabel.setIcon(SWITCH_ON_ICON);
+			switchLabel.setToolTipText("Remove configurations for " + currentConfig.getName() + " from the preset.");
+			switchLabel.addMouseListener(new MouseAdapter()
 			{
-				plugin.getPresetManager().removeConfiguration(config, preset);
-				plugin.savePresets();
+				@Override
+				public void mousePressed(MouseEvent mouseEvent)
+				{
+					plugin.removeConfiguration(presetConfig);
+				}
 
-				setVisible(false);
+				@Override
+				public void mouseEntered(MouseEvent mouseEvent)
+				{
+					switchLabel.setIcon(SWITCH_ON_HOVER_ICON);
+				}
 
-				repaint();
-				revalidate();
-			}
+				@Override
+				public void mouseExited(MouseEvent mouseEvent)
+				{
+					switchLabel.setIcon(SWITCH_ON_ICON);
+				}
+			});
 
-			@Override
-			public void mouseEntered(MouseEvent mouseEvent)
+			if (!configsMatch)
 			{
-				deleteLabel.setIcon(DELETE_HOVER_ICON);
-			}
+				title.setToolTipText("Your configurations for " + currentConfig.getName() + " do not match the preset.");
 
-			@Override
-			public void mouseExited(MouseEvent mouseEvent)
+				statusLabel.setText("Modified");
+				statusLabel.setForeground(ColorScheme.PROGRESS_INPROGRESS_COLOR);
+				statusLabel.setBorder(new EmptyBorder(0, 0, 0, 2));
+				statusLabel.setToolTipText("Your configurations for " + currentConfig.getName() + " do not match the preset.");
+
+				updateLabel.setIcon(UPDATE_ICON);
+				updateLabel.setToolTipText("Replace the presets configuration for " + currentConfig.getName() + " with your current configuration.");
+				updateLabel.addMouseListener(new MouseAdapter()
+				{
+					@Override
+					public void mousePressed(MouseEvent mouseEvent)
+					{
+						plugin.removeConfiguration(presetConfig);
+						plugin.addConfiguration(currentConfig);
+					}
+
+					@Override
+					public void mouseEntered(MouseEvent mouseEvent)
+					{
+						updateLabel.setIcon(UPDATE_HOVER_ICON);
+					}
+
+					@Override
+					public void mouseExited(MouseEvent mouseEvent)
+					{
+						updateLabel.setIcon(UPDATE_ICON);
+					}
+				});
+			}
+			else
 			{
-				deleteLabel.setIcon(DELETE_ICON);
+				title.setToolTipText("Your configurations for " + currentConfig.getName() + " match the preset.");
 			}
-		});
+		}
+		else
+		{
+			title.setToolTipText("This preset does not include any configurations to " + currentConfig.getName() + " plugin.");
 
-		rightActions.add(deleteLabel);
+			switchLabel.setIcon(SWITCH_OFF_ICON);
+			switchLabel.setToolTipText("Add your current configuration for " + currentConfig.getName() + " to the preset.");
+			switchLabel.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent mouseEvent)
+				{
+					plugin.addConfiguration(currentConfig);
+				}
 
+				@Override
+				public void mouseEntered(MouseEvent mouseEvent)
+				{
+					switchLabel.setIcon(SWITCH_OFF_HOVER_ICON);
+				}
+
+				@Override
+				public void mouseExited(MouseEvent mouseEvent)
+				{
+					switchLabel.setIcon(SWITCH_OFF_ICON);
+				}
+			});
+		}
+
+		switchLabel.setPreferredSize(new Dimension(20, 16));
+
+		JPanel rightActions = new JPanel();
+		rightActions.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
+		rightActions.add(statusLabel);
+		rightActions.add(updateLabel);
+		rightActions.add(switchLabel);
+
+		JPanel topActions = new JPanel(new BorderLayout());
 		topActions.add(title, BorderLayout.CENTER);
 		topActions.add(rightActions, BorderLayout.EAST);
 
@@ -113,7 +203,6 @@ public class ConfigPanel extends JPanel
 	private void toggleSettings()
 	{
 		boolean visible = settings.isVisible();
-
 		if (!visible)
 		{
 			GridBagConstraints constraints = new GridBagConstraints();
@@ -124,10 +213,10 @@ public class ConfigPanel extends JPanel
 
 			settings.removeAll();
 
-			settings.add(new JLabel("Plugin " + (config.getEnabled() ? "enabled" : "disabled")), constraints);
+			settings.add(new JLabel("Plugin " + (currentConfig.getEnabled() ? "enabled" : "disabled")), constraints);
 			constraints.gridy++;
 
-			config.getSettings().forEach(setting -> {
+			currentConfig.getSettings().forEach(setting -> {
 				settings.add(new JLabel(setting.getName()), constraints);
 				constraints.gridy++;
 			});
@@ -138,4 +227,15 @@ public class ConfigPanel extends JPanel
 		revalidate();
 		repaint();
 	}
+
+	private boolean presetHasConfigurations()
+	{
+		return presetConfig != null;
+	}
+
+	private boolean configsMatch()
+	{
+		return presetHasConfigurations && presetConfig.equals(currentConfig);
+	}
+
 }

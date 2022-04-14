@@ -97,9 +97,9 @@ class PluginPresetsPanel extends JPanel
 		DELETE_ICON = new ImageIcon(deleteImg);
 		DELETE_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(deleteImg, -100));
 
-		final BufferedImage editIcon = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "edit_icon.png");
-		EDIT_ICON = new ImageIcon(editIcon);
-		EDIT_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(editIcon, 0.53f));
+		final BufferedImage editImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "edit_icon.png");
+		EDIT_ICON = new ImageIcon(editImg);
+		EDIT_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(editImg, 0.53f));
 	}
 
 	private final PluginPresetsPlugin plugin;
@@ -110,6 +110,7 @@ class PluginPresetsPanel extends JPanel
 	private final JLabel save = new JLabel("Save");
 	private final JLabel cancel = new JLabel("Cancel");
 	private final JLabel rename = new JLabel("Rename");
+	private final JLabel notice = new JLabel();
 	private final JLabel updateLabel = new JLabel();
 
 	PluginPresetsPanel(PluginPreset pluginPreset, PluginPresetsPlugin pluginPresetsPlugin)
@@ -120,16 +121,17 @@ class PluginPresetsPanel extends JPanel
 		setLayout(new BorderLayout());
 		setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		JMenuItem exportMenuOption = new JMenuItem();
-		exportMenuOption.setText("Export preset to clipboard");
-		exportMenuOption.addActionListener(e ->
-			plugin.exportPresetToClipboard(preset));
+		// TODO: Make this a button
+		// JMenuItem exportMenuOption = new JMenuItem();
+		// exportMenuOption.setText("Export preset to clipboard");
+		// exportMenuOption.addActionListener(e ->
+		// 	plugin.exportPresetToClipboard(preset));
 
-		JPopupMenu exportPopupMenu = new JPopupMenu();
-		exportPopupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
-		exportPopupMenu.add(exportMenuOption);
+		// JPopupMenu exportPopupMenu = new JPopupMenu();
+		// exportPopupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
+		// exportPopupMenu.add(exportMenuOption);
 
-		setComponentPopupMenu(exportPopupMenu);
+		// setComponentPopupMenu(exportPopupMenu);
 
 		JPanel nameWrapper = new JPanel(new BorderLayout());
 		nameWrapper.setBackground(ColorScheme.DARKER_GRAY_COLOR);
@@ -255,6 +257,14 @@ class PluginPresetsPanel extends JPanel
 		{
 			loadLabel.setIcon(SWITCH_ON_ICON);
 			loadLabel.setToolTipText("Current configurations match this preset");
+
+			if (preset.getPluginConfigs().isEmpty())
+			{
+				notice.setFont(FontManager.getRunescapeSmallFont());
+				notice.setForeground(ColorScheme.LIGHT_GRAY_COLOR.darker());
+				notice.setText("Empty preset");
+				notice.setToolTipText("This preset is empty, click the cog icon to add configurations.");
+			}
 		}
 		else
 		{
@@ -548,6 +558,7 @@ class PluginPresetsPanel extends JPanel
 		rightActions.add(deleteLabel);
 
 		bottomContainer.add(leftActions, BorderLayout.WEST);
+		bottomContainer.add(notice, BorderLayout.CENTER);
 		bottomContainer.add(rightActions, BorderLayout.EAST);
 
 		add(nameWrapper, BorderLayout.NORTH);

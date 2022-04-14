@@ -73,26 +73,26 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 	static
 	{
-		final BufferedImage notificationIcon = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
+		final BufferedImage notificationImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
 			"warning_icon.png");
-		NOTIFICATION_ICON = new ImageIcon(notificationIcon);
-		NOTIFICATION_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(notificationIcon, 0.53f));
+		NOTIFICATION_ICON = new ImageIcon(notificationImg);
+		NOTIFICATION_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(notificationImg, 0.53f));
 
-		final BufferedImage helpIcon = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "help_icon.png");
-		HELP_ICON = new ImageIcon(helpIcon);
-		HELP_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(helpIcon, 0.53f));
+		final BufferedImage helpImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "help_icon.png");
+		HELP_ICON = new ImageIcon(helpImg);
+		HELP_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(helpImg, 0.53f));
 
-		final BufferedImage refreshIcon = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "refresh_icon.png");
-		REFRESH_ICON = new ImageIcon(refreshIcon);
-		REFRESH_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(refreshIcon, 0.53f));
+		final BufferedImage refreshImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "refresh_icon.png");
+		REFRESH_ICON = new ImageIcon(refreshImg);
+		REFRESH_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(refreshImg, 0.53f));
 
-		final BufferedImage addIcon = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "add_icon.png");
-		ADD_ICON = new ImageIcon(addIcon);
-		ADD_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(addIcon, 0.53f));
+		final BufferedImage addImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "add_icon.png");
+		ADD_ICON = new ImageIcon(addImg);
+		ADD_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(addImg, 0.53f));
 
-		final BufferedImage arrowLeft = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "arrow_left_icon.png");
-		ARROW_LEFT_ICON = new ImageIcon(arrowLeft);
-		ARROW_LEFT_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(arrowLeft, 0.53f));
+		final BufferedImage arrowLeftImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "arrow_left_icon.png");
+		ARROW_LEFT_ICON = new ImageIcon(arrowLeftImg);
+		ARROW_LEFT_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(arrowLeftImg, 0.53f));
 	}
 
 	private final PluginPresetsPlugin plugin;
@@ -231,7 +231,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		editTitle.setForeground(Color.WHITE);
 
-		stopEdit.setToolTipText("Stop editing");
+		stopEdit.setToolTipText("Back to presets");
 		stopEdit.setBorder(new EmptyBorder(0, 0, 0, 10));
 		stopEdit.addMouseListener(new MouseAdapter()
 		{
@@ -328,26 +328,19 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		if (editingPreset)
 		{
 			PluginPreset preset = plugin.getEditedPreset();
+			List<PluginConfig> presetConfigs = preset.getPluginConfigs();
 
 			editTitle.setText("Editing Preset " + preset.getName());
-
-			// Sort alphabetically similar to the configurations tab
-			preset.getPluginConfigs().sort(Comparator.comparing(PluginConfig::getConfigName));
-
-			List<PluginConfig> configs = preset.getPluginConfigs();
-
-			final String text = searchBar.getText();
-			if (!text.isEmpty())
+				
+			List<PluginConfig> currentConfigurations = plugin.getPresetManager().getCurrentConfigurations();
+			currentConfigurations = filterIfSearchKeyword(currentConfigurations);
+			sortAlphabetically(currentConfigurations);
+			
+			for (final PluginConfig currentConfig : currentConfigurations)
 			{
-				configs = configs.stream().filter(
-						c -> c.getName().toLowerCase()
-							.contains(text.toLowerCase()))
-					.collect(Collectors.toList());
-			}
+				PluginConfig presetConfig = getPresetConfig(presetConfigs, currentConfig);
 
-			for (final PluginConfig config : configs)
-			{
-				contentView.add(new ConfigPanel(config, preset, plugin), constraints);
+				contentView.add(new ConfigPanel(currentConfig, presetConfig, plugin), constraints);
 				constraints.gridy++;
 			}
 		}
@@ -374,6 +367,36 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		repaint();
 		revalidate();
+	}
+
+	private List<PluginConfig> filterIfSearchKeyword(List<PluginConfig> currentConfigurations) {
+		final String text = searchBar.getText();
+		if (!text.isEmpty())
+		{
+			currentConfigurations = currentConfigurations.stream().filter(
+					c -> c.getName().toLowerCase()
+						.contains(text.toLowerCase()))
+				.collect(Collectors.toList());
+		}
+		return currentConfigurations;
+	}
+
+	private PluginConfig getPresetConfig(List<PluginConfig> presetConfigs, final PluginConfig currentConfig) {
+		PluginConfig presetConfig = null;
+		for (PluginConfig config : presetConfigs)
+		{
+			if (config.getName().equals(currentConfig.getName()))
+			{
+				presetConfig = config;	
+				break;
+			}
+		}
+		return presetConfig;
+	}
+
+	private void sortAlphabetically(List<PluginConfig> currentConfigurations) {
+		// // Sort alphabetically similar to the configurations tab
+		currentConfigurations.sort(Comparator.comparing(PluginConfig::getConfigName));
 	}
 
 	private JPopupMenu getImportMenuPopup()

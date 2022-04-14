@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigDescriptor;
@@ -134,8 +133,6 @@ public class PluginPresetsPresetManager
 	 */
 	public void loadPreset(PluginPreset preset)
 	{
-		log.info("Loading preset: {}", preset.getName());
-
 		Collection<Plugin> plugins = pluginManager.getPlugins();
 
 		preset.getPluginConfigs().forEach(pluginConfig -> {
@@ -267,17 +264,5 @@ public class PluginPresetsPresetManager
 			presetName = PluginPresetsPlugin.DEFAULT_PRESET_NAME + " " + (plugin.getPluginPresets().size() + 1);
 		}
 		return presetName;
-	}
-
-	public void removeConfiguration(PluginConfig config, PluginPreset preset)
-	{
-		preset.setPluginConfigs(
-			preset.getPluginConfigs().stream()
-				.filter(c -> !(c.getName().equals(config.getName()))).collect(Collectors.toList()));
-	}
-
-	public void addConfiguration(PluginConfig config, PluginPreset preset)
-	{
-		preset.getPluginConfigs().add(config);
 	}
 }

@@ -238,4 +238,33 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		pluginPanel.rebuild();
 	}
+
+	public void removeConfiguration(PluginConfig configuration)
+	{
+		List<PluginConfig> pluginConfigs = editedPreset.getPluginConfigs().stream()
+			.filter(c -> !(c.getName().equals(configuration.getName()))).collect(Collectors.toList());
+		editedPreset.setPluginConfigs(pluginConfigs);
+		updateEditedPreset();
+	}
+
+	public void addConfiguration(PluginConfig configuration)
+	{
+		List<PluginConfig> pluginConfigs = editedPreset.getPluginConfigs();
+		pluginConfigs.add(configuration);
+		updateEditedPreset();
+	}
+
+	private void updateEditedPreset()
+	{
+		pluginPresets.forEach(plugin ->
+		{
+			if (plugin.getName().equals(editedPreset.getName()))
+			{
+				plugin.setPluginConfigs(editedPreset.getPluginConfigs());
+			}
+		});
+
+		savePresets();
+		refreshPresets();
+	}
 }
