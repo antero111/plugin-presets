@@ -24,17 +24,22 @@
  */
 package com.pluginpresets;
 
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.ClassPath.ClassInfo;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigDescriptor;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.RuneLiteConfig;
 import net.runelite.client.plugins.Plugin;
+import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.PluginInstantiationException;
 import net.runelite.client.plugins.PluginManager;
 
@@ -45,6 +50,7 @@ public class PluginPresetsPresetManager
 	private final PluginManager pluginManager;
 	private final ConfigManager configManager;
 	private final RuneLiteConfig runeLiteConfig;
+	private final List<String> corePlugins;
 
 	public PluginPresetsPresetManager(PluginPresetsPlugin plugin, PluginManager pluginManager,
 									  ConfigManager configManager, RuneLiteConfig runeLiteConfig)
@@ -53,6 +59,7 @@ public class PluginPresetsPresetManager
 		this.pluginManager = pluginManager;
 		this.configManager = configManager;
 		this.runeLiteConfig = runeLiteConfig;
+		this.corePlugins = getCorePlugins();
 	}
 
 	/**
@@ -79,7 +86,6 @@ public class PluginPresetsPresetManager
 	private ArrayList<PluginConfig> getDifferenceToCurrentConfigurations(PluginPreset preset,
 																		 HashMap<String, HashMap<String, String>> currentConfigurations)
 	{
-
 		ArrayList<PluginConfig> diffs = new ArrayList<>();
 
 		preset.getPluginConfigs().forEach(config -> {
@@ -96,7 +102,9 @@ public class PluginPresetsPresetManager
 			});
 
 			Boolean enabled = null;
-			if (!(currentConfigurations.get(config.getConfigName()).get("enabled")
+
+			HashMap<String, String> currentConfig = currentConfigurations.get(config.getConfigName());
+			if (currentConfig != null && !(currentConfig.get("enabled")
 				.equals(config.getEnabled().toString())))
 			{
 				enabled = config.getEnabled();
@@ -104,7 +112,7 @@ public class PluginPresetsPresetManager
 
 			if (!dif.isEmpty() || enabled != null)
 			{
-				diffs.add(new PluginConfig(config.getConfigName(), config.getConfigName(), enabled, dif));
+				diffs.add(new PluginConfig(config.getName(), config.getConfigName(), enabled, dif));
 			}
 		});
 		return diffs;
@@ -264,5 +272,48 @@ public class PluginPresetsPresetManager
 			presetName = PluginPresetsPlugin.DEFAULT_PRESET_NAME + " " + (plugin.getPluginPresets().size() + 1);
 		}
 		return presetName;
+	}
+
+	public boolean isExternalPlugin(String pluginName)
+	{
+		if (pluginName.equals("RuneLite"))
+		{
+			return false;
+		}
+		return !corePlugins.contains(pluginName);
+	}
+
+	public boolean isExternalPluginInstalled(String pluginName)
+	{
+		Collection<Plugin> plugins = pluginManager.getPlugins();
+		List<String> names = plugins.stream().map(Plugin::getName).collect(Collectors.toList());
+		return names.contains(pluginName);
+	}
+
+	private List<String> getCorePlugins()
+	{
+		ArrayList<String> pluginNames = new ArrayList<>();
+		try
+		{
+			ClassPath classPath = ClassPath.from(pluginManager.getClass().getClassLoader());
+			List<Class<?>> plugins = classPath.getTopLevelClassesRecursive("net.runelite.client.plugins").stream()
+				.map(ClassInfo::load)
+				.collect(Collectors.toList());
+
+			for (Class<?> clazz : plugins)
+			{
+				PluginDescriptor pluginDescriptor = clazz.getAnnotation(PluginDescriptor.class);
+				if (pluginDescriptor != null)
+				{
+					pluginNames.add(pluginDescriptor.name());
+				}
+			}
+
+		}
+		catch (IOException e)
+		{
+			log.error("Error getting core plugins", e);
+		}
+		return pluginNames;
 	}
 }

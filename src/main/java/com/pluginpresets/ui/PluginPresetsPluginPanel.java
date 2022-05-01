@@ -108,6 +108,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final JPanel titlePanel = new JPanel(new BorderLayout());
 	private final JPanel editPanel = new JPanel(new BorderLayout());
 	private final JPanel contentView = new JPanel(new GridBagLayout());
+	private final GridBagConstraints constraints = new GridBagConstraints();
 
 	public PluginPresetsPluginPanel(PluginPresetsPlugin pluginPresetsPlugin)
 	{
@@ -312,7 +313,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 	public void rebuild()
 	{
-		GridBagConstraints constraints = new GridBagConstraints();
 		constraints.fill = GridBagConstraints.HORIZONTAL;
 		constraints.weightx = 1;
 		constraints.gridx = 0;
@@ -327,40 +327,11 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		if (editingPreset)
 		{
-			PluginPreset preset = plugin.getEditedPreset();
-			List<PluginConfig> presetConfigs = preset.getPluginConfigs();
-
-			editTitle.setText("Editing Preset " + preset.getName());
-				
-			List<PluginConfig> currentConfigurations = plugin.getPresetManager().getCurrentConfigurations();
-			currentConfigurations = filterIfSearchKeyword(currentConfigurations);
-			sortAlphabetically(currentConfigurations);
-			
-			for (final PluginConfig currentConfig : currentConfigurations)
-			{
-				PluginConfig presetConfig = getPresetConfig(presetConfigs, currentConfig);
-
-				contentView.add(new ConfigPanel(currentConfig, presetConfig, plugin), constraints);
-				constraints.gridy++;
-			}
+			renderEditView();
 		}
 		else
 		{
-			for (final PluginPreset preset : plugin.getPluginPresets())
-			{
-				contentView.add(new PluginPresetsPanel(preset, plugin), constraints);
-				constraints.gridy++;
-
-				contentView.add(Box.createRigidArea(new Dimension(0, 10)), constraints);
-				constraints.gridy++;
-			}
-
-			boolean empty = constraints.gridy == 0;
-			noPresetsPanel.setVisible(empty);
-			title.setVisible(!empty);
-
-			contentView.add(noPresetsPanel, constraints);
-			constraints.gridy++;
+			renderPresetView();
 		}
 
 		errorNotification.setVisible(false);
@@ -369,7 +340,60 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		revalidate();
 	}
 
-	private List<PluginConfig> filterIfSearchKeyword(List<PluginConfig> currentConfigurations) {
+	private void renderPresetView()
+	{
+		for (final PluginPreset preset : plugin.getPluginPresets())
+		{
+			contentView.add(new PluginPresetsPanel(preset, plugin), constraints);
+			constraints.gridy++;
+
+			contentView.add(Box.createRigidArea(new Dimension(0, 10)), constraints);
+			constraints.gridy++;
+		}
+
+		boolean empty = constraints.gridy == 0;
+		noPresetsPanel.setVisible(empty);
+		title.setVisible(!empty);
+
+		contentView.add(noPresetsPanel, constraints);
+		constraints.gridy++;
+	}
+
+	private void renderEditView()
+	{
+		PluginPreset preset = plugin.getEditedPreset();
+		List<PluginConfig> presetConfigs = preset.getPluginConfigs();
+
+		editTitle.setText("Editing Preset " + preset.getName());
+
+		List<PluginConfig> configurations = plugin.getPresetManager().getCurrentConfigurations();
+
+		// Add configurations that are in the preset but not in current configurations
+		// e.g. preset is from a friend and the preset has settings
+		// to some plugin hub plugin that you don't have in your current configs
+		List<String> names = configurations.stream().map(PluginConfig::getName).collect(Collectors.toList());
+		for (PluginConfig config : presetConfigs)
+		{
+			if (!names.contains(config.getName()))
+			{
+				configurations.add(config);
+			}
+		}
+
+		configurations = filterIfSearchKeyword(configurations);
+		sortAlphabetically(configurations);
+
+		for (final PluginConfig currentConfig : configurations)
+		{
+			PluginConfig presetConfig = getPresetConfig(presetConfigs, currentConfig);
+
+			contentView.add(new ConfigPanel(currentConfig, presetConfig, plugin), constraints);
+			constraints.gridy++;
+		}
+	}
+
+	private List<PluginConfig> filterIfSearchKeyword(List<PluginConfig> currentConfigurations)
+	{
 		final String text = searchBar.getText();
 		if (!text.isEmpty())
 		{
@@ -381,20 +405,22 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		return currentConfigurations;
 	}
 
-	private PluginConfig getPresetConfig(List<PluginConfig> presetConfigs, final PluginConfig currentConfig) {
+	private PluginConfig getPresetConfig(List<PluginConfig> presetConfigs, final PluginConfig currentConfig)
+	{
 		PluginConfig presetConfig = null;
 		for (PluginConfig config : presetConfigs)
 		{
 			if (config.getName().equals(currentConfig.getName()))
 			{
-				presetConfig = config;	
+				presetConfig = config;
 				break;
 			}
 		}
 		return presetConfig;
 	}
 
-	private void sortAlphabetically(List<PluginConfig> currentConfigurations) {
+	private void sortAlphabetically(List<PluginConfig> currentConfigurations)
+	{
 		// // Sort alphabetically similar to the configurations tab
 		currentConfigurations.sort(Comparator.comparing(PluginConfig::getConfigName));
 	}
