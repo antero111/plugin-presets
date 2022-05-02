@@ -371,6 +371,8 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		List<PluginConfig> presetConfigs = preset.getPluginConfigs();
 
 		editTitle.setText("Editing Preset " + preset.getName());
+		
+		searchBar.requestFocusInWindow();
 
 		List<PluginConfig> configurations = plugin.getPresetManager().getCurrentConfigurations();
 
