@@ -196,12 +196,12 @@ public class PluginPresetsPresetManager
 		}
 	}
 
-	public PluginPreset createPluginPreset(String presetName)
+	public PluginPreset createPluginPreset(String presetName, boolean empty)
 	{
 		return new PluginPreset(
 			Instant.now().toEpochMilli(),
 			createDefaultPlaceholderNameIfNoNameSet(presetName),
-			getCurrentConfigurations());
+			empty ? new ArrayList<>() : getCurrentConfigurations());
 	}
 
 	public List<PluginConfig> getCurrentConfigurations()

@@ -43,11 +43,11 @@ import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -205,7 +205,13 @@ public class PluginPresetsPluginPanel extends PluginPanel
 				}
 				else
 				{
-					openPresetCreator();
+					String customPresetName = JOptionPane.showInputDialog(PluginPresetsPluginPanel.this,
+					"Name your new preset.", "New Plugin Preset", JOptionPane.PLAIN_MESSAGE);
+
+					if (customPresetName != null)
+					{
+						plugin.createPreset(customPresetName, false);
+					}
 				}
 			}
 
@@ -431,10 +437,24 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		importMenuOption.setText("Import preset from clipboard");
 		importMenuOption.addActionListener(e -> plugin.importPresetFromClipboard());
 
+		JMenuItem importMenuOption2 = new JMenuItem();
+		importMenuOption2.setText("Create new empty preset");
+		importMenuOption2.addActionListener(e -> promtPresetCreation(true));
+
 		JPopupMenu importPopupMenu = new JPopupMenu();
 		importPopupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
 		importPopupMenu.add(importMenuOption);
+		importPopupMenu.add(importMenuOption2);
 		return importPopupMenu;
+	}
+
+	private void promtPresetCreation(boolean empty) {
+		String customPresetName = JOptionPane.showInputDialog(PluginPresetsPluginPanel.this,
+		"Name your new preset.", "New Plugin Preset", JOptionPane.PLAIN_MESSAGE);
+		if (customPresetName != null)
+		{
+			plugin.createPreset(customPresetName, empty);
+		}
 	}
 
 	public void renderNotification(String errorMessage)
@@ -446,14 +466,5 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private void emptyBar()
 	{
 		searchBar.setText("");
-	}
-
-	private void openPresetCreator()
-	{
-		PresetCreatorDialog presetCreatorDialog = plugin.getPresetCreatorManager().create(
-			SwingUtilities.windowForComponent(this),
-			plugin);
-		presetCreatorDialog.setLocation(getLocationOnScreen());
-		presetCreatorDialog.setVisible(true);
 	}
 }

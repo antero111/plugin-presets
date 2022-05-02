@@ -86,10 +86,6 @@ public class PluginPresetsPlugin extends Plugin
 	@Inject
 	private ConfigManager configManager;
 
-	@Getter
-	@Inject
-	private PresetCreatorManager presetCreatorManager;
-
 	private NavigationButton navigationButton;
 
 	private PluginPresetsPluginPanel pluginPanel;
@@ -168,11 +164,10 @@ public class PluginPresetsPlugin extends Plugin
 		return presetManager.getMatchingPresets();
 	}
 
-	public void createPreset(String presetName)
+	public void createPreset(String presetName, boolean empty)
 	{
-		PluginPreset preset = presetManager.createPluginPreset(presetName);
+		PluginPreset preset = presetManager.createPluginPreset(presetName, empty);
 		pluginPresets.add(preset);
-		presetCreatorManager.close();
 
 		savePresets();
 		rebuildPluginUi();
@@ -214,8 +209,6 @@ public class PluginPresetsPlugin extends Plugin
 	public void importPresetFromClipboard()
 	{
 		PluginPreset newPreset = sharingManager.importPresetFromClipboard();
-		presetCreatorManager.close();
-
 		if (newPreset == null)
 		{
 			return;
