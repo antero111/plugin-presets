@@ -51,7 +51,7 @@ import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.components.FlatTextField;
 import net.runelite.client.util.ImageUtil;
 
-class PluginPresetsPanel extends JPanel
+class PresetPanel extends JPanel
 {
 	private static final Border NAME_BOTTOM_BORDER = new CompoundBorder(
 		BorderFactory.createMatteBorder(0, 0, 1, 0, ColorScheme.DARK_GRAY_COLOR),
@@ -113,7 +113,7 @@ class PluginPresetsPanel extends JPanel
 	private final JLabel notice = new JLabel();
 	private final JLabel updateLabel = new JLabel();
 
-	PluginPresetsPanel(PluginPreset pluginPreset, PluginPresetsPlugin pluginPresetsPlugin)
+	PresetPanel(PluginPreset pluginPreset, PluginPresetsPlugin pluginPresetsPlugin)
 	{
 		this.plugin = pluginPresetsPlugin;
 		this.preset = pluginPreset;
@@ -473,7 +473,7 @@ class PluginPresetsPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				int confirm = JOptionPane.showConfirmDialog(PluginPresetsPanel.this,
+				int confirm = JOptionPane.showConfirmDialog(PresetPanel.this,
 					"Are you sure you want to permanently delete this plugin preset?",
 					"Delete preset", JOptionPane.YES_NO_OPTION);
 

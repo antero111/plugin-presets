@@ -70,6 +70,8 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private static final ImageIcon ADD_HOVER_ICON;
 	private static final ImageIcon ARROW_LEFT_ICON;
 	private static final ImageIcon ARROW_LEFT_HOVER_ICON;
+	private static final ImageIcon SWITCH_ON_ICON;
+	private static final ImageIcon SWITCH_OFF_ICON;
 
 	static
 	{
@@ -93,6 +95,12 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		final BufferedImage arrowLeftImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "arrow_left_icon.png");
 		ARROW_LEFT_ICON = new ImageIcon(arrowLeftImg);
 		ARROW_LEFT_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(arrowLeftImg, 0.53f));
+
+		final BufferedImage switchOnImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_on_icon.png");
+		SWITCH_ON_ICON = new ImageIcon(switchOnImg);
+
+		final BufferedImage switchOffImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_off_icon.png");
+		SWITCH_OFF_ICON = new ImageIcon(switchOffImg);
 	}
 
 	private final PluginPresetsPlugin plugin;
@@ -101,6 +109,8 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final JLabel refreshPlugins = new JLabel(REFRESH_ICON);
 	private final JLabel addPreset = new JLabel(ADD_ICON);
 	private final JLabel stopEdit = new JLabel(ARROW_LEFT_ICON);
+	private final JLabel toggleAll = new JLabel();
+	private final JLabel updateAll = new JLabel(REFRESH_ICON);
 	private final JLabel title = new JLabel();
 	private final JLabel editTitle = new JLabel();
 	private final IconTextField searchBar = new IconTextField();
@@ -109,6 +119,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final JPanel editPanel = new JPanel(new BorderLayout());
 	private final JPanel contentView = new JPanel(new GridBagLayout());
 	private final GridBagConstraints constraints = new GridBagConstraints();
+	private boolean allOn = true;
 
 	public PluginPresetsPluginPanel(PluginPresetsPlugin pluginPresetsPlugin)
 	{
@@ -205,13 +216,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 				}
 				else
 				{
-					String customPresetName = JOptionPane.showInputDialog(PluginPresetsPluginPanel.this,
-					"Name your new preset.", "New Plugin Preset", JOptionPane.PLAIN_MESSAGE);
-
-					if (customPresetName != null)
-					{
-						plugin.createPreset(customPresetName, false);
-					}
+					promptPresetCreation(false);
 				}
 			}
 
@@ -293,8 +298,48 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		searchWrapper.add(searchBar, BorderLayout.CENTER);
 		searchWrapper.setBorder(new EmptyBorder(10, 0, 3, 0));
 
+		toggleAll.setPreferredSize(new Dimension(19, 15));
+		toggleAll.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				plugin.toggleAll(allOn);
+			}
+		});
+
+		// TODO: update all icon
+		updateAll.setToolTipText("Update all modified configurations with your current settings.");
+		updateAll.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				plugin.updateAllModified();
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				updateAll.setIcon(REFRESH_HOVER_ICON);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				updateAll.setIcon(REFRESH_ICON);
+			}
+		});
+
+		JPanel editActions = new JPanel();
+		editActions.setLayout(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+
+		editActions.add(updateAll);
+		editActions.add(toggleAll);
+
 		editPanel.add(stopEdit, BorderLayout.WEST);
 		editPanel.add(editTitle, BorderLayout.CENTER);
+		editPanel.add(editActions, BorderLayout.EAST);
 		editPanel.add(searchWrapper, BorderLayout.SOUTH);
 		editPanel.setVisible(false);
 
@@ -350,7 +395,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	{
 		for (final PluginPreset preset : plugin.getPluginPresets())
 		{
-			contentView.add(new PluginPresetsPanel(preset, plugin), constraints);
+			contentView.add(new PresetPanel(preset, plugin), constraints);
 			constraints.gridy++;
 
 			contentView.add(Box.createRigidArea(new Dimension(0, 10)), constraints);
@@ -371,7 +416,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		List<PluginConfig> presetConfigs = preset.getPluginConfigs();
 
 		editTitle.setText("Editing Preset " + preset.getName());
-		
+
 		searchBar.requestFocusInWindow();
 
 		List<PluginConfig> configurations = plugin.getPresetManager().getCurrentConfigurations();
@@ -391,13 +436,39 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		configurations = filterIfSearchKeyword(configurations);
 		sortAlphabetically(configurations);
 
+		allOn = true;
+		boolean modified = false;
+
 		for (final PluginConfig currentConfig : configurations)
 		{
 			PluginConfig presetConfig = getPresetConfig(presetConfigs, currentConfig);
 
+			if (allOn && presetConfig == null)
+			{
+				allOn = false;
+			}
+
+			if (presetConfig != null && !presetConfig.equals(currentConfig))
+			{
+				modified = true;
+			}
+
 			contentView.add(new ConfigPanel(currentConfig, presetConfig, plugin), constraints);
 			constraints.gridy++;
 		}
+
+		if (allOn)
+		{
+			toggleAll.setToolTipText("Click to remove all configurations from this preset");
+			toggleAll.setIcon(SWITCH_ON_ICON);
+		}
+		else
+		{
+			toggleAll.setToolTipText("Click to add all your configurations to this preset");
+			toggleAll.setIcon(SWITCH_OFF_ICON);
+		}
+
+		updateAll.setVisible(modified);
 	}
 
 	private List<PluginConfig> filterIfSearchKeyword(List<PluginConfig> currentConfigurations)
@@ -405,7 +476,8 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		final String text = searchBar.getText();
 		if (!text.isEmpty())
 		{
-			currentConfigurations = currentConfigurations.stream().filter(
+			currentConfigurations = currentConfigurations.stream()
+				.filter(
 					c -> c.getName().toLowerCase()
 						.contains(text.toLowerCase()))
 				.collect(Collectors.toList());
@@ -441,7 +513,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		JMenuItem importMenuOption2 = new JMenuItem();
 		importMenuOption2.setText("Create new empty preset");
-		importMenuOption2.addActionListener(e -> promtPresetCreation(true));
+		importMenuOption2.addActionListener(e -> promptPresetCreation(true));
 
 		JPopupMenu importPopupMenu = new JPopupMenu();
 		importPopupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
@@ -450,9 +522,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		return importPopupMenu;
 	}
 
-	private void promtPresetCreation(boolean empty) {
+	private void promptPresetCreation(boolean empty)
+	{
 		String customPresetName = JOptionPane.showInputDialog(PluginPresetsPluginPanel.this,
-		"Name your new preset.", "New Plugin Preset", JOptionPane.PLAIN_MESSAGE);
+			"Name your new preset.", "New Plugin Preset", JOptionPane.PLAIN_MESSAGE);
 		if (customPresetName != null)
 		{
 			plugin.createPreset(customPresetName, empty);

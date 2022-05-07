@@ -85,6 +85,7 @@ public class PluginPresetsSharingManager
 			newPreset = gson.fromJson(clipboardText, new TypeToken<PluginPreset>()
 			{
 			}.getType());
+			// TODO: validate parsed json as plugin preset 
 		}
 		catch (JsonSyntaxException e)
 		{

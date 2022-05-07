@@ -235,7 +235,8 @@ public class PluginPresetsPlugin extends Plugin
 	public void removeConfiguration(PluginConfig configuration)
 	{
 		List<PluginConfig> pluginConfigs = editedPreset.getPluginConfigs().stream()
-			.filter(c -> !(c.getName().equals(configuration.getName()))).collect(Collectors.toList());
+			.filter(c -> !(c.getName().equals(configuration.getName())))
+			.collect(Collectors.toList());
 		editedPreset.setPluginConfigs(pluginConfigs);
 		updateEditedPreset();
 	}
@@ -244,6 +245,33 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		List<PluginConfig> pluginConfigs = editedPreset.getPluginConfigs();
 		pluginConfigs.add(configuration);
+		updateEditedPreset();
+	}
+
+	public void toggleAll(boolean allOn)
+	{
+		if (allOn)
+		{
+			List<PluginConfig> pluginConfigs = editedPreset.getPluginConfigs();
+			pluginConfigs.clear();
+		}
+		else
+		{
+			List<PluginConfig> currentConfigurations = presetManager.getCurrentConfigurations();
+			editedPreset.setPluginConfigs(currentConfigurations);
+		}
+		updateEditedPreset();
+	}
+
+	public void updateAllModified()
+	{
+		List<String> editedConfigNames = editedPreset.getPluginConfigs().stream()
+			.map(PluginConfig::getName)
+			.collect(Collectors.toList());
+		List<PluginConfig> updatedPluginConfigs = presetManager.getCurrentConfigurations().stream()
+			.filter(c -> editedConfigNames.contains(c.getName()))
+			.collect(Collectors.toList());
+		editedPreset.setPluginConfigs(updatedPluginConfigs);
 		updateEditedPreset();
 	}
 
