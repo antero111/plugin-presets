@@ -37,7 +37,9 @@ import java.awt.image.BufferedImage;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.border.EmptyBorder;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.util.ImageUtil;
@@ -74,6 +76,7 @@ public class ConfigPanel extends JPanel
 	private final JLabel updateLabel = new JLabel();
 	private final boolean presetHasConfigurations;
 	private final boolean external;
+	private final boolean configsMatch;
 
 	public ConfigPanel(PluginConfig currentConfig, PluginConfig presetConfig, PluginPresetsPlugin plugin)
 	{
@@ -82,7 +85,7 @@ public class ConfigPanel extends JPanel
 		this.plugin = plugin;
 
 		presetHasConfigurations = presetHasConfigurations();
-		boolean configsMatch = configsMatch();
+		configsMatch = configsMatch();
 		external = isExternalPluginConfig();
 		boolean installed = isExternalPluginInstalled();
 
@@ -115,7 +118,15 @@ public class ConfigPanel extends JPanel
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
-					plugin.removeConfiguration(presetConfig);
+					if (mouseEvent.getButton() == MouseEvent.BUTTON3) // Right click
+					{
+						JPopupMenu updateAllPopupMenu = getUpdateAllMenuPopup();
+						switchLabel.setComponentPopupMenu(updateAllPopupMenu);
+					}
+					else
+					{
+						plugin.removeConfigurationFromEdited(presetConfig);
+					}
 				}
 
 				@Override
@@ -146,8 +157,8 @@ public class ConfigPanel extends JPanel
 					@Override
 					public void mousePressed(MouseEvent mouseEvent)
 					{
-						plugin.removeConfiguration(presetConfig);
-						plugin.addConfiguration(currentConfig);
+						plugin.removeConfigurationFromEdited(presetConfig);
+						plugin.addConfigurationToEdited(currentConfig);
 					}
 
 					@Override
@@ -188,7 +199,15 @@ public class ConfigPanel extends JPanel
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
-					plugin.addConfiguration(currentConfig);
+					if (mouseEvent.getButton() == MouseEvent.BUTTON3) // Right click
+					{
+						JPopupMenu updateAllPopupMenu = getUpdateAllMenuPopup();
+						switchLabel.setComponentPopupMenu(updateAllPopupMenu);
+					}
+					else
+					{
+						plugin.addConfigurationToEdited(currentConfig);
+					}
 				}
 
 				@Override
@@ -206,7 +225,7 @@ public class ConfigPanel extends JPanel
 		}
 
 		switchLabel.setPreferredSize(new Dimension(20, 16));
-
+		
 		JPanel leftActions = new JPanel();
 		leftActions.setLayout(new BoxLayout(leftActions, BoxLayout.X_AXIS));
 		leftActions.add(title);
@@ -277,5 +296,28 @@ public class ConfigPanel extends JPanel
 	private boolean isExternalPluginInstalled()
 	{
 		return external && plugin.getPresetManager().isExternalPluginInstalled(currentConfig.getName());
+	}
+
+	private JPopupMenu getUpdateAllMenuPopup()
+	{
+		JPopupMenu popupMenu = new JPopupMenu();
+		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
+
+		if (configsMatch)
+		{
+			JMenuItem removeOption = new JMenuItem();
+			removeOption.setText("Remove configurations for " + currentConfig.getName() + " from all presets");
+			removeOption.addActionListener(e -> plugin.removeConfigurationFromPresets(currentConfig));
+			popupMenu.add(removeOption);
+		}
+		else
+		{
+			JMenuItem addOption = new JMenuItem();
+			addOption.setText("Add configurations from " + currentConfig.getName() + " to all presets");	
+			addOption.addActionListener(e -> plugin.addConfigurationToPresets(currentConfig));
+			popupMenu.add(addOption);
+		}
+		
+		return popupMenu;
 	}
 }

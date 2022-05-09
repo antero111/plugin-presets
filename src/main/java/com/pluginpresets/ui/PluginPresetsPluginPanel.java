@@ -304,7 +304,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				plugin.toggleAll(allOn);
+				plugin.toggleAllConfigurationOnEdited(allOn);
 			}
 		});
 
@@ -433,7 +433,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			}
 		}
 
-		configurations = filterIfSearchKeyword(configurations);
+		List<String> filteredConfigurations = filterIfSearchKeyword(configurations)
+			.stream().map(PluginConfig::getName)
+			.collect(Collectors.toList());
+
 		sortAlphabetically(configurations);
 
 		allOn = true;
@@ -453,8 +456,11 @@ public class PluginPresetsPluginPanel extends PluginPanel
 				modified = true;
 			}
 
-			contentView.add(new ConfigPanel(currentConfig, presetConfig, plugin), constraints);
-			constraints.gridy++;
+			if (filteredConfigurations.contains(currentConfig.getName()))
+			{
+				contentView.add(new ConfigPanel(currentConfig, presetConfig, plugin), constraints);
+				constraints.gridy++;
+			}
 		}
 
 		if (allOn)
@@ -507,19 +513,19 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 	private JPopupMenu getImportMenuPopup()
 	{
-		JMenuItem importMenuOption = new JMenuItem();
-		importMenuOption.setText("Import preset from clipboard");
-		importMenuOption.addActionListener(e -> plugin.importPresetFromClipboard());
+		JMenuItem importOption = new JMenuItem();
+		importOption.setText("Import preset from clipboard");
+		importOption.addActionListener(e -> plugin.importPresetFromClipboard());
 
-		JMenuItem importMenuOption2 = new JMenuItem();
-		importMenuOption2.setText("Create new empty preset");
-		importMenuOption2.addActionListener(e -> promptPresetCreation(true));
+		JMenuItem createEmptyOption = new JMenuItem();
+		createEmptyOption.setText("Create new empty preset");
+		createEmptyOption.addActionListener(e -> promptPresetCreation(true));
 
-		JPopupMenu importPopupMenu = new JPopupMenu();
-		importPopupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
-		importPopupMenu.add(importMenuOption);
-		importPopupMenu.add(importMenuOption2);
-		return importPopupMenu;
+		JPopupMenu popupMenu = new JPopupMenu();
+		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
+		popupMenu.add(importOption);
+		popupMenu.add(createEmptyOption);
+		return popupMenu;
 	}
 
 	private void promptPresetCreation(boolean empty)
