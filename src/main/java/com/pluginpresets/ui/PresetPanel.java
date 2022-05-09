@@ -106,6 +106,7 @@ class PresetPanel extends JPanel
 	private final PluginPreset preset;
 	private final JLabel loadLabel = new JLabel();
 	private final JLabel deleteLabel = new JLabel();
+	private final JLabel shareLabel = new JLabel();
 	private final FlatTextField nameInput = new FlatTextField();
 	private final JLabel save = new JLabel("Save");
 	private final JLabel cancel = new JLabel("Cancel");
@@ -120,18 +121,6 @@ class PresetPanel extends JPanel
 
 		setLayout(new BorderLayout());
 		setBackground(ColorScheme.DARKER_GRAY_COLOR);
-
-		// TODO: Make this a button
-		// JMenuItem exportMenuOption = new JMenuItem();
-		// exportMenuOption.setText("Export preset to clipboard");
-		// exportMenuOption.addActionListener(e ->
-		// 	plugin.exportPresetToClipboard(preset));
-
-		// JPopupMenu exportPopupMenu = new JPopupMenu();
-		// exportPopupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
-		// exportPopupMenu.add(exportMenuOption);
-
-		// setComponentPopupMenu(exportPopupMenu);
 
 		JPanel nameWrapper = new JPanel(new BorderLayout());
 		nameWrapper.setBackground(ColorScheme.DARKER_GRAY_COLOR);
@@ -397,6 +386,30 @@ class PresetPanel extends JPanel
 		JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
 		rightActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
+		shareLabel.setIcon(UPDATE_ICON); // TODO: add share icon
+		shareLabel.setToolTipText("Export preset to clipboard");
+		shareLabel.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				plugin.exportPresetToClipboard(preset);
+				JOptionPane.showMessageDialog(shareLabel, "Preset '" + preset.getName() + "' exported to clipboard.", "Preset exported", JOptionPane.INFORMATION_MESSAGE);
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				shareLabel.setIcon(UPDATE_HOVER_ICON);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				shareLabel.setIcon(UPDATE_ICON);
+			}
+		});
+
 		// if (!(newPlugins.isEmpty()))
 		// {
 		// 	updateLabel.setIcon(UPDATE_WARNING_ICON);
@@ -475,7 +488,7 @@ class PresetPanel extends JPanel
 			{
 				int confirm = JOptionPane.showConfirmDialog(PresetPanel.this,
 					"Are you sure you want to permanently delete this plugin preset?",
-					"Delete preset", JOptionPane.YES_NO_OPTION);
+					"Delete preset", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
 				if (confirm == 0)
 				{
@@ -553,7 +566,7 @@ class PresetPanel extends JPanel
 			}
 		});
 
-
+		rightActions.add(shareLabel);
 		rightActions.add(updateLabel);
 		rightActions.add(deleteLabel);
 
