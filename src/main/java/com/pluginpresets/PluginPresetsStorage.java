@@ -25,6 +25,7 @@
 package com.pluginpresets;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import java.io.File;
 import java.io.FileReader;
@@ -133,16 +134,31 @@ public class PluginPresetsStorage
 	{
 		Gson gson = new Gson();
 		Reader reader = new FileReader(file);
-		PluginPreset pluginPreset = parsePresetDataFrom(gson, reader);
-		reader.close();
-		return pluginPreset;
-	}
+		PluginPreset pluginPreset;
 
-	private static PluginPreset parsePresetDataFrom(final Gson gson, final Reader reader)
-	{
-		return gson.fromJson(reader, new TypeToken<PluginPreset>()
+		try
 		{
-		}.getType());
+			pluginPreset = gson.fromJson(reader, new TypeToken<PluginPreset>()
+			{
+			}.getType());
+		}
+		catch (JsonSyntaxException e)
+		{
+			log.warn(String.format("Failed to load preset from %s, %s", file.getAbsolutePath(), e));
+			return null;
+		}
+		finally
+		{
+			reader.close();
+		}
+
+		if (pluginPreset.getName() == null || pluginPreset.getPluginConfigs() == null)
+		{
+			log.warn(String.format("Plugin Preset data is malformed in file and could not be loaded %s, %s", file.getAbsolutePath(), pluginPreset));
+			return null;
+		}
+
+		return pluginPreset;
 	}
 
 	public static void createPresetFolder()

@@ -85,9 +85,14 @@ public class PluginPresetsSharingManager
 			newPreset = gson.fromJson(clipboardText, new TypeToken<PluginPreset>()
 			{
 			}.getType());
-			// TODO: validate parsed json as plugin preset 
 		}
 		catch (JsonSyntaxException e)
+		{
+			pluginPanel.renderNotification("You do not have any valid presets in your clipboard.");
+			return null;
+		}
+
+		if (newPreset.getName() == null || newPreset.getPluginConfigs() == null)
 		{
 			pluginPanel.renderNotification("You do not have any valid presets in your clipboard.");
 			return null;
