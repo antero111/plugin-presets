@@ -24,24 +24,31 @@
  */
 package com.pluginpresets.ui;
 
+import com.pluginpresets.InnerPluginConfig;
 import com.pluginpresets.PluginConfig;
 import com.pluginpresets.PluginPresetsPlugin;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.border.EmptyBorder;
 import net.runelite.client.ui.ColorScheme;
+import net.runelite.client.ui.FontManager;
 import net.runelite.client.util.ImageUtil;
 
 public class ConfigPanel extends JPanel
@@ -52,14 +59,21 @@ public class ConfigPanel extends JPanel
 	private static final ImageIcon SWITCH_OFF_HOVER_ICON;
 	private static final ImageIcon UPDATE_ICON;
 	private static final ImageIcon UPDATE_HOVER_ICON;
+	private static final ImageIcon ARROW_DOWN_ICON;
 
 	static
 	{
-		final BufferedImage switchOnImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_on_icon.png");
+		final BufferedImage switchOnImg2 = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_on_icon.png");
+		final BufferedImage switchOnImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_checked.png");
 		SWITCH_ON_ICON = new ImageIcon(switchOnImg);
-		SWITCH_ON_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(switchOnImg, 20));
+		// SWITCH_ON_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(switchOnImg, 20));
+		SWITCH_ON_HOVER_ICON = new ImageIcon(switchOnImg2);
 
-		final BufferedImage switchOffImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_off_icon.png");
+		final BufferedImage arrowDownImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "arrow_up_icon.png");
+		ARROW_DOWN_ICON = new ImageIcon(arrowDownImg);
+		// SWITCH_ON_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(arrowDownImg, 20));
+
+		final BufferedImage switchOffImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox.png");
 		final BufferedImage switchOffHoverImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_off_hover_icon.png");
 		SWITCH_OFF_ICON = new ImageIcon(switchOffImg);
 		SWITCH_OFF_HOVER_ICON = new ImageIcon(switchOffHoverImg);
@@ -72,31 +86,61 @@ public class ConfigPanel extends JPanel
 	private final PluginConfig presetConfig;
 	private final PluginConfig currentConfig;
 	private final PluginPresetsPlugin plugin;
-	private final JLabel switchLabel = new JLabel();
+	private final JCheckBox checkbox = new JCheckBox();
 	private final JLabel updateLabel = new JLabel();
 	private final boolean presetHasConfigurations;
 	private final boolean external;
 	private final boolean configsMatch;
+	private final JPanel settings = new JPanel(new GridBagLayout());
+	private final List<String> openSettings;
+	private final boolean settingsVisible;
 
-	public ConfigPanel(PluginConfig currentConfig, PluginConfig presetConfig, PluginPresetsPlugin plugin)
+	public ConfigPanel(PluginConfig currentConfig, PluginConfig presetConfig, PluginPresetsPlugin plugin, List<String> openSettings)
 	{
 		this.presetConfig = presetConfig;
 		this.currentConfig = currentConfig;
 		this.plugin = plugin;
+		this.openSettings = openSettings;
 
 		presetHasConfigurations = presetHasConfigurations();
 		configsMatch = configsMatch();
 		external = isExternalPluginConfig();
 		boolean installed = isExternalPluginInstalled();
+		settingsVisible = isSettingsVisible();
 
 		setLayout(new BorderLayout());
-		setBorder(new EmptyBorder(3, 10, 3, 0));
+		setBorder(new EmptyBorder(0, 10, 0, 0));
+		checkbox.setBackground(ColorScheme.LIGHT_GRAY_COLOR);
 
 		JLabel title = new JLabel();
+		// TODO: do something to tzhaAR timers and other empty/duplicate confisg
 		title.setText(currentConfig.getName());
 		// 0 width is to prevent the title causing the panel to grow in y direction on long plugin names
 		// 16 height is UPDATE_ICONs height
-		title.setPreferredSize(new Dimension(0, 16));
+		title.setPreferredSize(new Dimension(0, 26));
+		title.addMouseListener(new MouseAdapter()
+		{
+			private Color foreground;
+
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				toggleSettings();
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				foreground = title.getForeground(); // Remember the original foreground color
+				title.setForeground(ColorScheme.BRAND_ORANGE);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				title.setForeground(foreground);
+			}
+		});
 
 		JLabel externalNotice = new JLabel();
 		if (external)
@@ -111,9 +155,8 @@ public class ConfigPanel extends JPanel
 		JLabel notInstalledLabel = new JLabel();
 		if (presetHasConfigurations)
 		{
-			switchLabel.setIcon(SWITCH_ON_ICON);
-			switchLabel.setToolTipText("Remove configurations for " + currentConfig.getName() + " from the preset.");
-			switchLabel.addMouseListener(new MouseAdapter()
+			checkbox.setSelected(true);
+			checkbox.addMouseListener(new MouseAdapter()
 			{
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
@@ -121,24 +164,12 @@ public class ConfigPanel extends JPanel
 					if (mouseEvent.getButton() == MouseEvent.BUTTON3) // Right click
 					{
 						JPopupMenu updateAllPopupMenu = getUpdateAllMenuPopup();
-						switchLabel.setComponentPopupMenu(updateAllPopupMenu);
+						checkbox.setComponentPopupMenu(updateAllPopupMenu);
 					}
 					else
 					{
 						plugin.removeConfigurationFromEdited(presetConfig);
 					}
-				}
-
-				@Override
-				public void mouseEntered(MouseEvent mouseEvent)
-				{
-					switchLabel.setIcon(SWITCH_ON_HOVER_ICON);
-				}
-
-				@Override
-				public void mouseExited(MouseEvent mouseEvent)
-				{
-					switchLabel.setIcon(SWITCH_ON_ICON);
 				}
 			});
 
@@ -158,6 +189,15 @@ public class ConfigPanel extends JPanel
 					public void mousePressed(MouseEvent mouseEvent)
 					{
 						plugin.removeConfigurationFromEdited(presetConfig);
+						List<String> collect = presetConfig.getSettings().stream().map(InnerPluginConfig::getKey).collect(Collectors.toList());
+						List<InnerPluginConfig> collect2 = currentConfig.getSettings().stream().filter(s -> collect.contains(s.getKey())).collect(Collectors.toList());
+						currentConfig.setSettings((ArrayList<InnerPluginConfig>) collect2);
+
+						if (presetConfig.getEnabled() == null)
+						{
+							currentConfig.setEnabled(null);
+						}
+
 						plugin.addConfigurationToEdited(currentConfig);
 					}
 
@@ -189,12 +229,12 @@ public class ConfigPanel extends JPanel
 		}
 		else
 		{
-			title.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+			title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
 			title.setToolTipText("This preset does not include any configurations to " + currentConfig.getName() + " plugin.");
 
-			switchLabel.setIcon(SWITCH_OFF_ICON);
-			switchLabel.setToolTipText("Add your current configuration for " + currentConfig.getName() + " to the preset.");
-			switchLabel.addMouseListener(new MouseAdapter()
+			checkbox.setSelected(false);
+			checkbox.setToolTipText("Add your current configuration for " + currentConfig.getName() + " to the preset.");
+			checkbox.addMouseListener(new MouseAdapter()
 			{
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
@@ -202,81 +242,162 @@ public class ConfigPanel extends JPanel
 					if (mouseEvent.getButton() == MouseEvent.BUTTON3) // Right click
 					{
 						JPopupMenu updateAllPopupMenu = getUpdateAllMenuPopup();
-						switchLabel.setComponentPopupMenu(updateAllPopupMenu);
+						checkbox.setComponentPopupMenu(updateAllPopupMenu);
 					}
 					else
 					{
 						plugin.addConfigurationToEdited(currentConfig);
 					}
 				}
-
-				@Override
-				public void mouseEntered(MouseEvent mouseEvent)
-				{
-					switchLabel.setIcon(SWITCH_OFF_HOVER_ICON);
-				}
-
-				@Override
-				public void mouseExited(MouseEvent mouseEvent)
-				{
-					switchLabel.setIcon(SWITCH_OFF_ICON);
-				}
 			});
 		}
 
-		switchLabel.setPreferredSize(new Dimension(20, 16));
-		
+		JLabel downArrow = new JLabel();
+		downArrow.setIcon(ARROW_DOWN_ICON);
+		downArrow.setVisible(settingsVisible);
+		checkbox.setVisible(!settingsVisible);
+
 		JPanel leftActions = new JPanel();
 		leftActions.setLayout(new BoxLayout(leftActions, BoxLayout.X_AXIS));
 		leftActions.add(title);
 		leftActions.add(externalNotice);
+		leftActions.add(downArrow);
 
 		JPanel rightActions = new JPanel();
 		rightActions.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
 		rightActions.add(statusLabel);
 		rightActions.add(notInstalledLabel);
 		rightActions.add(updateLabel);
-		rightActions.add(switchLabel);
+		rightActions.add(checkbox);
 
 		JPanel topActions = new JPanel(new BorderLayout());
 		topActions.add(leftActions, BorderLayout.CENTER);
 		topActions.add(rightActions, BorderLayout.EAST);
 
-		JPanel settings = new JPanel(new GridBagLayout());
-		settings.setVisible(false);
-		settings.setBorder(new EmptyBorder(0, 5, 0, 0));
+		createSettings();
+		settings.setBorder(new EmptyBorder(0, 5, 3, 0));
+		settings.setVisible(settingsVisible);
 
 		add(topActions, BorderLayout.NORTH);
 		add(settings, BorderLayout.CENTER);
 	}
 
-	// private void toggleSettings()
-	// {
-	// 	boolean visible = settings.isVisible();
-	// 	if (!visible)
-	// 	{
-	// 		GridBagConstraints constraints = new GridBagConstraints();
-	// 		constraints.fill = GridBagConstraints.HORIZONTAL;
-	// 		constraints.weightx = 1;
-	// 		constraints.gridx = 0;
-	// 		constraints.gridy = 0;
+	private void createSettings()
+	{
+		GridBagConstraints constraints = new GridBagConstraints();
+		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.weightx = 1;
+		constraints.gridx = 0;
+		constraints.gridy = 0;
 
-	// 		settings.removeAll();
+		settings.removeAll();
 
-	// 		settings.add(new JLabel("Plugin " + (currentConfig.getEnabled() ? "enabled" : "disabled")), constraints);
-	// 		constraints.gridy++;
+		settings.add(getEnabledRow(), constraints);
+		constraints.gridy++;
 
-	// 		currentConfig.getSettings().forEach(setting -> {
-	// 			settings.add(new JLabel(setting.getName()), constraints);
-	// 			constraints.gridy++;
-	// 		});
-	// 	}
+		// Some plugins don't have settings like Ammo, Account, Emojis etc.
+		ArrayList<InnerPluginConfig> presetSettings = (presetConfig != null) ? presetConfig.getSettings() : null;
+		currentConfig.getSettings().forEach(currentSetting ->
+		{
+			InnerPluginConfig presetSetting = getPresetSettings(presetSettings, currentSetting);
+			settings.add(new ConfigRow(currentConfig, currentSetting, presetSetting, plugin), constraints);
+			constraints.gridy++;
+		});
+	}
 
-	// 	settings.setVisible(!visible);
+	private JPanel getEnabledRow()
+	{
+		JPanel enabledRow = new JPanel(new BorderLayout());
 
-	// 	revalidate();
-	// 	repaint();
-	// }
+		JLabel title = new JLabel();
+		title.setText("Plugin on/off");
+		// 0 width is to prevent the title causing the panel to grow in y direction on long setting descriptions
+		// 16 height is UPDATE_ICONs height
+		title.setPreferredSize(new Dimension(0, 16));
+		title.setFont(FontManager.getRunescapeSmallFont());
+
+		JLabel checkBox = new JLabel();
+		if (presetHasConfigurations && presetConfig.getEnabled() != null)
+		{
+			checkBox.setIcon(SWITCH_ON_ICON);
+			checkBox.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent mouseEvent)
+				{
+					plugin.removeEnabledFromEdited(currentConfig);
+				}
+			});
+
+			if (currentConfig.getEnabled().equals(presetConfig.getEnabled()))
+			{
+				title.setForeground(Color.LIGHT_GRAY);
+			}
+			else
+			{
+				title.setForeground(ColorScheme.BRAND_ORANGE);
+			}
+
+		}
+		else
+		{
+			title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
+			checkBox.setIcon(SWITCH_OFF_ICON);
+			checkBox.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent mouseEvent)
+				{
+					plugin.addEnabledToEdited(currentConfig);
+				}
+			});
+		}
+
+		JPanel rightActions = new JPanel();
+		rightActions.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
+		rightActions.add(checkBox);
+
+		enabledRow.add(title, BorderLayout.CENTER);
+		enabledRow.add(rightActions, BorderLayout.EAST);
+
+		return enabledRow;
+	}
+
+	private InnerPluginConfig getPresetSettings(List<InnerPluginConfig> presetSettings, final InnerPluginConfig currentSetting)
+	{
+		InnerPluginConfig presetSetting = null;
+		if (presetSettings != null)
+		{
+			for (InnerPluginConfig setting : presetSettings)
+			{
+				if (setting.getName().equals(currentSetting.getName()))
+				{
+					presetSetting = setting;
+					break;
+				}
+			}
+		}
+		return presetSetting;
+	}
+
+	private boolean isSettingsVisible()
+	{
+		return openSettings.contains(currentConfig.getConfigName());
+	}
+
+	private void toggleSettings()
+	{
+		if (settingsVisible)
+		{
+			openSettings.remove(currentConfig.getConfigName());
+		}
+		else
+		{
+			openSettings.add(currentConfig.getConfigName());
+		}
+
+		plugin.rebuildPluginUi();
+	}
 
 	private boolean presetHasConfigurations()
 	{
@@ -285,7 +406,32 @@ public class ConfigPanel extends JPanel
 
 	private boolean configsMatch()
 	{
-		return presetHasConfigurations && presetConfig.equals(currentConfig);
+		if (!presetHasConfigurations)
+		{
+			return false;
+		}
+
+		if (presetConfig.getEnabled() != null && !presetConfig.getEnabled().equals(currentConfig.getEnabled()))
+		{
+			return false;
+		}
+
+		ArrayList<InnerPluginConfig> currentSettings = currentConfig.getSettings();
+		// Compare plugin settings from preset to current config settings
+		for (InnerPluginConfig presetConfigSetting : presetConfig.getSettings())
+		{
+			// Get current config setting for compared preset setting
+			InnerPluginConfig currentConfigSetting = currentSettings.stream().filter(c -> c.getKey().equals(presetConfigSetting.getKey())).findFirst().orElse(null);
+
+			if (currentConfigSetting != null &&
+				presetConfigSetting.getValue() != null &&
+				!presetConfigSetting.getValue().equals(currentConfigSetting.getValue()))
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private boolean isExternalPluginConfig()
@@ -313,11 +459,11 @@ public class ConfigPanel extends JPanel
 		else
 		{
 			JMenuItem addOption = new JMenuItem();
-			addOption.setText("Add configurations from " + currentConfig.getName() + " to all presets");	
+			addOption.setText("Add configurations from " + currentConfig.getName() + " to all presets");
 			addOption.addActionListener(e -> plugin.addConfigurationToPresets(currentConfig));
 			popupMenu.add(addOption);
 		}
-		
+
 		return popupMenu;
 	}
 }

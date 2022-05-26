@@ -74,7 +74,7 @@ public class PluginPresetsPresetManager
 
 		for (PluginPreset preset : plugin.getPluginPresets())
 		{
-			if (getDifferenceToCurrentConfigurations(preset, currentConfigurations).isEmpty())
+			if (configurationsMatch(preset, currentConfigurations))
 			{
 				presets.add(preset);
 			}
@@ -83,39 +83,32 @@ public class PluginPresetsPresetManager
 		return presets;
 	}
 
-	private ArrayList<PluginConfig> getDifferenceToCurrentConfigurations(PluginPreset preset,
-																		 HashMap<String, HashMap<String, String>> currentConfigurations)
+	private boolean configurationsMatch(PluginPreset preset,
+			HashMap<String, HashMap<String, String>> currentConfigurations)
 	{
-		ArrayList<PluginConfig> diffs = new ArrayList<>();
-
-		preset.getPluginConfigs().forEach(config -> {
-			ArrayList<InnerPluginConfig> dif = new ArrayList<>();
-
-			config.getSettings().forEach(setting -> {
-				String value = currentConfigurations.get(config.getConfigName()).get(setting.getKey());
-
-				if (value != null && setting.getValue() != null && !value.equals(setting.getValue()))
+		for (PluginConfig config : preset.getPluginConfigs())
+		{
+			if (config.getEnabled() != null)
+			{
+				if (!currentConfigurations.get(config.getConfigName()).get("enabled").equals(config.getEnabled().toString()))
 				{
-
-					dif.add(new InnerPluginConfig(config.getConfigName(), setting.getKey(), value));
+					return false;
 				}
-			});
-
-			Boolean enabled = null;
-
-			HashMap<String, String> currentConfig = currentConfigurations.get(config.getConfigName());
-			if (currentConfig != null && !(currentConfig.get("enabled")
-				.equals(config.getEnabled().toString())))
-			{
-				enabled = config.getEnabled();
 			}
 
-			if (!dif.isEmpty() || enabled != null)
-			{
-				diffs.add(new PluginConfig(config.getName(), config.getConfigName(), enabled, dif));
+			if (!currentConfigurations.get(config.getConfigName()).isEmpty())
+			{	
+				for (InnerPluginConfig setting : config.getSettings())
+				{
+					if (setting.getValue() != null && !currentConfigurations.get(config.getConfigName()).get(setting.getKey()).equals(setting.getValue().toString()))
+					{
+						return false;
+					}
+				} 
 			}
-		});
-		return diffs;
+		}
+
+		return true;
 	}
 
 	private HashMap<String, HashMap<String, String>> getCurrentConfigurationsMap()
@@ -156,7 +149,9 @@ public class PluginPresetsPresetManager
 			Plugin p = findPlugin(pluginConfig.getName(), plugins);
 			if (p != null)
 			{
-				enablePlugin(p, pluginConfig.getEnabled());
+				if (pluginConfig.getEnabled() != null) {
+					enablePlugin(p, pluginConfig.getEnabled());
+				}
 			}
 		});
 
@@ -232,9 +227,13 @@ public class PluginPresetsPresetManager
 					configDescriptor.getItems().forEach(i -> {
 						if (!PluginPresetsPlugin.IGNORED_KEYS.contains(i.key()))
 						{
-							InnerPluginConfig innerPluginConfig = new InnerPluginConfig(i.name(), i.key(),
-								configManager.getConfiguration(configDescriptor.getGroup().value(), i.key()));
-							innerPluginConfigs.add(innerPluginConfig);
+							// Don't save 'hidden' plugin configs to presets 
+							if (!i.name().equals(""))
+							{
+								InnerPluginConfig innerPluginConfig = new InnerPluginConfig(i.name(), i.key(),
+									configManager.getConfiguration(configDescriptor.getGroup().value(), i.key()));
+								innerPluginConfigs.add(innerPluginConfig);
+							}
 						}
 
 					});

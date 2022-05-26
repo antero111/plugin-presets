@@ -24,6 +24,7 @@
  */
 package com.pluginpresets.ui;
 
+import com.pluginpresets.InnerPluginConfig;
 import com.pluginpresets.PluginConfig;
 import com.pluginpresets.PluginPreset;
 import com.pluginpresets.PluginPresetsPlugin;
@@ -36,6 +37,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -119,6 +121,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final JPanel editPanel = new JPanel(new BorderLayout());
 	private final JPanel contentView = new JPanel(new GridBagLayout());
 	private final GridBagConstraints constraints = new GridBagConstraints();
+	private final List<String> openSettings = new ArrayList<>();
 	private boolean allOn = true;
 
 	public PluginPresetsPluginPanel(PluginPresetsPlugin pluginPresetsPlugin)
@@ -405,6 +408,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		boolean empty = constraints.gridy == 0;
 		noPresetsPanel.setVisible(empty);
 		title.setVisible(!empty);
+		openSettings.clear();
 
 		contentView.add(noPresetsPanel, constraints);
 		constraints.gridy++;
@@ -451,14 +455,14 @@ public class PluginPresetsPluginPanel extends PluginPanel
 				allOn = false;
 			}
 
-			if (presetConfig != null && !presetConfig.equals(currentConfig))
+			if (presetConfig != null && !configsMatch(presetConfig, currentConfig))
 			{
 				modified = true;
 			}
 
 			if (filteredConfigurations.contains(currentConfig.getName()))
 			{
-				contentView.add(new ConfigPanel(currentConfig, presetConfig, plugin), constraints);
+				contentView.add(new ConfigPanel(currentConfig, presetConfig, plugin, openSettings), constraints);
 				constraints.gridy++;
 			}
 		}
@@ -475,6 +479,31 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		}
 
 		updateAll.setVisible(modified);
+	}
+
+	private boolean configsMatch(PluginConfig presetConfig, PluginConfig currentConfig)
+	{
+		if (presetConfig.getEnabled() != null && !presetConfig.getEnabled().equals(currentConfig.getEnabled()))
+		{
+			return false;
+		}
+
+		ArrayList<InnerPluginConfig> currentSettings = currentConfig.getSettings();
+		// Compare plugin settings from preset to current config settings
+		for (InnerPluginConfig presetConfigSetting : presetConfig.getSettings())
+		{
+			// Get current config setting for compared preset setting
+			InnerPluginConfig currentConfigSetting = currentSettings.stream().filter(c -> c.getKey().equals(presetConfigSetting.getKey())).findFirst().orElse(null);
+
+			if (currentConfigSetting != null &&
+				presetConfigSetting.getValue() != null &&
+				!presetConfigSetting.getValue().equals(currentConfigSetting.getValue()))
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private List<PluginConfig> filterIfSearchKeyword(List<PluginConfig> currentConfigurations)
