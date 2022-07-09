@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -74,6 +75,8 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private static final ImageIcon ARROW_LEFT_HOVER_ICON;
 	private static final ImageIcon SWITCH_ON_ICON;
 	private static final ImageIcon SWITCH_OFF_ICON;
+	private static final ImageIcon ELLIPSIS;
+	private static final ImageIcon ELLIPSIS_HOVER;
 
 	static
 	{
@@ -85,6 +88,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		final BufferedImage helpImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "help_icon.png");
 		HELP_ICON = new ImageIcon(helpImg);
 		HELP_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(helpImg, 0.53f));
+
+		final BufferedImage ellipsisImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "ellipsis_icon.png");
+		ELLIPSIS = new ImageIcon(ellipsisImg);
+		ELLIPSIS_HOVER = new ImageIcon(ImageUtil.alphaOffset(ellipsisImg, 0.53f));
 
 		final BufferedImage refreshImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "refresh_icon.png");
 		REFRESH_ICON = new ImageIcon(refreshImg);
@@ -111,7 +118,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final JLabel refreshPlugins = new JLabel(REFRESH_ICON);
 	private final JLabel addPreset = new JLabel(ADD_ICON);
 	private final JLabel stopEdit = new JLabel(ARROW_LEFT_ICON);
-	private final JLabel toggleAll = new JLabel();
+	private final JLabel menu = new JLabel(ELLIPSIS);
 	private final JLabel updateAll = new JLabel(REFRESH_ICON);
 	private final JLabel title = new JLabel();
 	private final JLabel editTitle = new JLabel();
@@ -122,7 +129,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final JPanel contentView = new JPanel(new GridBagLayout());
 	private final GridBagConstraints constraints = new GridBagConstraints();
 	private final List<String> openSettings = new ArrayList<>();
-	private boolean allOn = true;
 
 	public PluginPresetsPluginPanel(PluginPresetsPlugin pluginPresetsPlugin)
 	{
@@ -253,7 +259,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				plugin.setEditedPreset(null);
+				plugin.stopEdit();
 				emptyBar();
 				rebuild();
 			}
@@ -297,52 +303,85 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			}
 		});
 
-		JPanel searchWrapper = new JPanel(new BorderLayout());
-		searchWrapper.add(searchBar, BorderLayout.CENTER);
-		searchWrapper.setBorder(new EmptyBorder(10, 0, 3, 0));
-
-		toggleAll.setPreferredSize(new Dimension(19, 15));
-		toggleAll.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent mouseEvent)
-			{
-				plugin.toggleAllConfigurationOnEdited(allOn);
-			}
-		});
-
-		// TODO: update all icon
 		updateAll.setToolTipText("Update all modified configurations with your current settings.");
+		updateAll.setText("Update all");
+		updateAll.setForeground(Color.WHITE);
 		updateAll.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				plugin.updateAllModified();
+				plugin.getPresetEditor().updateAllModified();
 			}
 
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
 				updateAll.setIcon(REFRESH_HOVER_ICON);
+				updateAll.setForeground(updateAll.getForeground().darker());
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
 				updateAll.setIcon(REFRESH_ICON);
+				updateAll.setForeground(Color.WHITE);
+
 			}
 		});
 
 		JPanel editActions = new JPanel();
-		editActions.setLayout(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-
 		editActions.add(updateAll);
-		editActions.add(toggleAll);
+
+		JPanel filterActions = new JPanel();
+		// filterActions.setLayout(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+		filterActions.add(new JButton("Filters"));
+
+		JPanel editActionsWrapper = new JPanel(new BorderLayout());
+		editActionsWrapper.setBorder(new EmptyBorder(5, 0, 3, 0));
+		editActionsWrapper.add(filterActions, BorderLayout.WEST);
+		editActionsWrapper.add(editActions, BorderLayout.EAST);
+
+		JPanel searchWrapper = new JPanel(new BorderLayout());
+		searchWrapper.add(searchBar, BorderLayout.CENTER);
+		searchWrapper.add(editActionsWrapper, BorderLayout.NORTH);
+
+		menu.setBorder(new EmptyBorder(0, 0, 0, 10));
+		menu.addMouseListener(new MouseAdapter()
+		{
+			private final JPopupMenu popup = getMenuPopup();
+
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				showPopup(mouseEvent);
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				menu.setIcon(ELLIPSIS_HOVER);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				menu.setIcon(ELLIPSIS);
+			}
+
+			private void showPopup(MouseEvent e)
+			{
+				popup.show(
+					e.getComponent(),
+					e.getX(),
+					e.getY()
+				);
+			}
+		});
 
 		editPanel.add(stopEdit, BorderLayout.WEST);
 		editPanel.add(editTitle, BorderLayout.CENTER);
-		editPanel.add(editActions, BorderLayout.EAST);
+		editPanel.add(menu, BorderLayout.EAST);
 		editPanel.add(searchWrapper, BorderLayout.SOUTH);
 		editPanel.setVisible(false);
 
@@ -362,7 +401,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		add(northPanel, BorderLayout.NORTH);
 		add(scrollableContainer, BorderLayout.CENTER);
-
 	}
 
 	public void rebuild()
@@ -374,7 +412,8 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		contentView.removeAll();
 
-		boolean editingPreset = plugin.getEditedPreset() != null;
+		// boolean editingPreset = plugin.getEditedPreset() != null;
+		boolean editingPreset = plugin.getPresetEditor() != null;
 
 		titlePanel.setVisible(!editingPreset);
 		editPanel.setVisible(editingPreset);
@@ -416,10 +455,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 	private void renderEditView()
 	{
-		PluginPreset preset = plugin.getEditedPreset();
-		List<PluginConfig> presetConfigs = preset.getPluginConfigs();
+		PluginPreset editedPreset = plugin.getPresetEditor().getEditedPreset();
+		List<PluginConfig> presetConfigs = editedPreset.getPluginConfigs();
 
-		editTitle.setText("Editing Preset " + preset.getName());
+		editTitle.setText("Editing Preset " + editedPreset.getName());
 
 		searchBar.requestFocusInWindow();
 
@@ -443,17 +482,11 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		sortAlphabetically(configurations);
 
-		allOn = true;
 		boolean modified = false;
 
 		for (final PluginConfig currentConfig : configurations)
 		{
 			PluginConfig presetConfig = getPresetConfig(presetConfigs, currentConfig);
-
-			if (allOn && presetConfig == null)
-			{
-				allOn = false;
-			}
 
 			if (presetConfig != null && !configsMatch(presetConfig, currentConfig))
 			{
@@ -466,18 +499,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 				constraints.gridy++;
 			}
 		}
-
-		if (allOn)
-		{
-			toggleAll.setToolTipText("Click to remove all configurations from this preset");
-			toggleAll.setIcon(SWITCH_ON_ICON);
-		}
-		else
-		{
-			toggleAll.setToolTipText("Click to add all your configurations to this preset");
-			toggleAll.setIcon(SWITCH_OFF_ICON);
-		}
-
 		updateAll.setVisible(modified);
 	}
 
@@ -538,6 +559,21 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	{
 		// // Sort alphabetically similar to the configurations tab
 		currentConfigurations.sort(Comparator.comparing(PluginConfig::getConfigName));
+	}
+
+	private JPopupMenu getMenuPopup()
+	{
+		JMenuItem importOption = new JMenuItem();
+		importOption.setText("Toggle all");
+
+		JMenuItem createEmptyOption = new JMenuItem();
+		createEmptyOption.setText("Some option");
+
+		JPopupMenu popupMenu = new JPopupMenu();
+		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
+		popupMenu.add(importOption);
+		popupMenu.add(createEmptyOption);
+		return popupMenu;
 	}
 
 	private JPopupMenu getImportMenuPopup()

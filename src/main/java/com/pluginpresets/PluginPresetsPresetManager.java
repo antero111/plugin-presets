@@ -84,27 +84,34 @@ public class PluginPresetsPresetManager
 	}
 
 	private boolean configurationsMatch(PluginPreset preset,
-			HashMap<String, HashMap<String, String>> currentConfigurations)
+										HashMap<String, HashMap<String, String>> currentConfigurations)
 	{
 		for (PluginConfig config : preset.getPluginConfigs())
 		{
 			if (config.getEnabled() != null)
 			{
-				if (!currentConfigurations.get(config.getConfigName()).get("enabled").equals(config.getEnabled().toString()))
+				try
 				{
-					return false;
+					if (!currentConfigurations.get(config.getConfigName()).get("enabled").equals(config.getEnabled().toString()))
+					{
+						return false;
+					}
+				}
+				catch (NullPointerException e)
+				{
+					continue;
 				}
 			}
 
 			if (!currentConfigurations.get(config.getConfigName()).isEmpty())
-			{	
+			{
 				for (InnerPluginConfig setting : config.getSettings())
 				{
-					if (setting.getValue() != null && !currentConfigurations.get(config.getConfigName()).get(setting.getKey()).equals(setting.getValue().toString()))
+					if (setting.getValue() != null && !currentConfigurations.get(config.getConfigName()).get(setting.getKey()).equals(setting.getValue()))
 					{
 						return false;
 					}
-				} 
+				}
 			}
 		}
 
@@ -149,7 +156,8 @@ public class PluginPresetsPresetManager
 			Plugin p = findPlugin(pluginConfig.getName(), plugins);
 			if (p != null)
 			{
-				if (pluginConfig.getEnabled() != null) {
+				if (pluginConfig.getEnabled() != null)
+				{
 					enablePlugin(p, pluginConfig.getEnabled());
 				}
 			}

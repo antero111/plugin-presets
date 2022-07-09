@@ -39,10 +39,8 @@ import java.awt.image.BufferedImage;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -85,7 +83,7 @@ class PresetPanel extends JPanel
 		WARNING_ICON = new ImageIcon(warningImg);
 		WARNING_ICON_HOVER = new ImageIcon(ImageUtil.alphaOffset(warningImg, -100));
 
-		final BufferedImage updateImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "update_icon.png");
+		final BufferedImage updateImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "copy_icon.png");
 		UPDATE_ICON = new ImageIcon(updateImg);
 		UPDATE_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(updateImg, -100));
 
@@ -386,15 +384,15 @@ class PresetPanel extends JPanel
 		JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
 		rightActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		shareLabel.setIcon(UPDATE_ICON); // TODO: add share icon
-		shareLabel.setToolTipText("Export preset to clipboard");
+		shareLabel.setIcon(UPDATE_ICON);
+		shareLabel.setToolTipText("Copy preset to clipboard");
 		shareLabel.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
 				plugin.exportPresetToClipboard(preset);
-				JOptionPane.showMessageDialog(shareLabel, "Preset '" + preset.getName() + "' exported to clipboard.", "Preset exported", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(shareLabel, "Preset data of '" + preset.getName() + "' copied to clipboard.", "Preset exported", JOptionPane.INFORMATION_MESSAGE);
 			}
 
 			@Override
@@ -549,8 +547,7 @@ class PresetPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				plugin.setEditedPreset(preset);
-				plugin.rebuildPluginUi();
+				plugin.editPreset(preset);
 			}
 
 			@Override

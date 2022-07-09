@@ -60,9 +60,14 @@ public class ConfigPanel extends JPanel
 	private static final ImageIcon UPDATE_ICON;
 	private static final ImageIcon UPDATE_HOVER_ICON;
 	private static final ImageIcon ARROW_DOWN_ICON;
+	private static final ImageIcon NOTIFICATION_ICON;
 
 	static
 	{
+		final BufferedImage notificationImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
+			"warning_icon.png");
+		NOTIFICATION_ICON = new ImageIcon(notificationImg);
+
 		final BufferedImage switchOnImg2 = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_on_icon.png");
 		final BufferedImage switchOnImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_checked.png");
 		SWITCH_ON_ICON = new ImageIcon(switchOnImg);
@@ -113,7 +118,6 @@ public class ConfigPanel extends JPanel
 		checkbox.setBackground(ColorScheme.LIGHT_GRAY_COLOR);
 
 		JLabel title = new JLabel();
-		// TODO: do something to tzhaAR timers and other empty/duplicate confisg
 		title.setText(currentConfig.getName());
 		// 0 width is to prevent the title causing the panel to grow in y direction on long plugin names
 		// 16 height is UPDATE_ICONs height
@@ -168,7 +172,7 @@ public class ConfigPanel extends JPanel
 					}
 					else
 					{
-						plugin.removeConfigurationFromEdited(presetConfig);
+						plugin.getPresetEditor().removeConfigurationFromEdited(presetConfig);
 					}
 				}
 			});
@@ -188,7 +192,7 @@ public class ConfigPanel extends JPanel
 					@Override
 					public void mousePressed(MouseEvent mouseEvent)
 					{
-						plugin.removeConfigurationFromEdited(presetConfig);
+						plugin.getPresetEditor().removeConfigurationFromEdited(presetConfig);
 						List<String> collect = presetConfig.getSettings().stream().map(InnerPluginConfig::getKey).collect(Collectors.toList());
 						List<InnerPluginConfig> collect2 = currentConfig.getSettings().stream().filter(s -> collect.contains(s.getKey())).collect(Collectors.toList());
 						currentConfig.setSettings((ArrayList<InnerPluginConfig>) collect2);
@@ -198,7 +202,7 @@ public class ConfigPanel extends JPanel
 							currentConfig.setEnabled(null);
 						}
 
-						plugin.addConfigurationToEdited(currentConfig);
+						plugin.getPresetEditor().addConfigurationToEdited(currentConfig);
 					}
 
 					@Override
@@ -222,8 +226,8 @@ public class ConfigPanel extends JPanel
 
 			if (external && !installed)
 			{
-				notInstalledLabel.setIcon(UPDATE_ICON); // TODO: notInstalledLabel add label icon
-				notInstalledLabel.setToolTipText("Not installed, download from Plugin Hub if you want to use these settings.");
+				notInstalledLabel.setIcon(NOTIFICATION_ICON);
+				notInstalledLabel.setToolTipText("Plugin not installed, download from Plugin Hub if you want to use these settings.");
 				title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
 			}
 		}
@@ -246,7 +250,7 @@ public class ConfigPanel extends JPanel
 					}
 					else
 					{
-						plugin.addConfigurationToEdited(currentConfig);
+						plugin.getPresetEditor().addConfigurationToEdited(currentConfig);
 					}
 				}
 			});
@@ -325,7 +329,7 @@ public class ConfigPanel extends JPanel
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
-					plugin.removeEnabledFromEdited(currentConfig);
+					plugin.getPresetEditor().removeEnabledFromEdited(currentConfig);
 				}
 			});
 
@@ -348,7 +352,7 @@ public class ConfigPanel extends JPanel
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
-					plugin.addEnabledToEdited(currentConfig);
+					plugin.getPresetEditor().addEnabledToEdited(currentConfig);
 				}
 			});
 		}
@@ -453,14 +457,14 @@ public class ConfigPanel extends JPanel
 		{
 			JMenuItem removeOption = new JMenuItem();
 			removeOption.setText("Remove configurations for " + currentConfig.getName() + " from all presets");
-			removeOption.addActionListener(e -> plugin.removeConfigurationFromPresets(currentConfig));
+			removeOption.addActionListener(e -> plugin.getPresetEditor().removeConfigurationFromPresets(currentConfig));
 			popupMenu.add(removeOption);
 		}
 		else
 		{
 			JMenuItem addOption = new JMenuItem();
 			addOption.setText("Add configurations from " + currentConfig.getName() + " to all presets");
-			addOption.addActionListener(e -> plugin.addConfigurationToPresets(currentConfig));
+			addOption.addActionListener(e -> plugin.getPresetEditor().addConfigurationToPresets(currentConfig));
 			popupMenu.add(addOption);
 		}
 

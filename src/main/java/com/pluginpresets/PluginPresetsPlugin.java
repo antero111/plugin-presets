@@ -68,11 +68,8 @@ public class PluginPresetsPlugin extends Plugin
 	private static final String ICON_FILE = "panel_icon.png";
 
 	@Getter
-	private final List<PluginPreset> pluginPresets = new ArrayList<>();
-
-	@Getter
 	@Setter
-	private PluginPreset editedPreset = null;
+	private List<PluginPreset> pluginPresets = new ArrayList<>();
 
 	@Inject
 	private ClientToolbar clientToolbar;
@@ -94,6 +91,10 @@ public class PluginPresetsPlugin extends Plugin
 
 	@Getter
 	private PluginPresetsPresetManager presetManager;
+
+	@Getter
+	@Setter
+	private PluginPresetsPresetEditor presetEditor = null;
 
 	@Override
 	protected void startUp()
@@ -136,7 +137,6 @@ public class PluginPresetsPlugin extends Plugin
 		sharingManager = null;
 		presetManager = null;
 		navigationButton = null;
-		editedPreset = null;
 	}
 
 	@Subscribe
@@ -232,189 +232,14 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPanel.rebuild();
 	}
 
-	// FIXME: refactor edited preset actions 
-	public void removeConfigurationFromEdited(PluginConfig configuration)
+	public void editPreset(PluginPreset preset)
 	{
-		List<PluginConfig> pluginConfigs = editedPreset.getPluginConfigs().stream()
-			.filter(c -> !(c.getName().equals(configuration.getName())))
-			.collect(Collectors.toList());
-		editedPreset.setPluginConfigs(pluginConfigs);
-		updateEditedPreset();
+		setPresetEditor(new PluginPresetsPresetEditor(this, preset));
+		rebuildPluginUi();
 	}
 
-	public void addConfigurationToEdited(PluginConfig configuration)
-	{
-		List<PluginConfig> pluginConfigs = editedPreset.getPluginConfigs();
-		pluginConfigs.add(configuration);
-		updateEditedPreset();
-	}
-
-	public void removeSettingFromEdited(PluginConfig currentConfig, InnerPluginConfig setting)
-	{
-		editedPreset.getPluginConfigs().forEach(configurations -> {
-			if (configurations.getConfigName().equals(currentConfig.getConfigName()))
-			{
-				configurations.getSettings().removeIf(s -> s.getKey().equals(setting.getKey()));
-				if (configurations.getSettings().isEmpty() && configurations.getEnabled() == null)
-				{
-					removeConfigurationFromEdited(configurations);
-				}
-			}
-		});
-		updateEditedPreset();
-	}
-
-	public void addSettingToEdited(PluginConfig currentConfig, InnerPluginConfig setting)
-	{
-		if (editedPreset.getPluginConfigs().stream().noneMatch(c -> c.getConfigName().equals(currentConfig.getConfigName())))
-		{
-			ArrayList<InnerPluginConfig> settings = new ArrayList<>();
-			settings.add(setting);
-			currentConfig.setSettings(settings);
-			currentConfig.setEnabled(null);
-			editedPreset.getPluginConfigs().add(currentConfig);
-		}
-		else
-		{
-			editedPreset.getPluginConfigs().forEach(configuration -> {
-				if (configuration.getConfigName().equals(currentConfig.getConfigName()))
-				{
-					configuration.getSettings().add(setting);
-				}
-			});
-		}
-		updateEditedPreset();
-	}
-
-	public void addEnabledToEdited(PluginConfig currentConfig)
-	{
-
-		if (editedPreset.getPluginConfigs().stream().noneMatch(c -> c.getConfigName().equals(currentConfig.getConfigName())))
-		{
-			ArrayList<InnerPluginConfig> settings = new ArrayList<>();
-
-			currentConfig.setEnabled(currentConfig.getEnabled());
-			currentConfig.setSettings(settings);
-			editedPreset.getPluginConfigs().add(currentConfig);
-		}
-		else
-		{
-			editedPreset.getPluginConfigs().forEach(configuration -> {
-				if (configuration.getConfigName().equals(currentConfig.getConfigName()))
-				{
-					configuration.setEnabled(currentConfig.getEnabled());
-				}
-			});
-		}
-		updateEditedPreset();
-	}
-
-	public void removeEnabledFromEdited(PluginConfig currentConfig)
-	{
-
-		editedPreset.getPluginConfigs().forEach(configurations -> {
-			if (configurations.getConfigName().equals(currentConfig.getConfigName()))
-			{
-				configurations.setEnabled(null);
-				if (configurations.getSettings().isEmpty())
-				{
-					removeConfigurationFromEdited(configurations);
-				}
-			}
-		});
-
-		updateEditedPreset();
-	}
-
-	public void toggleAllConfigurationOnEdited(boolean allOn)
-	{
-		if (allOn)
-		{
-			List<PluginConfig> pluginConfigs = editedPreset.getPluginConfigs();
-			pluginConfigs.clear();
-		}
-		else
-		{
-			List<PluginConfig> currentConfigurations = presetManager.getCurrentConfigurations();
-			editedPreset.setPluginConfigs(currentConfigurations);
-		}
-		updateEditedPreset();
-	}
-
-	public void updateAllModified()
-	{
-
-		List<PluginConfig> pluginConfigs = getEditedPreset().getPluginConfigs();
-		List<PluginConfig> currentConfigurations = presetManager.getCurrentConfigurations();
-
-		// Thearotically this works but is really really slow
-		pluginConfigs.forEach(presetConfig -> {
-
-			PluginConfig currentConfig = currentConfigurations.stream().filter(c -> c.getConfigName().equals(presetConfig.getConfigName())).findAny().orElse(null);
-
-			removeConfigurationFromEdited(presetConfig);
-			List<String> collect = presetConfig.getSettings().stream().map(s -> s.getKey()).collect(Collectors.toList());
-			List<InnerPluginConfig> collect2 = currentConfig.getSettings().stream().filter(s -> collect.contains(s.getKey())).collect(Collectors.toList());
-			currentConfig.setSettings((ArrayList<InnerPluginConfig>) collect2);
-	
-			if (presetConfig.getEnabled() == null)
-			{
-				currentConfig.setEnabled(null);
-			}
-	
-			addConfigurationToEdited(currentConfig);
-
-		});
-
-	}
-
-	private void updateEditedPreset()
-	{
-		pluginPresets.forEach(preset ->
-		{
-			if (preset.getName().equals(editedPreset.getName()))
-			{
-				preset.setPluginConfigs(editedPreset.getPluginConfigs());
-			}
-		});
-
-		savePresets();
-		refreshPresets();
-	}
-
-	public void addConfigurationToPresets(PluginConfig configuration)
-	{
-		addConfigurationToEdited(configuration);
-
-		pluginPresets.forEach(preset ->
-		{
-			boolean contains = preset.getPluginConfigs().stream().map(PluginConfig::getName).collect(Collectors.toList()).contains(configuration.getName());
-			if (contains)
-			{
-				List<PluginConfig> pluginConfigs = preset.getPluginConfigs().stream()
-					.filter(c -> !(c.getName().equals(configuration.getName())))
-					.collect(Collectors.toList());
-				preset.setPluginConfigs(pluginConfigs);
-			}
-			preset.getPluginConfigs().add(configuration);
-		});
-		savePresets();
-		refreshPresets();
-	}
-
-	public void removeConfigurationFromPresets(PluginConfig configuration)
-	{
-		removeConfigurationFromEdited(configuration);
-
-		pluginPresets.forEach(preset ->
-		{
-			List<PluginConfig> pluginConfigs = preset.getPluginConfigs().stream()
-				.filter(c -> !(c.getName().equals(configuration.getName())))
-				.collect(Collectors.toList());
-			preset.setPluginConfigs(pluginConfigs);
-		});
-		savePresets();
-		refreshPresets();
-
+	public void stopEdit() {
+		setPresetEditor(null);
+		rebuildPluginUi();
 	}
 }

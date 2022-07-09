@@ -101,7 +101,7 @@ public class ConfigRow extends JPanel
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
-					plugin.removeSettingFromEdited(currentConfig, presetSetting);
+					plugin.getPresetEditor().removeSettingFromEdited(currentConfig, presetSetting);
 				}
 
 				@Override
@@ -135,7 +135,7 @@ public class ConfigRow extends JPanel
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
-					plugin.addSettingToEdited(currentConfig, currentSetting);
+					plugin.getPresetEditor().addSettingToEdited(currentConfig, currentSetting);
 
 				}
 			});
