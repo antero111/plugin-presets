@@ -44,28 +44,18 @@ import net.runelite.client.util.ImageUtil;
 
 public class ConfigRow extends JPanel
 {
-	private static final ImageIcon SWITCH_ON_ICON;
+	private static final ImageIcon CHECKBOX_CHECKED_ICON;
 	private static final ImageIcon SWITCH_ON_HOVER_ICON;
-	private static final ImageIcon SWITCH_OFF_ICON;
-	private static final ImageIcon SWITCH_OFF_HOVER_ICON;
-	private static final ImageIcon UPDATE_ICON;
-	private static final ImageIcon UPDATE_HOVER_ICON;
+	private static final ImageIcon CHECKBOX_ICON;
 
 	static
 	{
-		// final BufferedImage switchOnImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_on_icon.png");
-		final BufferedImage switchOnImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_checked.png");
-		SWITCH_ON_ICON = new ImageIcon(switchOnImg);
-		SWITCH_ON_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(switchOnImg, 20));
+		final BufferedImage checkboxCheckedImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_checked_icon.png");
+		CHECKBOX_CHECKED_ICON = new ImageIcon(checkboxCheckedImg);
+		SWITCH_ON_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(checkboxCheckedImg, 20));
 
-		final BufferedImage switchOffImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox.png");
-		final BufferedImage switchOffHoverImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_off_hover_icon.png");
-		SWITCH_OFF_ICON = new ImageIcon(switchOffImg);
-		SWITCH_OFF_HOVER_ICON = new ImageIcon(switchOffHoverImg);
-
-		final BufferedImage updateImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "refresh_icon.png");
-		UPDATE_ICON = new ImageIcon(updateImg);
-		UPDATE_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(updateImg, -100));
+		final BufferedImage checkboxImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_icon.png");
+		CHECKBOX_ICON = new ImageIcon(checkboxImg);
 	}
 
 	private final InnerPluginConfig currentSetting;
@@ -94,7 +84,7 @@ public class ConfigRow extends JPanel
 
 		if (presetHasConfigurations)
 		{
-			switchLabel.setIcon(SWITCH_ON_ICON);
+			switchLabel.setIcon(CHECKBOX_CHECKED_ICON);
 			switchLabel.setToolTipText("Remove configurations for " + currentConfig.getName() + " from the preset.");
 			switchLabel.addMouseListener(new MouseAdapter()
 			{
@@ -113,7 +103,7 @@ public class ConfigRow extends JPanel
 				@Override
 				public void mouseExited(MouseEvent mouseEvent)
 				{
-					switchLabel.setIcon(SWITCH_ON_ICON);
+					switchLabel.setIcon(CHECKBOX_CHECKED_ICON);
 				}
 			});
 
@@ -129,7 +119,7 @@ public class ConfigRow extends JPanel
 		else
 		{
 			title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
-			switchLabel.setIcon(SWITCH_OFF_ICON);
+			switchLabel.setIcon(CHECKBOX_ICON);
 			switchLabel.addMouseListener(new MouseAdapter()
 			{
 				@Override

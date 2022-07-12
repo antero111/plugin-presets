@@ -73,8 +73,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private static final ImageIcon ADD_HOVER_ICON;
 	private static final ImageIcon ARROW_LEFT_ICON;
 	private static final ImageIcon ARROW_LEFT_HOVER_ICON;
-	private static final ImageIcon SWITCH_ON_ICON;
-	private static final ImageIcon SWITCH_OFF_ICON;
 	private static final ImageIcon ELLIPSIS;
 	private static final ImageIcon ELLIPSIS_HOVER;
 
@@ -104,12 +102,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		final BufferedImage arrowLeftImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "arrow_left_icon.png");
 		ARROW_LEFT_ICON = new ImageIcon(arrowLeftImg);
 		ARROW_LEFT_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(arrowLeftImg, 0.53f));
-
-		final BufferedImage switchOnImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_on_icon.png");
-		SWITCH_ON_ICON = new ImageIcon(switchOnImg);
-
-		final BufferedImage switchOffImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_off_icon.png");
-		SWITCH_OFF_ICON = new ImageIcon(switchOffImg);
 	}
 
 	private final PluginPresetsPlugin plugin;
@@ -334,7 +326,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		editActions.add(updateAll);
 
 		JPanel filterActions = new JPanel();
-		// filterActions.setLayout(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+		filterActions.setLayout(new FlowLayout(FlowLayout.RIGHT, 8, 0));
 		filterActions.add(new JButton("Filters"));
 
 		JPanel editActionsWrapper = new JPanel(new BorderLayout());
@@ -412,7 +404,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		contentView.removeAll();
 
-		// boolean editingPreset = plugin.getEditedPreset() != null;
 		boolean editingPreset = plugin.getPresetEditor() != null;
 
 		titlePanel.setVisible(!editingPreset);
@@ -467,7 +458,9 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		// Add configurations that are in the preset but not in current configurations
 		// e.g. preset is from a friend and the preset has settings
 		// to some plugin hub plugin that you don't have in your current configs
-		List<String> names = configurations.stream().map(PluginConfig::getName).collect(Collectors.toList());
+		List<String> names = configurations.stream()
+			.map(PluginConfig::getName)
+			.collect(Collectors.toList());
 		for (PluginConfig config : presetConfigs)
 		{
 			if (!names.contains(config.getName()))
@@ -514,7 +507,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		for (InnerPluginConfig presetConfigSetting : presetConfig.getSettings())
 		{
 			// Get current config setting for compared preset setting
-			InnerPluginConfig currentConfigSetting = currentSettings.stream().filter(c -> c.getKey().equals(presetConfigSetting.getKey())).findFirst().orElse(null);
+			InnerPluginConfig currentConfigSetting = currentSettings.stream()
+				.filter(c -> c.getKey().equals(presetConfigSetting.getKey()))
+				.findFirst()
+				.orElse(null);
 
 			if (currentConfigSetting != null &&
 				presetConfigSetting.getValue() != null &&

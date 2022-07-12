@@ -238,7 +238,8 @@ public class PluginPresetsPlugin extends Plugin
 		rebuildPluginUi();
 	}
 
-	public void stopEdit() {
+	public void stopEdit()
+	{
 		setPresetEditor(null);
 		rebuildPluginUi();
 	}

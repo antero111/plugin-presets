@@ -53,10 +53,8 @@ import net.runelite.client.util.ImageUtil;
 
 public class ConfigPanel extends JPanel
 {
-	private static final ImageIcon SWITCH_ON_ICON;
-	private static final ImageIcon SWITCH_ON_HOVER_ICON;
-	private static final ImageIcon SWITCH_OFF_ICON;
-	private static final ImageIcon SWITCH_OFF_HOVER_ICON;
+	private static final ImageIcon CHECKBOX_CHECKED_ICON;
+	private static final ImageIcon CHECKBOX_ICON;
 	private static final ImageIcon UPDATE_ICON;
 	private static final ImageIcon UPDATE_HOVER_ICON;
 	private static final ImageIcon ARROW_DOWN_ICON;
@@ -68,20 +66,14 @@ public class ConfigPanel extends JPanel
 			"warning_icon.png");
 		NOTIFICATION_ICON = new ImageIcon(notificationImg);
 
-		final BufferedImage switchOnImg2 = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_on_icon.png");
-		final BufferedImage switchOnImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_checked.png");
-		SWITCH_ON_ICON = new ImageIcon(switchOnImg);
-		// SWITCH_ON_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(switchOnImg, 20));
-		SWITCH_ON_HOVER_ICON = new ImageIcon(switchOnImg2);
+		final BufferedImage checkboxCheckedImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_checked_icon.png");
+		CHECKBOX_CHECKED_ICON = new ImageIcon(checkboxCheckedImg);
 
 		final BufferedImage arrowDownImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "arrow_up_icon.png");
 		ARROW_DOWN_ICON = new ImageIcon(arrowDownImg);
-		// SWITCH_ON_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(arrowDownImg, 20));
 
-		final BufferedImage switchOffImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox.png");
-		final BufferedImage switchOffHoverImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_off_hover_icon.png");
-		SWITCH_OFF_ICON = new ImageIcon(switchOffImg);
-		SWITCH_OFF_HOVER_ICON = new ImageIcon(switchOffHoverImg);
+		final BufferedImage checkboxImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_icon.png");
+		CHECKBOX_ICON = new ImageIcon(checkboxImg);
 
 		final BufferedImage updateImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "refresh_icon.png");
 		UPDATE_ICON = new ImageIcon(updateImg);
@@ -323,7 +315,7 @@ public class ConfigPanel extends JPanel
 		JLabel checkBox = new JLabel();
 		if (presetHasConfigurations && presetConfig.getEnabled() != null)
 		{
-			checkBox.setIcon(SWITCH_ON_ICON);
+			checkBox.setIcon(CHECKBOX_CHECKED_ICON);
 			checkBox.addMouseListener(new MouseAdapter()
 			{
 				@Override
@@ -346,7 +338,7 @@ public class ConfigPanel extends JPanel
 		else
 		{
 			title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
-			checkBox.setIcon(SWITCH_OFF_ICON);
+			checkBox.setIcon(CHECKBOX_ICON);
 			checkBox.addMouseListener(new MouseAdapter()
 			{
 				@Override
