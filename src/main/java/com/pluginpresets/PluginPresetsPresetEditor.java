@@ -245,7 +245,7 @@ public class PluginPresetsPresetEditor
 	{
 		plugin.getPluginPresets().forEach(preset ->
 		{
-			if (preset.getName().equals(editedPreset.getName()))
+			if (preset.getId() == editedPreset.getId())
 			{
 				preset.setPluginConfigs(editedPreset.getPluginConfigs());
 			}
