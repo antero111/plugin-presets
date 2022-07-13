@@ -45,14 +45,14 @@ import net.runelite.client.util.ImageUtil;
 public class ConfigRow extends JPanel
 {
 	private static final ImageIcon CHECKBOX_CHECKED_ICON;
-	private static final ImageIcon SWITCH_ON_HOVER_ICON;
+	private static final ImageIcon CHECKBOX_CHECKED_HOVER_ICON;
 	private static final ImageIcon CHECKBOX_ICON;
 
 	static
 	{
 		final BufferedImage checkboxCheckedImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_checked_icon.png");
 		CHECKBOX_CHECKED_ICON = new ImageIcon(checkboxCheckedImg);
-		SWITCH_ON_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(checkboxCheckedImg, 20));
+		CHECKBOX_CHECKED_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(checkboxCheckedImg, 20));
 
 		final BufferedImage checkboxImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_icon.png");
 		CHECKBOX_ICON = new ImageIcon(checkboxImg);
@@ -60,7 +60,7 @@ public class ConfigRow extends JPanel
 
 	private final InnerPluginConfig currentSetting;
 	private final InnerPluginConfig presetSetting;
-	private final JLabel switchLabel = new JLabel();
+	private final JLabel checkboxLabel = new JLabel();
 	private final boolean presetHasConfigurations;
 
 	public ConfigRow(PluginConfig currentConfig, InnerPluginConfig currentSetting, InnerPluginConfig presetSetting, PluginPresetsPlugin plugin)
@@ -84,9 +84,9 @@ public class ConfigRow extends JPanel
 
 		if (presetHasConfigurations)
 		{
-			switchLabel.setIcon(CHECKBOX_CHECKED_ICON);
-			switchLabel.setToolTipText("Remove configurations for " + currentConfig.getName() + " from the preset.");
-			switchLabel.addMouseListener(new MouseAdapter()
+			checkboxLabel.setIcon(CHECKBOX_CHECKED_ICON);
+			checkboxLabel.setToolTipText("Remove configurations for " + currentConfig.getName() + " from the preset.");
+			checkboxLabel.addMouseListener(new MouseAdapter()
 			{
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
@@ -97,13 +97,13 @@ public class ConfigRow extends JPanel
 				@Override
 				public void mouseEntered(MouseEvent mouseEvent)
 				{
-					switchLabel.setIcon(SWITCH_ON_HOVER_ICON);
+					checkboxLabel.setIcon(CHECKBOX_CHECKED_HOVER_ICON);
 				}
 
 				@Override
 				public void mouseExited(MouseEvent mouseEvent)
 				{
-					switchLabel.setIcon(CHECKBOX_CHECKED_ICON);
+					checkboxLabel.setIcon(CHECKBOX_CHECKED_ICON);
 				}
 			});
 
@@ -119,8 +119,8 @@ public class ConfigRow extends JPanel
 		else
 		{
 			title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
-			switchLabel.setIcon(CHECKBOX_ICON);
-			switchLabel.addMouseListener(new MouseAdapter()
+			checkboxLabel.setIcon(CHECKBOX_ICON);
+			checkboxLabel.addMouseListener(new MouseAdapter()
 			{
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
@@ -135,7 +135,7 @@ public class ConfigRow extends JPanel
 		rightActions.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
 		JLabel updateLabel = new JLabel();
 		rightActions.add(updateLabel);
-		rightActions.add(switchLabel);
+		rightActions.add(checkboxLabel);
 
 		add(title, BorderLayout.CENTER);
 		add(rightActions, BorderLayout.EAST);

@@ -53,8 +53,9 @@ import net.runelite.client.util.ImageUtil;
 
 public class ConfigPanel extends JPanel
 {
-	private static final ImageIcon CHECKBOX_CHECKED_ICON;
 	private static final ImageIcon CHECKBOX_ICON;
+	private static final ImageIcon CHECKBOX_CHECKED_ICON;
+	private static final ImageIcon CHECKBOX_CHECKED_HOVER_ICON;
 	private static final ImageIcon UPDATE_ICON;
 	private static final ImageIcon UPDATE_HOVER_ICON;
 	private static final ImageIcon ARROW_DOWN_ICON;
@@ -66,14 +67,15 @@ public class ConfigPanel extends JPanel
 			"warning_icon.png");
 		NOTIFICATION_ICON = new ImageIcon(notificationImg);
 
+		final BufferedImage checkboxImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_icon.png");
+		CHECKBOX_ICON = new ImageIcon(checkboxImg);
+
 		final BufferedImage checkboxCheckedImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_checked_icon.png");
 		CHECKBOX_CHECKED_ICON = new ImageIcon(checkboxCheckedImg);
+		CHECKBOX_CHECKED_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(checkboxCheckedImg, 20));
 
 		final BufferedImage arrowDownImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "arrow_up_icon.png");
 		ARROW_DOWN_ICON = new ImageIcon(arrowDownImg);
-
-		final BufferedImage checkboxImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_icon.png");
-		CHECKBOX_ICON = new ImageIcon(checkboxImg);
 
 		final BufferedImage updateImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "refresh_icon.png");
 		UPDATE_ICON = new ImageIcon(updateImg);
@@ -322,6 +324,18 @@ public class ConfigPanel extends JPanel
 				public void mousePressed(MouseEvent mouseEvent)
 				{
 					plugin.getPresetEditor().removeEnabledFromEdited(currentConfig);
+				}
+
+				@Override
+				public void mouseEntered(MouseEvent mouseEvent)
+				{
+					checkBox.setIcon(CHECKBOX_CHECKED_HOVER_ICON);
+				}
+
+				@Override
+				public void mouseExited(MouseEvent mouseEvent)
+				{
+					checkBox.setIcon(CHECKBOX_CHECKED_ICON);
 				}
 			});
 
