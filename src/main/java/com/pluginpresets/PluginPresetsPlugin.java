@@ -92,6 +92,8 @@ public class PluginPresetsPlugin extends Plugin
 	@Getter
 	private PluginPresetsPresetManager presetManager;
 
+	private PluginPresetsStorage presetStorage;
+
 	@Getter
 	@Setter
 	private PluginPresetsPresetEditor presetEditor = null;
@@ -102,10 +104,9 @@ public class PluginPresetsPlugin extends Plugin
 		PluginPresetsStorage.createPresetFolder();
 
 		pluginPanel = new PluginPresetsPluginPanel(this);
-
 		sharingManager = new PluginPresetsSharingManager(pluginPanel);
-
 		presetManager = new PluginPresetsPresetManager(this, pluginManager, configManager, runeLiteConfig);
+		presetStorage = new PluginPresetsStorage();
 
 		loadPresets();
 
@@ -176,7 +177,7 @@ public class PluginPresetsPlugin extends Plugin
 	@SneakyThrows
 	public void savePresets()
 	{
-		PluginPresetsStorage.savePresets(pluginPresets);
+		presetStorage.savePresets(pluginPresets);
 	}
 
 	public void refreshPresets()
@@ -203,7 +204,7 @@ public class PluginPresetsPlugin extends Plugin
 	@SneakyThrows
 	public void loadPresets()
 	{
-		pluginPresets.addAll(PluginPresetsStorage.loadPresets());
+		pluginPresets.addAll(presetStorage.loadPresets());
 	}
 
 	public void importPresetFromClipboard()

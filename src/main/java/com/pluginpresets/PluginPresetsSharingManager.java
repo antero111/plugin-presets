@@ -38,6 +38,8 @@ import java.io.IOException;
 public class PluginPresetsSharingManager
 {
 	private final PluginPresetsPluginPanel pluginPanel;
+	
+	private Gson gson = new Gson();
 
 	public PluginPresetsSharingManager(final PluginPresetsPluginPanel pluginPanel)
 	{
@@ -81,7 +83,6 @@ public class PluginPresetsSharingManager
 
 		try
 		{
-			final Gson gson = new Gson();
 			newPreset = gson.fromJson(clipboardText, new TypeToken<PluginPreset>()
 			{
 			}.getType());
@@ -103,7 +104,6 @@ public class PluginPresetsSharingManager
 
 	public void exportPresetToClipboard(final PluginPreset preset)
 	{
-		final Gson gson = new Gson();
 		final String json = gson.toJson(preset);
 		final StringSelection contents = new StringSelection(json);
 		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(contents, null);

@@ -44,26 +44,35 @@ public class PluginPresetsStorage
 {
 	private static final File PRESETS_DIR = PluginPresetsPlugin.PRESETS_DIR;
 
-	public static void savePresets(final List<PluginPreset> pluginPresets)
+	private List<String> failedFileNames = new ArrayList<>();
+
+	private Gson gson = new Gson();
+
+	public void savePresets(final List<PluginPreset> pluginPresets)
 	{
 		clearPresetFolder();
-		pluginPresets.forEach(PluginPresetsStorage::storePluginPresetToJsonFile);
+		pluginPresets.forEach(this::storePluginPresetToJsonFile);
 	}
 
-	private static void clearPresetFolder()
+	private void clearPresetFolder()
 	{
 		for (File file : Objects.requireNonNull(PRESETS_DIR.listFiles()))
 		{
-			final boolean fileWasDeleted = file.delete();
-			if (!fileWasDeleted)
+			// Dont delete invalid files,
+			// those could be e.g v1 style presets or some syntax failed presets
+			if (!failedFileNames.contains(file.getName()))
 			{
-				log.warn(String.format("Could not delete %s", file.getName()));
+				final boolean fileWasDeleted = file.delete();
+				if (!fileWasDeleted)
+				{
+					log.warn(String.format("Could not delete %s", file.getName()));
+				}
 			}
 		}
 	}
 
 	@SneakyThrows
-	private static void storePluginPresetToJsonFile(final PluginPreset pluginPreset)
+	private void storePluginPresetToJsonFile(final PluginPreset pluginPreset)
 	{
 		File presetJsonFile = getPresetJsonFileFrom(pluginPreset);
 
@@ -75,12 +84,12 @@ public class PluginPresetsStorage
 		writePresetDataToJsonFile(pluginPreset, presetJsonFile);
 	}
 
-	private static File getPresetJsonFileFrom(final PluginPreset pluginPreset)
+	private File getPresetJsonFileFrom(final PluginPreset pluginPreset)
 	{
 		return new File(PRESETS_DIR, String.format("%s.json", pluginPreset.getName()));
 	}
 
-	private static File giveJsonFileCustomSuffixNumber(final PluginPreset pluginPreset, File presetJsonFile)
+	private File giveJsonFileCustomSuffixNumber(final PluginPreset pluginPreset, File presetJsonFile)
 	{
 		int fileNumber = 1;
 		while (presetJsonFile.exists())
@@ -96,16 +105,17 @@ public class PluginPresetsStorage
 		return new File(PRESETS_DIR, String.format("%s (%d).json", pluginPreset.getName(), fileNumber));
 	}
 
-	private static void writePresetDataToJsonFile(final PluginPreset pluginPreset, final File presetJsonFile) throws IOException
+	private void writePresetDataToJsonFile(final PluginPreset pluginPreset, final File presetJsonFile) throws IOException
 	{
-		Gson gson = new Gson();
 		Writer writer = new FileWriter(presetJsonFile);
 		gson.toJson(pluginPreset, writer);
 		writer.close();
 	}
 
-	public static List<PluginPreset> loadPresets() throws IOException
+	public List<PluginPreset> loadPresets() throws IOException
 	{
+		failedFileNames.clear();
+
 		ArrayList<Long> loadedIds = new ArrayList<>();
 		List<PluginPreset> pluginPresetsFromFolder = new ArrayList<>();
 
@@ -124,19 +134,21 @@ public class PluginPresetsStorage
 						loadedIds.add(id);
 					}
 				}
+				else
+				{
+					failedFileNames.add(file.getName());
+				}
 			}
 		}
 
 		return pluginPresetsFromFolder;
 	}
 
-	private static PluginPreset parsePluginPresetFrom(final File file) throws IOException
+	private PluginPreset parsePluginPresetFrom(final File file) throws IOException
 	{
-		Gson gson = new Gson();
-		Reader reader = new FileReader(file);
 		PluginPreset pluginPreset;
-
-		try
+		
+		try (Reader reader = new FileReader(file))
 		{
 			pluginPreset = gson.fromJson(reader, new TypeToken<PluginPreset>()
 			{
@@ -144,12 +156,8 @@ public class PluginPresetsStorage
 		}
 		catch (JsonSyntaxException e)
 		{
-			log.warn(String.format("Failed to load preset from %s, %s", file.getAbsolutePath(), e));
+			log.warn(String.format("Failed to load preset from %s, %s", file.getAbsolutePath(), e.getMessage()));
 			return null;
-		}
-		finally
-		{
-			reader.close();
 		}
 
 		if (pluginPreset.getName() == null || pluginPreset.getPluginConfigs() == null)
