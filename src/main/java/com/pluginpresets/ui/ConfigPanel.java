@@ -154,6 +154,7 @@ public class ConfigPanel extends JPanel
 		if (presetHasConfigurations)
 		{
 			checkbox.setSelected(true);
+			checkbox.setToolTipText("Remove all " + currentConfig.getName() + " configurations from the preset.");
 			checkbox.addMouseListener(new MouseAdapter()
 			{
 				@Override
@@ -231,7 +232,7 @@ public class ConfigPanel extends JPanel
 			title.setToolTipText("This preset does not include any configurations to " + currentConfig.getName() + " plugin.");
 
 			checkbox.setSelected(false);
-			checkbox.setToolTipText("Add your current configuration for " + currentConfig.getName() + " to the preset.");
+			checkbox.setToolTipText("Add your current " + currentConfig.getName() + " configurations to the preset.");
 			checkbox.addMouseListener(new MouseAdapter()
 			{
 				@Override
@@ -309,6 +310,7 @@ public class ConfigPanel extends JPanel
 
 		JLabel title = new JLabel();
 		title.setText("Plugin on/off");
+		title.setToolTipText("Whether the plugin is disabled or not.");
 		// 0 width is to prevent the title causing the panel to grow in y direction on long setting descriptions
 		// 16 height is UPDATE_ICONs height
 		title.setPreferredSize(new Dimension(0, 16));
@@ -318,6 +320,7 @@ public class ConfigPanel extends JPanel
 		if (presetHasConfigurations && presetConfig.getEnabled() != null)
 		{
 			checkBox.setIcon(CHECKBOX_CHECKED_ICON);
+			checkBox.setToolTipText("Remove plugin on/off configuration from the preset.");
 			checkBox.addMouseListener(new MouseAdapter()
 			{
 				@Override
@@ -353,6 +356,7 @@ public class ConfigPanel extends JPanel
 		{
 			title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
 			checkBox.setIcon(CHECKBOX_ICON);
+			checkBox.setToolTipText("Add plugin on/off configuration to the preset.");
 			checkBox.addMouseListener(new MouseAdapter()
 			{
 				@Override

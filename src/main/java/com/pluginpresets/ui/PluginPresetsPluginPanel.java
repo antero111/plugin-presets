@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -112,6 +111,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final JLabel stopEdit = new JLabel(ARROW_LEFT_ICON);
 	private final JLabel menu = new JLabel(ELLIPSIS);
 	private final JLabel updateAll = new JLabel(REFRESH_ICON);
+	// private final JLabel filterModifiedLabel = new JLabel(REFRESH_ICON);
 	private final JLabel title = new JLabel();
 	private final JLabel editTitle = new JLabel();
 	private final IconTextField searchBar = new IconTextField();
@@ -325,13 +325,13 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		JPanel editActions = new JPanel();
 		editActions.add(updateAll);
 
-		JPanel filterActions = new JPanel();
-		filterActions.setLayout(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-		filterActions.add(new JButton("Filters"));
-
+		// JPanel filterActions = new JPanel();
+		// filterActions.setLayout(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+		// filterActions.add(filterModifiedLabel);
+		
 		JPanel editActionsWrapper = new JPanel(new BorderLayout());
 		editActionsWrapper.setBorder(new EmptyBorder(5, 0, 3, 0));
-		editActionsWrapper.add(filterActions, BorderLayout.WEST);
+		// editActionsWrapper.add(filterActions, BorderLayout.WEST);
 		editActionsWrapper.add(editActions, BorderLayout.EAST);
 
 		JPanel searchWrapper = new JPanel(new BorderLayout());
