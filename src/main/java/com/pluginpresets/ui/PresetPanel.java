@@ -31,6 +31,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -41,9 +42,11 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+import net.runelite.client.config.Keybind;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.components.FlatTextField;
@@ -70,8 +73,10 @@ class PresetPanel extends JPanel
 		final BufferedImage switchOnImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_on_icon.png");
 		SWITCH_ON_ICON = new ImageIcon(switchOnImg);
 
-		final BufferedImage switchOffImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_off_icon.png");
-		final BufferedImage switchOffHoverImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_off_hover_icon.png");
+		final BufferedImage switchOffImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
+			"switch_off_icon.png");
+		final BufferedImage switchOffHoverImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
+			"switch_off_hover_icon.png");
 		SWITCH_OFF_ICON = new ImageIcon(switchOffImg);
 		SWITCH_OFF_HOVER_ICON = new ImageIcon(switchOffHoverImg);
 
@@ -90,15 +95,21 @@ class PresetPanel extends JPanel
 
 	private final PluginPresetsPlugin plugin;
 	private final PluginPreset preset;
-	private final JLabel loadLabel = new JLabel();
-	private final JLabel deleteLabel = new JLabel();
+	private final JPanel labelWrapper = new JPanel();
+	private final JLabel keybindLabel = new JLabel();
 	private final JLabel shareLabel = new JLabel();
+	private final JLabel editLabel = new JLabel();
+	private final JLabel deleteLabel = new JLabel();
+	private final JLabel loadLabel = new JLabel();
 	private final FlatTextField nameInput = new FlatTextField();
-	private final JLabel save = new JLabel("Save");
-	private final JLabel cancel = new JLabel("Cancel");
 	private final JLabel rename = new JLabel("Rename");
-	private final JLabel notice = new JLabel();
-	private final JLabel updateLabel = new JLabel();
+	private final JLabel saveRename = new JLabel("Save");
+	private final JLabel cancelRename = new JLabel("Cancel");
+	private final JPanel keybindWrapper = new JPanel();
+	private final JLabel keybind = new JLabel();
+	private final JLabel saveKeybind = new JLabel("Save");
+	private final JLabel cancelKeybind = new JLabel("Cancel");
+	private KeyEvent savedKeybind = null;
 
 	PresetPanel(PluginPreset pluginPreset, PluginPresetsPlugin pluginPresetsPlugin)
 	{
@@ -116,53 +127,53 @@ class PresetPanel extends JPanel
 		nameActions.setBorder(new EmptyBorder(0, 0, 0, 8));
 		nameActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		save.setVisible(false);
-		save.setFont(FontManager.getRunescapeSmallFont());
-		save.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR);
-		save.setToolTipText("Save new name");
-		save.addMouseListener(new MouseAdapter()
+		saveRename.setVisible(false);
+		saveRename.setFont(FontManager.getRunescapeSmallFont());
+		saveRename.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR);
+		saveRename.setToolTipText("Save new name");
+		saveRename.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				save();
+				saveRename();
 			}
 
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
-				save.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR.darker());
+				saveRename.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR.darker());
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				save.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR);
+				saveRename.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR);
 			}
 		});
 
-		cancel.setVisible(false);
-		cancel.setFont(FontManager.getRunescapeSmallFont());
-		cancel.setForeground(ColorScheme.PROGRESS_ERROR_COLOR);
-		cancel.setToolTipText("Cancel rename");
-		cancel.addMouseListener(new MouseAdapter()
+		cancelRename.setVisible(false);
+		cancelRename.setFont(FontManager.getRunescapeSmallFont());
+		cancelRename.setForeground(ColorScheme.PROGRESS_ERROR_COLOR);
+		cancelRename.setToolTipText("Cancel rename");
+		cancelRename.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				cancel();
+				cancelRename();
 			}
 
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
-				cancel.setForeground(ColorScheme.PROGRESS_ERROR_COLOR.darker());
+				cancelRename.setForeground(ColorScheme.PROGRESS_ERROR_COLOR.darker());
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				cancel.setForeground(ColorScheme.PROGRESS_ERROR_COLOR);
+				cancelRename.setForeground(ColorScheme.PROGRESS_ERROR_COLOR);
 			}
 		});
 
@@ -191,8 +202,8 @@ class PresetPanel extends JPanel
 			}
 		});
 
-		nameActions.add(save, BorderLayout.EAST);
-		nameActions.add(cancel, BorderLayout.WEST);
+		nameActions.add(saveRename, BorderLayout.EAST);
+		nameActions.add(cancelRename, BorderLayout.WEST);
 		nameActions.add(rename, BorderLayout.CENTER);
 
 		nameInput.setText(preset.getName());
@@ -209,11 +220,11 @@ class PresetPanel extends JPanel
 			{
 				if (e.getKeyCode() == KeyEvent.VK_ENTER)
 				{
-					save();
+					saveRename();
 				}
 				else if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
 				{
-					cancel();
+					cancelRename();
 				}
 			}
 		});
@@ -225,20 +236,28 @@ class PresetPanel extends JPanel
 		bottomContainer.setBorder(new EmptyBorder(6, 0, 6, 0));
 		bottomContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		JPanel leftActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 3));
+		JPanel leftActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 3));
 		leftActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		if (plugin.getMatchingPresets().contains(preset))
+		loadLabel.setBorder(new EmptyBorder(0, 5, 0, 0));
+
+		JLabel notice = new JLabel();
+
+		boolean presetMatches = plugin.getMatchingPresets().contains(preset);
+		boolean emptyPreset = false;
+		if (presetMatches)
 		{
 			loadLabel.setIcon(SWITCH_ON_ICON);
 			loadLabel.setToolTipText("Current configurations match this preset");
 
-			if (preset.getPluginConfigs().isEmpty())
+			emptyPreset = preset.getPluginConfigs().isEmpty();
+			if (emptyPreset)
 			{
 				notice.setFont(FontManager.getRunescapeSmallFont());
 				notice.setForeground(ColorScheme.LIGHT_GRAY_COLOR.darker());
 				notice.setText("Empty preset");
-				notice.setToolTipText("This preset is empty, click the cog icon to add configurations.");
+				notice.setToolTipText("This preset has no configurations, click the edit icon to add configurations.");
+				loadLabel.setVisible(false);
 			}
 		}
 		else
@@ -269,8 +288,134 @@ class PresetPanel extends JPanel
 
 		leftActions.add(loadLabel);
 
-		JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+		JPanel rightActions = new JPanel();
+		rightActions.setLayout(new FlowLayout(FlowLayout.RIGHT, 8, 0));
 		rightActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+
+		keybindWrapper.setLayout(new FlowLayout(FlowLayout.RIGHT, 0, 3));
+		keybindWrapper.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		keybindWrapper.setVisible(false);
+
+		JPanel keybindActions = new JPanel();
+		keybindActions.setLayout(new BorderLayout(3, 0));
+		keybindActions.setBorder(new EmptyBorder(0, 5, 0, 2));
+		keybindActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		keybindActions.setAlignmentX(RIGHT_ALIGNMENT);
+
+		saveKeybind.setFont(FontManager.getRunescapeSmallFont());
+		saveKeybind.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR);
+		saveKeybind.setToolTipText("Save keybind");
+		saveKeybind.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				saveKeybind();
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				saveKeybind.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR.darker());
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				saveKeybind.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR);
+			}
+		});
+
+		cancelKeybind.setFont(FontManager.getRunescapeSmallFont());
+		cancelKeybind.setForeground(ColorScheme.PROGRESS_ERROR_COLOR);
+		cancelKeybind.setToolTipText("Cancel keybind");
+		cancelKeybind.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				cancelKeybind();
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				cancelKeybind.setForeground(ColorScheme.PROGRESS_ERROR_COLOR.darker());
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				cancelKeybind.setForeground(ColorScheme.PROGRESS_ERROR_COLOR);
+			}
+		});
+
+		keybindActions.add(cancelKeybind, BorderLayout.WEST);
+		keybindActions.add(saveKeybind, BorderLayout.EAST);
+
+		keybind.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+		keybind.setFont(FontManager.getRunescapeSmallFont());
+		int keybindWidth = emptyPreset ? 50 : 85;
+		keybind.setPreferredSize(new Dimension(keybindWidth, 12));
+		keybind.setHorizontalAlignment(SwingConstants.RIGHT);
+
+		boolean keybindSet = preset.getKeybind() != null;
+		if (keybindSet)
+		{
+			String keybindText = preset.getKeybind().toString();
+			keybindLabel.setText(keybindText);
+			keybindLabel.setToolTipText(keybindText + " (Click to edit)");
+
+			keybindLabel.setPreferredSize(new Dimension(keybindWidth, 12));
+			keybindLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+			keybindLabel.setAlignmentX(RIGHT_ALIGNMENT);
+
+			keybind.setText(keybindText);
+			keybind.setToolTipText(keybindText + " (Clear with backspace)");
+
+			// Inform that keybind don't work in login screen
+			if (!plugin.getLoggedIn())
+			{
+				keybindLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR.darker());
+				keybindLabel.setToolTipText("Keybinds are disabled on login screen");
+			}
+		}
+		else
+		{
+			keybindLabel.setText("Not set");
+			keybindLabel.setToolTipText("Click to bind this preset to a keybind");
+			keybindLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR.darker().darker());
+
+			keybind.setText("No keybind set");
+			keybind.setToolTipText("Type a keybind you wish to set");
+		}
+
+		keybindLabel.addMouseListener(new MouseAdapter()
+		{
+			private Color foreground;
+
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				editKeybind();
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				foreground = keybindLabel.getForeground();
+				keybindLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				keybindLabel.setForeground(foreground);
+			}
+		});
+
+		keybindWrapper.add(keybind);
+		keybindWrapper.add(keybindActions);
 
 		shareLabel.setIcon(UPDATE_ICON);
 		shareLabel.setToolTipText("Copy preset to clipboard");
@@ -280,7 +425,9 @@ class PresetPanel extends JPanel
 			public void mousePressed(MouseEvent mouseEvent)
 			{
 				plugin.exportPresetToClipboard(preset);
-				JOptionPane.showMessageDialog(shareLabel, "Preset data of '" + preset.getName() + "' copied to clipboard.", "Preset exported", JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(shareLabel,
+					"Preset data of '" + preset.getName() + "' copied to clipboard.", "Preset exported",
+					JOptionPane.INFORMATION_MESSAGE);
 			}
 
 			@Override
@@ -326,9 +473,9 @@ class PresetPanel extends JPanel
 			}
 		});
 
-		updateLabel.setIcon(EDIT_ICON);
-		updateLabel.setToolTipText("Edit preset configurations");
-		updateLabel.addMouseListener(new MouseAdapter()
+		editLabel.setIcon(EDIT_ICON);
+		editLabel.setToolTipText("Edit preset configurations");
+		editLabel.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
@@ -339,19 +486,26 @@ class PresetPanel extends JPanel
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
-				updateLabel.setIcon(EDIT_HOVER_ICON);
+				editLabel.setIcon(EDIT_HOVER_ICON);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				updateLabel.setIcon(EDIT_ICON);
+				editLabel.setIcon(EDIT_ICON);
 			}
 		});
 
-		rightActions.add(shareLabel);
-		rightActions.add(updateLabel);
-		rightActions.add(deleteLabel);
+		labelWrapper.setLayout(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+		labelWrapper.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+
+		labelWrapper.add(keybindLabel);
+		labelWrapper.add(shareLabel);
+		labelWrapper.add(editLabel);
+		labelWrapper.add(deleteLabel);
+
+		rightActions.add(keybindWrapper);
+		rightActions.add(labelWrapper);
 
 		bottomContainer.add(leftActions, BorderLayout.WEST);
 		bottomContainer.add(notice, BorderLayout.CENTER);
@@ -361,7 +515,7 @@ class PresetPanel extends JPanel
 		add(bottomContainer, BorderLayout.CENTER);
 	}
 
-	private void save()
+	private void saveRename()
 	{
 		updatePresetName();
 
@@ -403,7 +557,7 @@ class PresetPanel extends JPanel
 		nameInput.setText(defaultPresetName);
 	}
 
-	private void cancel()
+	private void cancelRename()
 	{
 		nameInput.setEditable(false);
 		nameInput.setText(preset.getName());
@@ -413,8 +567,8 @@ class PresetPanel extends JPanel
 
 	private void updateNameActions(boolean saveAndCancel)
 	{
-		save.setVisible(saveAndCancel);
-		cancel.setVisible(saveAndCancel);
+		saveRename.setVisible(saveAndCancel);
+		cancelRename.setVisible(saveAndCancel);
 		rename.setVisible(!saveAndCancel);
 
 		if (saveAndCancel)
@@ -422,5 +576,106 @@ class PresetPanel extends JPanel
 			nameInput.getTextField().requestFocusInWindow();
 			nameInput.getTextField().selectAll();
 		}
+	}
+
+	private void showKeybind(boolean show)
+	{
+		labelWrapper.setVisible(!show);
+		keybindWrapper.setVisible(show);
+	}
+
+	private void editKeybind()
+	{
+		showKeybind(true);
+		keybind.requestFocusInWindow();
+		keybind.addKeyListener(new KeyAdapter()
+		{
+			@Override
+			public void keyPressed(KeyEvent e)
+			{
+				handleKeybindInput(e);
+			}
+
+		});
+	}
+
+	private void handleKeybindInput(KeyEvent e)
+	{
+		int keyCode = e.getKeyCode();
+
+		if (keyCode == KeyEvent.VK_ENTER)
+		{
+			saveKeybind();
+		}
+		else if (keyCode == KeyEvent.VK_ESCAPE)
+		{
+			cancelKeybind();
+		}
+		else if (keyCode == KeyEvent.VK_BACK_SPACE)
+		{
+			savedKeybind = e;
+			clearKeybind();
+		}
+		else
+		{
+			savedKeybind = e;
+			String keyText = KeyEvent.getKeyText(keyCode);
+			String keybindText = keyText.toUpperCase();
+
+			int modifiersEx = e.getModifiersEx();
+			if (modifiersEx != 0) // If modifier included e.g. CTRL
+			{
+				String modifiersExText = InputEvent.getModifiersExText(modifiersEx);
+				String text = (modifiersExText + "+" + keyText).toUpperCase();
+				if (!modifiersExText.equals(keyText)) // Don't include only multiplier keybindings e.g. ALT+ALT
+				{
+					keybindText = text;
+				}
+
+				keybind.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+				keybind.setToolTipText(keybindText + " (Clear with backspace)");
+			}
+			else
+			{
+				keybind.setForeground(ColorScheme.PROGRESS_ERROR_COLOR);
+				keybind.setToolTipText("Add some modifier to this keybind! This preset could possibly be accidentally enabled e.g. when typing chat messages.");
+			}
+
+			if (!keybind.getText().equals(keybindText))
+			{
+				keybind.setText(keybindText);
+			}
+		}
+	}
+
+	private void saveKeybind()
+	{
+		showKeybind(false);
+
+		// Save pressed but no changes made to preset keybind
+		if (preset.getKeybind() != null && savedKeybind == null)
+		{
+			return;
+		}
+
+		// Clear keybind if keybind was cleared with backspace and then saved
+		Keybind presetKeybind = (savedKeybind == null || savedKeybind.getKeyCode() == KeyEvent.VK_BACK_SPACE)
+			? null
+			: new Keybind(savedKeybind);
+
+		preset.setKeybind(presetKeybind);
+		plugin.updatePreset(preset);
+	}
+
+	private void cancelKeybind()
+	{
+		savedKeybind = null;
+		showKeybind(false);
+	}
+
+	private void clearKeybind()
+	{
+		keybind.setText("No keybind set");
+		keybind.setToolTipText("Save to clear keybind");
 	}
 }

@@ -28,6 +28,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.runelite.client.config.Keybind;
 
 /**
  * PluginPreset
@@ -39,5 +40,6 @@ public class PluginPreset
 {
 	private long id;
 	private String name;
+	private Keybind keybind;
 	private List<PluginConfig> pluginConfigs;
 }

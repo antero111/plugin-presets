@@ -26,10 +26,12 @@ package com.pluginpresets;
 
 import com.google.common.collect.ImmutableMap;
 import com.pluginpresets.ui.PluginPresetsPluginPanel;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,12 +40,17 @@ import javax.swing.SwingUtilities;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import net.runelite.api.GameState;
+import net.runelite.api.events.GameStateChanged;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.config.Keybind;
 import net.runelite.client.config.RuneLiteConfig;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.ExternalPluginsChanged;
+import net.runelite.client.input.KeyListener;
+import net.runelite.client.input.KeyManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.PluginManager;
@@ -68,9 +75,12 @@ public class PluginPresetsPlugin extends Plugin
 	private static final String ICON_FILE = "panel_icon.png";
 
 	@Getter
+	private final HashMap<Keybind, PluginPreset> keybinds = new HashMap<>();
+
+	@Getter
 	@Setter
 	private List<PluginPreset> pluginPresets = new ArrayList<>();
-
+	
 	@Inject
 	private ClientToolbar clientToolbar;
 
@@ -83,6 +93,9 @@ public class PluginPresetsPlugin extends Plugin
 	@Inject
 	private ConfigManager configManager;
 
+	@Inject
+	private KeyManager keyManager;
+
 	private NavigationButton navigationButton;
 
 	private PluginPresetsPluginPanel pluginPanel;
@@ -92,11 +105,37 @@ public class PluginPresetsPlugin extends Plugin
 	@Getter
 	private PluginPresetsPresetManager presetManager;
 
+	private final KeyListener keybindListener = new KeyListener()
+	{
+		@Override
+		public void keyTyped(KeyEvent e)
+		{
+		}
+
+		@Override
+		public void keyPressed(KeyEvent e)
+		{
+			PluginPreset preset = keybinds.get(new Keybind(e));
+			if (preset != null)
+			{
+				loadPreset(preset);
+			}
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e)
+		{
+		}
+	};
+
 	private PluginPresetsStorage presetStorage;
 
 	@Getter
 	@Setter
 	private PluginPresetsPresetEditor presetEditor = null;
+
+	@Getter
+	private Boolean loggedIn = false; // Used to inform that keybinds don't work in login screen
 
 	@Override
 	protected void startUp()
@@ -126,6 +165,8 @@ public class PluginPresetsPlugin extends Plugin
 				.build())
 			.build();
 		clientToolbar.addNavigation(navigationButton);
+
+		keyManager.registerKeyListener(keybindListener);
 	}
 
 	@Override
@@ -133,10 +174,12 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		pluginPresets.clear();
 		clientToolbar.removeNavigation(navigationButton);
+		keyManager.unregisterKeyListener(keybindListener);
 
 		pluginPanel = null;
 		sharingManager = null;
 		presetManager = null;
+		presetStorage = null;
 		navigationButton = null;
 	}
 
@@ -158,6 +201,13 @@ public class PluginPresetsPlugin extends Plugin
 	private boolean validConfigChange(ConfigChanged configChanged)
 	{
 		return !configChanged.getKey().equals("pluginpresetsplugin");
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
+	{
+		loggedIn = event.getGameState() == GameState.LOGGED_IN;
+		SwingUtilities.invokeLater(this::rebuildPluginUi);
 	}
 
 	public List<PluginPreset> getMatchingPresets()
@@ -205,6 +255,29 @@ public class PluginPresetsPlugin extends Plugin
 	public void loadPresets()
 	{
 		pluginPresets.addAll(presetStorage.loadPresets());
+		cacheKeybins();
+	}
+
+	private void cacheKeybins()
+	{
+		keybinds.clear();
+		pluginPresets.forEach(preset ->
+		{
+			Keybind keybind = preset.getKeybind();
+			if (keybind != null && keybinds.get(keybind) == null)
+			{
+				keybinds.put(keybind, preset);
+			}
+		});
+	}
+
+	public void updatePreset(PluginPreset preset)
+	{
+		pluginPresets.removeIf(pluginPreset -> pluginPreset.getId() == preset.getId());
+		pluginPresets.add(preset);
+
+		savePresets();
+		refreshPresets();
 	}
 
 	public void importPresetFromClipboard()

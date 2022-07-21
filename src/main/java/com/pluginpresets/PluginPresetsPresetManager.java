@@ -204,6 +204,7 @@ public class PluginPresetsPresetManager
 		return new PluginPreset(
 			Instant.now().toEpochMilli(),
 			createDefaultPlaceholderNameIfNoNameSet(presetName),
+			null,
 			empty ? new ArrayList<>() : getCurrentConfigurations());
 	}
 
