@@ -241,6 +241,21 @@ public class PluginPresetsPresetEditor
 		updateEditedPreset();
 	}
 
+	public void toggleAll(boolean enable)
+	{
+		if (enable)
+		{
+			List<PluginConfig> currentConfigurations = getCurrentConfigurations(plugin);
+			editedPreset.setPluginConfigs(currentConfigurations);
+		}
+		else
+		{
+			List<PluginConfig> pluginConfigs = editedPreset.getPluginConfigs();
+			pluginConfigs.clear();
+		}
+		updateEditedPreset();
+	}
+
 	private void updateEditedPreset()
 	{
 		plugin.getPluginPresets().forEach(preset ->

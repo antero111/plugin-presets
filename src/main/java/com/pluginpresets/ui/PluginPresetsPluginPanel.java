@@ -341,7 +341,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		menu.setBorder(new EmptyBorder(0, 0, 0, 10));
 		menu.addMouseListener(new MouseAdapter()
 		{
-			private final JPopupMenu popup = getMenuPopup();
+			private final JPopupMenu popup = getEllipsisMenuPopup();
 
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
@@ -557,18 +557,22 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		currentConfigurations.sort(Comparator.comparing(PluginConfig::getConfigName));
 	}
 
-	private JPopupMenu getMenuPopup()
+	private JPopupMenu getEllipsisMenuPopup()
 	{
-		JMenuItem importOption = new JMenuItem();
-		importOption.setText("Toggle all");
+		JMenuItem enableAllOption = new JMenuItem();
+		enableAllOption.setText("Enable all configurations");
+		enableAllOption.setToolTipText("Add all of your current settings to this preset");
+		enableAllOption.addActionListener(e -> plugin.getPresetEditor().toggleAll(true));
 
-		JMenuItem createEmptyOption = new JMenuItem();
-		createEmptyOption.setText("Some option");
+		JMenuItem disableAllOption = new JMenuItem();
+		disableAllOption.setText("Disable all configurations");
+		disableAllOption.setToolTipText("Remove all of your settings from this preset");
+		disableAllOption.addActionListener(e -> plugin.getPresetEditor().toggleAll(false));
 
 		JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
-		popupMenu.add(importOption);
-		popupMenu.add(createEmptyOption);
+		popupMenu.add(enableAllOption);
+		popupMenu.add(disableAllOption);
 		return popupMenu;
 	}
 
