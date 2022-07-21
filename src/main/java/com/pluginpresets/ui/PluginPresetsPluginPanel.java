@@ -217,7 +217,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 				}
 				else
 				{
-					promptPresetCreation(false);
+					promptPresetCreation(true);
 				}
 			}
 
@@ -579,8 +579,8 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		importOption.addActionListener(e -> plugin.importPresetFromClipboard());
 
 		JMenuItem createEmptyOption = new JMenuItem();
-		createEmptyOption.setText("Create new empty preset");
-		createEmptyOption.addActionListener(e -> promptPresetCreation(true));
+		createEmptyOption.setText("Create preset with all settigns");
+		createEmptyOption.addActionListener(e -> promptPresetCreation(false));
 
 		JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
