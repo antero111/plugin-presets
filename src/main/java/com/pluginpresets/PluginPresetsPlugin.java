@@ -61,7 +61,7 @@ import net.runelite.client.util.LinkBrowser;
 
 @PluginDescriptor(
 	name = "Plugin Presets",
-	description = "Create presets of your plugin configurations.",
+	description = "Create presets from your plugin configurations.",
 	tags = {"preset", "setups", "plugins"}
 )
 public class PluginPresetsPlugin extends Plugin
@@ -110,6 +110,7 @@ public class PluginPresetsPlugin extends Plugin
 		@Override
 		public void keyTyped(KeyEvent e)
 		{
+			// Ignore
 		}
 
 		@Override
@@ -125,6 +126,7 @@ public class PluginPresetsPlugin extends Plugin
 		@Override
 		public void keyReleased(KeyEvent e)
 		{
+			// Ignore
 		}
 	};
 
@@ -293,7 +295,6 @@ public class PluginPresetsPlugin extends Plugin
 
 		savePresets();
 		refreshPresets();
-		rebuildPluginUi();
 	}
 
 	public void exportPresetToClipboard(final PluginPreset preset)

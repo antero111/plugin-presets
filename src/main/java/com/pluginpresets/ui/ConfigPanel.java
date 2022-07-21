@@ -24,7 +24,7 @@
  */
 package com.pluginpresets.ui;
 
-import com.pluginpresets.InnerPluginConfig;
+import com.pluginpresets.PluginSetting;
 import com.pluginpresets.PluginConfig;
 import com.pluginpresets.PluginPresetsPlugin;
 import java.awt.BorderLayout;
@@ -188,9 +188,9 @@ public class ConfigPanel extends JPanel
 					public void mousePressed(MouseEvent mouseEvent)
 					{
 						plugin.getPresetEditor().removeConfigurationFromEdited(presetConfig);
-						List<String> collect = presetConfig.getSettings().stream().map(InnerPluginConfig::getKey).collect(Collectors.toList());
-						List<InnerPluginConfig> collect2 = currentConfig.getSettings().stream().filter(s -> collect.contains(s.getKey())).collect(Collectors.toList());
-						currentConfig.setSettings((ArrayList<InnerPluginConfig>) collect2);
+						List<String> collect = presetConfig.getSettings().stream().map(PluginSetting::getKey).collect(Collectors.toList());
+						List<PluginSetting> collect2 = currentConfig.getSettings().stream().filter(s -> collect.contains(s.getKey())).collect(Collectors.toList());
+						currentConfig.setSettings((ArrayList<PluginSetting>) collect2);
 
 						if (presetConfig.getEnabled() == null)
 						{
@@ -295,10 +295,10 @@ public class ConfigPanel extends JPanel
 		constraints.gridy++;
 
 		// Some plugins don't have settings like Ammo, Account, Emojis etc.
-		ArrayList<InnerPluginConfig> presetSettings = (presetConfig != null) ? presetConfig.getSettings() : null;
+		ArrayList<PluginSetting> presetSettings = (presetConfig != null) ? presetConfig.getSettings() : null;
 		currentConfig.getSettings().forEach(currentSetting ->
 		{
-			InnerPluginConfig presetSetting = getPresetSettings(presetSettings, currentSetting);
+			PluginSetting presetSetting = getPresetSettings(presetSettings, currentSetting);
 			settings.add(new ConfigRow(currentConfig, currentSetting, presetSetting, plugin), constraints);
 			constraints.gridy++;
 		});
@@ -377,12 +377,12 @@ public class ConfigPanel extends JPanel
 		return enabledRow;
 	}
 
-	private InnerPluginConfig getPresetSettings(List<InnerPluginConfig> presetSettings, final InnerPluginConfig currentSetting)
+	private PluginSetting getPresetSettings(List<PluginSetting> presetSettings, final PluginSetting currentSetting)
 	{
-		InnerPluginConfig presetSetting = null;
+		PluginSetting presetSetting = null;
 		if (presetSettings != null)
 		{
-			for (InnerPluginConfig setting : presetSettings)
+			for (PluginSetting setting : presetSettings)
 			{
 				if (setting.getName().equals(currentSetting.getName()))
 				{
@@ -430,12 +430,12 @@ public class ConfigPanel extends JPanel
 			return false;
 		}
 
-		ArrayList<InnerPluginConfig> currentSettings = currentConfig.getSettings();
+		ArrayList<PluginSetting> currentSettings = currentConfig.getSettings();
 		// Compare plugin settings from preset to current config settings
-		for (InnerPluginConfig presetConfigSetting : presetConfig.getSettings())
+		for (PluginSetting presetConfigSetting : presetConfig.getSettings())
 		{
 			// Get current config setting for compared preset setting
-			InnerPluginConfig currentConfigSetting = currentSettings.stream().filter(c -> c.getKey().equals(presetConfigSetting.getKey())).findFirst().orElse(null);
+			PluginSetting currentConfigSetting = currentSettings.stream().filter(c -> c.getKey().equals(presetConfigSetting.getKey())).findFirst().orElse(null);
 
 			if (currentConfigSetting != null &&
 				presetConfigSetting.getValue() != null &&

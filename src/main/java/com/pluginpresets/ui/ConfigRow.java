@@ -24,7 +24,7 @@
  */
 package com.pluginpresets.ui;
 
-import com.pluginpresets.InnerPluginConfig;
+import com.pluginpresets.PluginSetting;
 import com.pluginpresets.PluginConfig;
 import com.pluginpresets.PluginPresetsPlugin;
 import java.awt.BorderLayout;
@@ -58,12 +58,12 @@ public class ConfigRow extends JPanel
 		CHECKBOX_ICON = new ImageIcon(checkboxImg);
 	}
 
-	private final InnerPluginConfig currentSetting;
-	private final InnerPluginConfig presetSetting;
+	private final PluginSetting currentSetting;
+	private final PluginSetting presetSetting;
 	private final JLabel checkboxLabel = new JLabel();
 	private final boolean presetHasConfigurations;
 
-	public ConfigRow(PluginConfig currentConfig, InnerPluginConfig currentSetting, InnerPluginConfig presetSetting, PluginPresetsPlugin plugin)
+	public ConfigRow(PluginConfig currentConfig, PluginSetting currentSetting, PluginSetting presetSetting, PluginPresetsPlugin plugin)
 	{
 		this.currentSetting = currentSetting;
 		this.presetSetting = presetSetting;

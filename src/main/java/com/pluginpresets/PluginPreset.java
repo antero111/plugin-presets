@@ -31,7 +31,12 @@ import lombok.NoArgsConstructor;
 import net.runelite.client.config.Keybind;
 
 /**
- * PluginPreset
+ * Class depicting single PluginPreset file. 
+ *
+ * @param id            Time of creation used as id
+ * @param name          Name of the preset
+ * @param keybind       Used to enable the preset without the sidepanel. (Optional)
+ * @param pluginConfigs List of saved plugin configurations.
  */
 @Data
 @NoArgsConstructor

@@ -29,14 +29,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * InnerPluginConfig
+ * Class for storing single plugin setting
+ *
+ * @param name  Name of the setting
+ * @param key   Key used internally by configManager
+ * @param value Value of the setting
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InnerPluginConfig
+public class PluginSetting
 {
-	private String name; // Show Clickboxes
-	private String key; // showClickboxes
-	private String value; // False
+	private String name;
+	private String key;
+	private String value;
 }

@@ -83,7 +83,7 @@ public class PluginPresetsPresetEditor
 		}
 	}
 
-	public void removeSettingFromEdited(PluginConfig currentConfig, InnerPluginConfig setting)
+	public void removeSettingFromEdited(PluginConfig currentConfig, PluginSetting setting)
 	{
 		editedPreset.getPluginConfigs().forEach(configurations ->
 		{
@@ -99,12 +99,12 @@ public class PluginPresetsPresetEditor
 		updateEditedPreset();
 	}
 
-	public void addSettingToEdited(PluginConfig currentConfig, InnerPluginConfig setting)
+	public void addSettingToEdited(PluginConfig currentConfig, PluginSetting setting)
 	{
 		if (editedPreset.getPluginConfigs().stream()
 			.noneMatch(c -> c.getConfigName().equals(currentConfig.getConfigName())))
 		{
-			ArrayList<InnerPluginConfig> settings = new ArrayList<>();
+			ArrayList<PluginSetting> settings = new ArrayList<>();
 			settings.add(setting);
 			currentConfig.setSettings(settings);
 			currentConfig.setEnabled(null);
@@ -128,7 +128,7 @@ public class PluginPresetsPresetEditor
 		if (editedPreset.getPluginConfigs().stream()
 			.noneMatch(c -> c.getConfigName().equals(currentConfig.getConfigName())))
 		{
-			ArrayList<InnerPluginConfig> settings = new ArrayList<>();
+			ArrayList<PluginSetting> settings = new ArrayList<>();
 
 			currentConfig.setEnabled(currentConfig.getEnabled());
 			currentConfig.setSettings(settings);
@@ -218,17 +218,17 @@ public class PluginPresetsPresetEditor
 			List<String> keys = presetConfig
 				.getSettings()
 				.stream()
-				.map(InnerPluginConfig::getKey)
+				.map(PluginSetting::getKey)
 				.collect(Collectors.toList());
 
 			assert currentConfig != null;
-			List<InnerPluginConfig> updatedSettings = currentConfig
+			List<PluginSetting> updatedSettings = currentConfig
 				.getSettings()
 				.stream()
 				.filter(s -> keys.contains(s.getKey()))
 				.collect(Collectors.toList());
 
-			currentConfig.setSettings((ArrayList<InnerPluginConfig>) updatedSettings);
+			currentConfig.setSettings((ArrayList<PluginSetting>) updatedSettings);
 
 			if (presetConfig.getEnabled() == null)
 			{

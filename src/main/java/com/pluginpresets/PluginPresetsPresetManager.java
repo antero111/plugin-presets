@@ -67,7 +67,6 @@ public class PluginPresetsPresetManager
 	 */
 	public List<PluginPreset> getMatchingPresets()
 	{
-
 		HashMap<String, HashMap<String, String>> currentConfigurations = getCurrentConfigurationsMap();
 
 		ArrayList<PluginPreset> presets = new ArrayList<>();
@@ -105,7 +104,7 @@ public class PluginPresetsPresetManager
 
 			if (!currentConfigurations.get(config.getConfigName()).isEmpty())
 			{
-				for (InnerPluginConfig setting : config.getSettings())
+				for (PluginSetting setting : config.getSettings())
 				{
 					if (setting.getValue() != null && !currentConfigurations.get(config.getConfigName()).get(setting.getKey()).equals(setting.getValue()))
 					{
@@ -122,7 +121,8 @@ public class PluginPresetsPresetManager
 	{
 		HashMap<String, HashMap<String, String>> configurations = new HashMap<>();
 
-		getCurrentConfigurations().forEach(configuration -> {
+		getCurrentConfigurations().forEach(configuration ->
+		{
 			HashMap<String, String> settings = new HashMap<>();
 
 			configuration.getSettings().forEach(setting -> settings.put(setting.getKey(), setting.getValue()));
@@ -143,10 +143,12 @@ public class PluginPresetsPresetManager
 	{
 		Collection<Plugin> plugins = pluginManager.getPlugins();
 
-		preset.getPluginConfigs().forEach(pluginConfig -> {
-			pluginConfig.getSettings().forEach(setting -> {
-				// Some values e.g. hidden timers like tzhaar or color inputs with "Pick a
-				// color" option appears as null
+		preset.getPluginConfigs().forEach(pluginConfig ->
+		{
+			pluginConfig.getSettings().forEach(setting ->
+			{
+				// Some values e.g. hidden timers like tzhaar
+				// or color inputs with "Pick a color" option appears as null
 				if (setting.getValue() != null)
 				{
 					configManager.setConfiguration(pluginConfig.getConfigName(), setting.getKey(), setting.getValue());
@@ -194,8 +196,7 @@ public class PluginPresetsPresetManager
 		}
 		catch (PluginInstantiationException ex)
 		{
-			log.warn("Error when {} plugin {}", enabled ? "starting" : "stopping", plugin.getClass().getSimpleName(),
-				ex);
+			log.warn("Error when {} plugin {}", enabled ? "starting" : "stopping", plugin.getClass().getSimpleName(), ex);
 		}
 	}
 
@@ -212,7 +213,8 @@ public class PluginPresetsPresetManager
 	{
 		ArrayList<PluginConfig> pluginConfigs = new ArrayList<>();
 
-		pluginManager.getPlugins().forEach(p -> {
+		pluginManager.getPlugins().forEach(p ->
+		{
 			String name = p.getName();
 			if (!PluginPresetsPlugin.IGNORED_PLUGINS.contains(name))
 			{
@@ -220,7 +222,7 @@ public class PluginPresetsPresetManager
 
 				boolean enabled = pluginManager.isPluginEnabled(p);
 
-				ArrayList<InnerPluginConfig> innerPluginConfigs = new ArrayList<>();
+				ArrayList<PluginSetting> pluginSettings = new ArrayList<>();
 				String configName = null;
 
 				if (pluginConfigProxy == null)
@@ -233,15 +235,16 @@ public class PluginPresetsPresetManager
 					ConfigDescriptor configDescriptor = configManager.getConfigDescriptor(pluginConfigProxy);
 					configName = configDescriptor.getGroup().value();
 
-					configDescriptor.getItems().forEach(i -> {
+					configDescriptor.getItems().forEach(i ->
+					{
 						if (!PluginPresetsPlugin.IGNORED_KEYS.contains(i.key()))
 						{
 							// Don't save 'hidden' plugin configs to presets 
 							if (!i.name().equals(""))
 							{
-								InnerPluginConfig innerPluginConfig = new InnerPluginConfig(i.name(), i.key(),
+								PluginSetting pluginSetting = new PluginSetting(i.name(), i.key(),
 									configManager.getConfiguration(configDescriptor.getGroup().value(), i.key()));
-								innerPluginConfigs.add(innerPluginConfig);
+								pluginSettings.add(pluginSetting);
 							}
 						}
 
@@ -249,22 +252,24 @@ public class PluginPresetsPresetManager
 
 				}
 
-				PluginConfig pluginConfig = new PluginConfig(name, configName, enabled, innerPluginConfigs);
+				PluginConfig pluginConfig = new PluginConfig(name, configName, enabled, pluginSettings);
 
 				pluginConfigs.add(pluginConfig);
 			}
 		});
 
 		// Add RuneLite settings
-		ArrayList<InnerPluginConfig> runeliteInnerPluginConfigs = new ArrayList<>();
-		PluginConfig runeliteConfig = new PluginConfig("RuneLite", RuneLiteConfig.GROUP_NAME, true,
-			runeliteInnerPluginConfigs);
-		configManager.getConfigDescriptor(runeLiteConfig).getItems().forEach(i -> {
+		ArrayList<PluginSetting> runelitePluginSettings = new ArrayList<>();
+
+		PluginConfig runeliteConfig = new PluginConfig("RuneLite", RuneLiteConfig.GROUP_NAME, true, runelitePluginSettings);
+
+		configManager.getConfigDescriptor(runeLiteConfig).getItems().forEach(i ->
+		{
 			if (!PluginPresetsPlugin.IGNORED_KEYS.contains(i.key()))
 			{
-				InnerPluginConfig innerPluginConfig = new InnerPluginConfig(i.name(), i.key(),
+				PluginSetting pluginSetting = new PluginSetting(i.name(), i.key(),
 					configManager.getConfiguration(RuneLiteConfig.GROUP_NAME, i.key()));
-				runeliteInnerPluginConfigs.add(innerPluginConfig);
+				runelitePluginSettings.add(pluginSetting);
 			}
 		});
 

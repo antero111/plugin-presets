@@ -30,15 +30,21 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * PluginConfig
+ * Class for a single RuneLite plugin.
+ *
+ * @param name       Name of the plugin configuration
+ * @param configName RuneLite config name
+ * @param enabled    Configuration sidepanel switch value on/off
+ * @param settings   List of saved plugins settings.
+ *                   Some plugins don't have any configurable settings e.g. Ammo Plugin, in those cases this will be an empty array.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class PluginConfig
 {
-	private String name; // "Agility"
-	private String configName; // "agilityPlugin"
-	private Boolean enabled; // "Off"
-	private ArrayList<InnerPluginConfig> settings; // List of settings
+	private String name;
+	private String configName;
+	private Boolean enabled;
+	private ArrayList<PluginSetting> settings;
 }

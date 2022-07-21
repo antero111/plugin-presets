@@ -24,7 +24,7 @@
  */
 package com.pluginpresets.ui;
 
-import com.pluginpresets.InnerPluginConfig;
+import com.pluginpresets.PluginSetting;
 import com.pluginpresets.PluginConfig;
 import com.pluginpresets.PluginPreset;
 import com.pluginpresets.PluginPresetsPlugin;
@@ -502,12 +502,12 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			return false;
 		}
 
-		ArrayList<InnerPluginConfig> currentSettings = currentConfig.getSettings();
+		ArrayList<PluginSetting> currentSettings = currentConfig.getSettings();
 		// Compare plugin settings from preset to current config settings
-		for (InnerPluginConfig presetConfigSetting : presetConfig.getSettings())
+		for (PluginSetting presetConfigSetting : presetConfig.getSettings())
 		{
 			// Get current config setting for compared preset setting
-			InnerPluginConfig currentConfigSetting = currentSettings.stream()
+			PluginSetting currentConfigSetting = currentSettings.stream()
 				.filter(c -> c.getKey().equals(presetConfigSetting.getKey()))
 				.findFirst()
 				.orElse(null);
