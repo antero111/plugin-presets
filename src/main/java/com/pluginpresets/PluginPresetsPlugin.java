@@ -60,7 +60,7 @@ import net.runelite.client.util.LinkBrowser;
 
 @PluginDescriptor(
 	name = "Plugin Presets",
-	description = "Create presets from your plugin configurations.",
+	description = "Create presets of your plugin configurations.",
 	tags = {"preset", "setups", "plugins"}
 )
 public class PluginPresetsPlugin extends Plugin
@@ -79,7 +79,7 @@ public class PluginPresetsPlugin extends Plugin
 	@Getter
 	@Setter
 	private List<PluginPreset> pluginPresets = new ArrayList<>();
-	
+
 	@Inject
 	private ClientToolbar clientToolbar;
 
@@ -146,10 +146,10 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPanel = new PluginPresetsPluginPanel(this);
 		sharingManager = new PluginPresetsSharingManager(this, pluginPanel);
 		presetManager = new PluginPresetsPresetManager(this, pluginManager, configManager, runeLiteConfig);
-		presetStorage = new PluginPresetsStorage();
+		presetStorage = new PluginPresetsStorage(presetManager);
 
 		loadPresets();
-
+		savePresets();
 		rebuildPluginUi();
 
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), ICON_FILE);
@@ -286,7 +286,7 @@ public class PluginPresetsPlugin extends Plugin
 		PluginPreset newPreset = sharingManager.importPresetFromClipboard();
 		if (newPreset != null)
 		{
-			pluginPresets.add(newPreset);	
+			pluginPresets.add(newPreset);
 			savePresets();
 			refreshPresets();
 		}

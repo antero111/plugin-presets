@@ -44,9 +44,31 @@ public class PluginPresetsStorage
 {
 	private static final File PRESETS_DIR = PluginPresetsPlugin.PRESETS_DIR;
 
-	private List<String> failedFileNames = new ArrayList<>();
+	private final List<String> failedFileNames = new ArrayList<>();
 
-	private Gson gson = new Gson();
+	private final Gson gson = new Gson();
+
+	private final PluginPresetsPresetManager presetManager;
+
+	public PluginPresetsStorage(PluginPresetsPresetManager presetManager)
+	{
+		this.presetManager = presetManager;
+	}
+
+	private static File createNewPresetFileWithCustomSuffix(final PluginPreset pluginPreset, final int fileNumber)
+	{
+		return new File(PRESETS_DIR, String.format("%s (%d).json", pluginPreset.getName(), fileNumber));
+	}
+
+	public static void createPresetFolder()
+	{
+		final boolean presetFolderWasCreated = PRESETS_DIR.mkdirs();
+
+		if (presetFolderWasCreated)
+		{
+			log.info(String.format("Preset folder created at %s", PRESETS_DIR.getAbsolutePath()));
+		}
+	}
 
 	public void savePresets(final List<PluginPreset> pluginPresets)
 	{
@@ -58,16 +80,21 @@ public class PluginPresetsStorage
 	{
 		for (File file : Objects.requireNonNull(PRESETS_DIR.listFiles()))
 		{
-			// Dont delete invalid files,
-			// those could be e.g v1 style presets or some syntax failed presets
+			// Don't delete invalid files,
+			// those could be e.g. v1 style presets or some syntax failed presets
 			if (!failedFileNames.contains(file.getName()))
 			{
-				final boolean fileWasDeleted = file.delete();
-				if (!fileWasDeleted)
-				{
-					log.warn(String.format("Could not delete %s", file.getName()));
-				}
+				deleteFile(file);
 			}
+		}
+	}
+
+	private void deleteFile(File file)
+	{
+		final boolean fileWasDeleted = file.delete();
+		if (!fileWasDeleted)
+		{
+			log.warn(String.format("Could not delete %s", file.getName()));
 		}
 	}
 
@@ -98,11 +125,6 @@ public class PluginPresetsStorage
 			fileNumber++;
 		}
 		return presetJsonFile;
-	}
-
-	private static File createNewPresetFileWithCustomSuffix(final PluginPreset pluginPreset, final int fileNumber)
-	{
-		return new File(PRESETS_DIR, String.format("%s (%d).json", pluginPreset.getName(), fileNumber));
 	}
 
 	private void writePresetDataToJsonFile(final PluginPreset pluginPreset, final File presetJsonFile) throws IOException
@@ -147,7 +169,7 @@ public class PluginPresetsStorage
 	private PluginPreset parsePluginPresetFrom(final File file) throws IOException
 	{
 		PluginPreset pluginPreset;
-		
+
 		try (Reader reader = new FileReader(file))
 		{
 			pluginPreset = gson.fromJson(reader, new TypeToken<PluginPreset>()
@@ -162,20 +184,34 @@ public class PluginPresetsStorage
 
 		if (pluginPreset.getName() == null || pluginPreset.getPluginConfigs() == null)
 		{
-			log.warn(String.format("Plugin Preset data is malformed in file and could not be loaded %s, %s", file.getAbsolutePath(), pluginPreset));
+			// Something wrong with the parsed preset
+			// Check if file contains old styled preset
+			LegacyPluginPreset legacyPluginPreset = null;
+
+			try (Reader reader = new FileReader(file))
+			{
+				legacyPluginPreset = gson.fromJson(reader, new TypeToken<LegacyPluginPreset>()
+				{
+				}.getType());
+			}
+			catch (JsonSyntaxException e)
+			{
+				// Ignore
+			}
+
+			if (legacyPluginPreset != null)
+			{
+				log.info(String.format("Converting legacy styled preset to new plugin preset format, file: %s, preset: %s", file.getAbsolutePath(), legacyPluginPreset));
+				pluginPreset = presetManager.convertLegacyPreset(legacyPluginPreset);
+				return pluginPreset;
+			}
+			else
+			{
+				log.warn(String.format("Plugin Preset data is malformed in file and could not be loaded %s, %s", file.getAbsolutePath(), pluginPreset));
+			}
 			return null;
 		}
 
 		return pluginPreset;
-	}
-
-	public static void createPresetFolder()
-	{
-		final boolean presetFolderWasCreated = PRESETS_DIR.mkdirs();
-
-		if (presetFolderWasCreated)
-		{
-			log.info(String.format("Preset folder created at %s", PRESETS_DIR.getAbsolutePath()));
-		}
 	}
 }
