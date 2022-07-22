@@ -642,7 +642,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		importOption.addActionListener(e -> plugin.importPresetFromClipboard());
 
 		JMenuItem createEmptyOption = new JMenuItem();
-		createEmptyOption.setText("Create preset with all settings");
+		createEmptyOption.setText("Create new preset with all settings");
 		createEmptyOption.addActionListener(e -> promptPresetCreation(false));
 
 		JPopupMenu popupMenu = new JPopupMenu();

@@ -154,7 +154,7 @@ public class ConfigPanel extends JPanel
 		if (presetHasConfigurations)
 		{
 			checkbox.setSelected(true);
-			checkbox.setToolTipText("Remove all " + currentConfig.getName() + " configurations from the preset.");
+			checkbox.setToolTipText("Remove " + currentConfig.getName() + " configurations from the preset.");
 			checkbox.addMouseListener(new MouseAdapter()
 			{
 				@Override
@@ -181,7 +181,7 @@ public class ConfigPanel extends JPanel
 				statusLabel.setToolTipText("Your configurations for " + currentConfig.getName() + " do not match the preset.");
 
 				updateLabel.setIcon(UPDATE_ICON);
-				updateLabel.setToolTipText("Replace the presets configuration for " + currentConfig.getName() + " with your current configuration.");
+				updateLabel.setToolTipText("Replace presets configuration for " + currentConfig.getName() + " with your current configuration.");
 				updateLabel.addMouseListener(new MouseAdapter()
 				{
 					@Override
@@ -466,14 +466,14 @@ public class ConfigPanel extends JPanel
 		if (configsMatch)
 		{
 			JMenuItem removeOption = new JMenuItem();
-			removeOption.setText("Remove configurations for " + currentConfig.getName() + " from all presets");
+			removeOption.setText("Remove " + currentConfig.getName() + " from all presets");
 			removeOption.addActionListener(e -> plugin.getPresetEditor().removeConfigurationFromPresets(currentConfig));
 			popupMenu.add(removeOption);
 		}
 		else
 		{
 			JMenuItem addOption = new JMenuItem();
-			addOption.setText("Add configurations from " + currentConfig.getName() + " to all presets");
+			addOption.setText("Add " + currentConfig.getName() + " to all presets");
 			addOption.addActionListener(e -> plugin.getPresetEditor().addConfigurationToPresets(currentConfig));
 			popupMenu.add(addOption);
 		}

@@ -85,7 +85,7 @@ public class ConfigRow extends JPanel
 		if (presetHasConfigurations)
 		{
 			checkboxLabel.setIcon(CHECKBOX_CHECKED_ICON);
-			checkboxLabel.setToolTipText("Remove setting from the preset.");
+			checkboxLabel.setToolTipText("Remove " + currentSetting.getName() +" from preset.");
 			checkboxLabel.addMouseListener(new MouseAdapter()
 			{
 				@Override
@@ -120,7 +120,7 @@ public class ConfigRow extends JPanel
 		{
 			title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
 			checkboxLabel.setIcon(CHECKBOX_ICON);
-			checkboxLabel.setToolTipText("Add setting to the preset.");
+			checkboxLabel.setToolTipText("Add " +currentSetting.getName() + " to preset.");
 			checkboxLabel.addMouseListener(new MouseAdapter()
 			{
 				@Override
