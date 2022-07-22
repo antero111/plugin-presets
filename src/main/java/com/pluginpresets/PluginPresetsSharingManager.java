@@ -34,15 +34,18 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
+import java.time.Instant;
 
 public class PluginPresetsSharingManager
 {
+	private final PluginPresetsPlugin plugin;
 	private final PluginPresetsPluginPanel pluginPanel;
 	
 	private Gson gson = new Gson();
 
-	public PluginPresetsSharingManager(final PluginPresetsPluginPanel pluginPanel)
+	public PluginPresetsSharingManager(PluginPresetsPlugin plugin, final PluginPresetsPluginPanel pluginPanel)
 	{
+		this.plugin = plugin;
 		this.pluginPanel = pluginPanel;
 	}
 
@@ -93,13 +96,44 @@ public class PluginPresetsSharingManager
 			return null;
 		}
 
-		if (newPreset.getName() == null || newPreset.getPluginConfigs() == null)
+		if (newPreset == null || newPreset.getName() == null || newPreset.getPluginConfigs() == null)
 		{
 			pluginPanel.renderNotification("You do not have any valid presets in your clipboard.");
 			return null;
 		}
 
+		newPreset.setId(Instant.now().toEpochMilli());
+		newPreset.setName(createNameWithSuffixIfNeeded(newPreset.getName()));
+
 		return newPreset;
+	}
+
+	private String createNameWithSuffixIfNeeded(String name)
+	{
+		int duplicates = 0;
+		for (PluginPreset preset : plugin.getPluginPresets()) {
+			if (preset.getName().contains(name))
+			{
+				duplicates++;
+			}
+		}
+
+		if (duplicates > 0)
+		{
+			boolean endWithSuffix = name.charAt((name.length() - 2)) == '(' && name.endsWith(")"); // cba with regex
+			if (endWithSuffix)
+			{
+				return String.format("%s (%d)", name.substring(0, name.length() - 3), duplicates);
+			}
+			else
+			{
+				return String.format("%s (%d)", name, duplicates);
+			}
+		}
+		else
+		{
+			return name;
+		}
 	}
 
 	public void exportPresetToClipboard(final PluginPreset preset)

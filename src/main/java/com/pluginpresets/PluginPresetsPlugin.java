@@ -29,7 +29,6 @@ import com.pluginpresets.ui.PluginPresetsPluginPanel;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -145,7 +144,7 @@ public class PluginPresetsPlugin extends Plugin
 		PluginPresetsStorage.createPresetFolder();
 
 		pluginPanel = new PluginPresetsPluginPanel(this);
-		sharingManager = new PluginPresetsSharingManager(pluginPanel);
+		sharingManager = new PluginPresetsSharingManager(this, pluginPanel);
 		presetManager = new PluginPresetsPresetManager(this, pluginManager, configManager, runeLiteConfig);
 		presetStorage = new PluginPresetsStorage();
 
@@ -285,16 +284,13 @@ public class PluginPresetsPlugin extends Plugin
 	public void importPresetFromClipboard()
 	{
 		PluginPreset newPreset = sharingManager.importPresetFromClipboard();
-		if (newPreset == null)
+		if (newPreset != null)
 		{
-			return;
+			pluginPresets.add(newPreset);	
+			savePresets();
+			refreshPresets();
 		}
 
-		newPreset.setId(Instant.now().toEpochMilli());
-		pluginPresets.add(newPreset);
-
-		savePresets();
-		refreshPresets();
 	}
 
 	public void exportPresetToClipboard(final PluginPreset preset)
