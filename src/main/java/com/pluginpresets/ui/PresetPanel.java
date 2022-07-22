@@ -377,7 +377,7 @@ class PresetPanel extends JPanel
 			if (!plugin.getLoggedIn())
 			{
 				keybindLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR.darker());
-				keybindLabel.setToolTipText("Keybinds are disabled on login screen");
+				keybindLabel.setToolTipText(keybindText + " (Keybinds are disabled on login screen)");
 			}
 		}
 		else
