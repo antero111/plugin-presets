@@ -302,6 +302,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		updateAll.setToolTipText("Update all modified configurations with your current settings.");
 		updateAll.setText("Update all");
 		updateAll.setForeground(Color.WHITE);
+		updateAll.setVisible(false);
 		updateAll.addMouseListener(new MouseAdapter()
 		{
 			@Override
@@ -485,41 +486,39 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			}
 		}
 
-		List<String> filteredConfigurations = filterIfSearchKeyword(configurations)
+		List<String> keywordFilteredConfigNames = filterIfSearchKeyword(configurations)
 			.stream().map(PluginConfig::getName)
 			.collect(Collectors.toList());
 
-		configurations = filterConfigurations(filter, configurations, presetConfigs);
+		List<PluginConfig> filteredConfigs = filterConfigurations(filter, configurations, presetConfigs);
+		List<String> filterConfigNames = filteredConfigs.stream().map(PluginConfig::getName).collect(Collectors.toList());
 
-		if (configurations.isEmpty() || filteredConfigurations.isEmpty())
+		boolean modified = false;
+
+		if (filteredConfigs.isEmpty() || keywordFilteredConfigNames.isEmpty())
 		{
 			noContent.setContent(null, "There is nothing to be shown");
-
 			contentView.add(noContent);
 			constraints.gridy++;
 		}
-		else
+
+		for (final PluginConfig currentConfig : configurations)
 		{
-			boolean modified = false;
+			PluginConfig presetConfig = getPresetConfig(presetConfigs, currentConfig);
 
-			for (final PluginConfig currentConfig : configurations)
+			if (presetConfig != null && !configsMatch(presetConfig, currentConfig))
 			{
-				PluginConfig presetConfig = getPresetConfig(presetConfigs, currentConfig);
-
-				if (presetConfig != null && !configsMatch(presetConfig, currentConfig))
-				{
-					modified = true;
-				}
-
-				if (filteredConfigurations.contains(currentConfig.getName()))
-				{
-					contentView.add(new ConfigPanel(currentConfig, presetConfig, plugin, openSettings), constraints);
-					constraints.gridy++;
-				}
+				modified = true;
 			}
 
-			updateAll.setVisible(modified);
+			if (keywordFilteredConfigNames.contains(currentConfig.getName()) && filterConfigNames.contains(currentConfig.getName()))
+			{
+				contentView.add(new ConfigPanel(currentConfig, presetConfig, plugin, openSettings), constraints);
+				constraints.gridy++;
+			}
 		}
+		
+		updateAll.setVisible(modified);
 	}
 
 	private boolean configsMatch(PluginConfig presetConfig, PluginConfig currentConfig)
