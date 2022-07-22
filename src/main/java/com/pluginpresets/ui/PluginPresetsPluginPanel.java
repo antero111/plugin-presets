@@ -24,10 +24,11 @@
  */
 package com.pluginpresets.ui;
 
-import com.pluginpresets.PluginSetting;
 import com.pluginpresets.PluginConfig;
 import com.pluginpresets.PluginPreset;
 import com.pluginpresets.PluginPresetsPlugin;
+import com.pluginpresets.PluginPresetsPresetManager;
+import com.pluginpresets.PluginSetting;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -43,6 +44,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -104,24 +106,26 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	}
 
 	private final PluginPresetsPlugin plugin;
+	private final GridBagConstraints constraints = new GridBagConstraints();
+	private final JPanel contentView = new JPanel(new GridBagLayout());
+	private final JPanel editPanel = new JPanel(new BorderLayout());
 	private final JLabel errorNotification = new JLabel(NOTIFICATION_ICON);
 	private final JLabel helpButton = new JLabel(HELP_ICON);
 	private final JLabel refreshPlugins = new JLabel(REFRESH_ICON);
 	private final JLabel addPreset = new JLabel(ADD_ICON);
 	private final JLabel stopEdit = new JLabel(ARROW_LEFT_ICON);
-	private final JLabel menu = new JLabel(ELLIPSIS);
+	private final JLabel ellipsisMenu = new JLabel(ELLIPSIS);
 	private final JLabel updateAll = new JLabel(REFRESH_ICON);
-	// private final JLabel filterModifiedLabel = new JLabel(REFRESH_ICON);
+	private final PluginErrorPanel noPresetsPanel = new PluginErrorPanel();
+	private final PluginErrorPanel noContent = new PluginErrorPanel();
+	private final JPanel titlePanel = new JPanel(new BorderLayout());
 	private final JLabel title = new JLabel();
 	private final JLabel editTitle = new JLabel();
 	private final IconTextField searchBar = new IconTextField();
-	private final PluginErrorPanel noPresetsPanel = new PluginErrorPanel();
-	private final JPanel titlePanel = new JPanel(new BorderLayout());
-	private final JPanel editPanel = new JPanel(new BorderLayout());
-	private final JPanel contentView = new JPanel(new GridBagLayout());
-	private final GridBagConstraints constraints = new GridBagConstraints();
+	private final String[] filters = new String[]{"All A to Z", "Modified", "Configs match", "Only Plugin Hub"};
+	private String filter = filters[0];
 	private final List<String> openSettings = new ArrayList<>();
-
+	
 	public PluginPresetsPluginPanel(PluginPresetsPlugin pluginPresetsPlugin)
 	{
 		super(false);
@@ -325,21 +329,33 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		JPanel editActions = new JPanel();
 		editActions.add(updateAll);
 
-		// JPanel filterActions = new JPanel();
-		// filterActions.setLayout(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-		// filterActions.add(filterModifiedLabel);
-		
+		JPanel filterWrapper = new JPanel();
+		filterWrapper.setAlignmentX(LEFT_ALIGNMENT);
+
+		JComboBox<String> filterDropdown = new JComboBox<>(filters);
+		filterDropdown.setFocusable(false);
+		filterDropdown.setForeground(Color.WHITE);
+		filterDropdown.setToolTipText("Filter configuration listing");
+		filterDropdown.addActionListener(e ->
+		{
+			JComboBox<String> cb = (JComboBox) e.getSource();
+			filter = (String) cb.getSelectedItem();
+			rebuild();
+		});
+
+		filterWrapper.add(filterDropdown);
+
 		JPanel editActionsWrapper = new JPanel(new BorderLayout());
 		editActionsWrapper.setBorder(new EmptyBorder(5, 0, 3, 0));
-		// editActionsWrapper.add(filterActions, BorderLayout.WEST);
+		editActionsWrapper.add(filterWrapper, BorderLayout.WEST);
 		editActionsWrapper.add(editActions, BorderLayout.EAST);
 
 		JPanel searchWrapper = new JPanel(new BorderLayout());
 		searchWrapper.add(searchBar, BorderLayout.CENTER);
 		searchWrapper.add(editActionsWrapper, BorderLayout.NORTH);
 
-		menu.setBorder(new EmptyBorder(0, 0, 0, 10));
-		menu.addMouseListener(new MouseAdapter()
+		ellipsisMenu.setBorder(new EmptyBorder(0, 0, 0, 10));
+		ellipsisMenu.addMouseListener(new MouseAdapter()
 		{
 			private final JPopupMenu popup = getEllipsisMenuPopup();
 
@@ -352,13 +368,13 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
-				menu.setIcon(ELLIPSIS_HOVER);
+				ellipsisMenu.setIcon(ELLIPSIS_HOVER);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				menu.setIcon(ELLIPSIS);
+				ellipsisMenu.setIcon(ELLIPSIS);
 			}
 
 			private void showPopup(MouseEvent e)
@@ -373,7 +389,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		editPanel.add(stopEdit, BorderLayout.WEST);
 		editPanel.add(editTitle, BorderLayout.CENTER);
-		editPanel.add(menu, BorderLayout.EAST);
+		editPanel.add(ellipsisMenu, BorderLayout.EAST);
 		editPanel.add(searchWrapper, BorderLayout.SOUTH);
 		editPanel.setVisible(false);
 
@@ -449,7 +465,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		PluginPreset editedPreset = plugin.getPresetEditor().getEditedPreset();
 		List<PluginConfig> presetConfigs = editedPreset.getPluginConfigs();
 
-		editTitle.setText("Editing Preset " + editedPreset.getName());
+		editTitle.setText("Editing " + editedPreset.getName());
 
 		searchBar.requestFocusInWindow();
 
@@ -473,26 +489,37 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			.stream().map(PluginConfig::getName)
 			.collect(Collectors.toList());
 
-		sortAlphabetically(configurations);
+		configurations = filterConfigurations(filter, configurations, presetConfigs);
 
-		boolean modified = false;
-
-		for (final PluginConfig currentConfig : configurations)
+		if (configurations.isEmpty() || filteredConfigurations.isEmpty())
 		{
-			PluginConfig presetConfig = getPresetConfig(presetConfigs, currentConfig);
+			noContent.setContent(null, "There is nothing to be shown");
 
-			if (presetConfig != null && !configsMatch(presetConfig, currentConfig))
-			{
-				modified = true;
-			}
-
-			if (filteredConfigurations.contains(currentConfig.getName()))
-			{
-				contentView.add(new ConfigPanel(currentConfig, presetConfig, plugin, openSettings), constraints);
-				constraints.gridy++;
-			}
+			contentView.add(noContent);
+			constraints.gridy++;
 		}
-		updateAll.setVisible(modified);
+		else
+		{
+			boolean modified = false;
+
+			for (final PluginConfig currentConfig : configurations)
+			{
+				PluginConfig presetConfig = getPresetConfig(presetConfigs, currentConfig);
+
+				if (presetConfig != null && !configsMatch(presetConfig, currentConfig))
+				{
+					modified = true;
+				}
+
+				if (filteredConfigurations.contains(currentConfig.getName()))
+				{
+					contentView.add(new ConfigPanel(currentConfig, presetConfig, plugin, openSettings), constraints);
+					constraints.gridy++;
+				}
+			}
+
+			updateAll.setVisible(modified);
+		}
 	}
 
 	private boolean configsMatch(PluginConfig presetConfig, PluginConfig currentConfig)
@@ -551,10 +578,43 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		return presetConfig;
 	}
 
-	private void sortAlphabetically(List<PluginConfig> currentConfigurations)
+	private List<PluginConfig> sortAlphabetically(List<PluginConfig> configurations)
 	{
 		// // Sort alphabetically similar to the configurations tab
-		currentConfigurations.sort(Comparator.comparing(PluginConfig::getConfigName));
+		configurations.sort(Comparator.comparing(PluginConfig::getConfigName));
+		return configurations;
+	}
+
+	private List<PluginConfig> filterConfigurations(final String filter, final List<PluginConfig> configurations, final List<PluginConfig> presetConfigs)
+	{
+		List<PluginConfig> filtered = new ArrayList<>();
+
+		if (filter.equals("All A to Z"))
+		{
+			return sortAlphabetically(configurations);
+		}
+
+		PluginPresetsPresetManager presetManager = plugin.getPresetManager();
+
+		for (final PluginConfig config : configurations)
+		{
+			PluginConfig presetConfig = getPresetConfig(presetConfigs, config);
+
+			if (filter.equals("Modified") && presetConfig != null && !configsMatch(presetConfig, config))
+			{
+				filtered.add(config);
+			}
+			else if (filter.equals("Configs match") && presetConfig != null && configsMatch(presetConfig, config))
+			{
+				filtered.add(config);
+			}
+			else if (filter.equals("Only Plugin Hub") && presetManager.isExternalPlugin(config.getName()))
+			{
+				filtered.add(config);
+			}
+		}
+
+		return sortAlphabetically(filtered);
 	}
 
 	private JPopupMenu getEllipsisMenuPopup()
@@ -583,7 +643,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		importOption.addActionListener(e -> plugin.importPresetFromClipboard());
 
 		JMenuItem createEmptyOption = new JMenuItem();
-		createEmptyOption.setText("Create preset with all settigns");
+		createEmptyOption.setText("Create preset with all settings");
 		createEmptyOption.addActionListener(e -> promptPresetCreation(false));
 
 		JPopupMenu popupMenu = new JPopupMenu();
