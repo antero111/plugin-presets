@@ -24,12 +24,16 @@
  */
 package com.pluginpresets;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.pluginpresets.ui.PluginPresetsPluginPanel;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -72,6 +76,8 @@ public class PluginPresetsPlugin extends Plugin
 	protected static final List<String> IGNORED_KEYS = Stream.of("channel", "oauth", "username", "notesData").collect(Collectors.toList());
 	private static final String PLUGIN_NAME = "Plugin Presets";
 	private static final String ICON_FILE = "panel_icon.png";
+	private static final String CONFIG_GROUP = "pluginpresets";
+	private static final String CONFIG_KEY = "presets";
 
 	@Getter
 	private final HashMap<Keybind, PluginPreset> keybinds = new HashMap<>();
@@ -91,6 +97,9 @@ public class PluginPresetsPlugin extends Plugin
 
 	@Inject
 	private ConfigManager configManager;
+
+	@Inject
+	private Gson gson;
 
 	@Inject
 	private KeyManager keyManager;
@@ -176,6 +185,7 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPresets.clear();
 		clientToolbar.removeNavigation(navigationButton);
 		keyManager.unregisterKeyListener(keybindListener);
+		presetStorage.deletePresetFolderIfEmpty();
 
 		pluginPanel = null;
 		sharingManager = null;
@@ -216,19 +226,56 @@ public class PluginPresetsPlugin extends Plugin
 		return presetManager.getMatchingPresets();
 	}
 
+	public void updateConfig()
+	{
+		List<PluginPreset> syncPresets = pluginPresets.stream()
+			.filter(preset -> !preset.getLocal())
+			.collect(Collectors.toList());
+
+		syncPresets.forEach(preset -> preset.setLocal(null));
+
+		if (syncPresets.isEmpty())
+		{
+			configManager.unsetConfiguration(CONFIG_GROUP, CONFIG_KEY);
+		}
+		else
+		{
+			final String json = gson.toJson(syncPresets);
+			configManager.setConfiguration(CONFIG_GROUP, CONFIG_KEY, json);
+		}
+
+		syncPresets.forEach(preset -> preset.setLocal(false));
+	}
+
+	private void loadConfig(String json)
+	{
+		if (Strings.isNullOrEmpty(json))
+		{
+			return;
+		}
+
+		final List<PluginPreset> configPresetData = gson.fromJson(json, new TypeToken<ArrayList<PluginPreset>>()
+		{
+		}.getType());
+
+		configPresetData.forEach(preset -> preset.setLocal(false));
+		pluginPresets.addAll(configPresetData);
+	}
+
 	public void createPreset(String presetName, boolean empty)
 	{
 		PluginPreset preset = presetManager.createPluginPreset(presetName, empty);
 		pluginPresets.add(preset);
 
 		savePresets();
-		rebuildPluginUi();
+		refreshPresets();
 	}
 
 	@SneakyThrows
 	public void savePresets()
 	{
 		presetStorage.savePresets(pluginPresets);
+		updateConfig();
 	}
 
 	public void refreshPresets()
@@ -249,13 +296,15 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		pluginPresets.remove(preset);
 		savePresets();
-		rebuildPluginUi();
+		refreshPresets();
 	}
 
 	@SneakyThrows
 	public void loadPresets()
 	{
 		pluginPresets.addAll(presetStorage.loadPresets());
+		loadConfig(configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY));
+		pluginPresets.sort(Comparator.comparing(PluginPreset::getName)); // Keep presets in order
 		cacheKeybins();
 	}
 

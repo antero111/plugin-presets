@@ -76,6 +76,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private static final ImageIcon ARROW_LEFT_HOVER_ICON;
 	private static final ImageIcon ELLIPSIS;
 	private static final ImageIcon ELLIPSIS_HOVER;
+	private static final ImageIcon SYNC_LOCAL_ICON;
+	private static final ImageIcon SYNC_LOCAL_HOVER_ICON;
+	private static final ImageIcon SYNC_CONFIG_ICON;
+	private static final ImageIcon SYNC_CONFIG_HOVER_ICON;
 
 	static
 	{
@@ -91,6 +95,14 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		final BufferedImage ellipsisImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "ellipsis_icon.png");
 		ELLIPSIS = new ImageIcon(ellipsisImg);
 		ELLIPSIS_HOVER = new ImageIcon(ImageUtil.alphaOffset(ellipsisImg, 0.53f));
+
+		final BufferedImage cloudImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "cloud_icon.png");
+		SYNC_CONFIG_ICON = new ImageIcon(cloudImg);
+		SYNC_CONFIG_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(cloudImg, -100));
+
+		final BufferedImage folderImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "folder_icon.png");
+		SYNC_LOCAL_ICON = new ImageIcon(folderImg);
+		SYNC_LOCAL_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(folderImg, -100));
 
 		final BufferedImage refreshImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "refresh_icon.png");
 		REFRESH_ICON = new ImageIcon(refreshImg);
@@ -115,6 +127,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final JLabel addPreset = new JLabel(ADD_ICON);
 	private final JLabel stopEdit = new JLabel(ARROW_LEFT_ICON);
 	private final JLabel ellipsisMenu = new JLabel(ELLIPSIS);
+	private final JLabel syncLabel = new JLabel();
 	private final JLabel updateAll = new JLabel(REFRESH_ICON);
 	private final PluginErrorPanel noPresetsPanel = new PluginErrorPanel();
 	private final PluginErrorPanel noContent = new PluginErrorPanel();
@@ -123,9 +136,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final JLabel editTitle = new JLabel();
 	private final IconTextField searchBar = new IconTextField();
 	private final String[] filters = new String[]{"All A to Z", "Modified", "Configs match", "Only Plugin Hub"};
-	private String filter = filters[0];
 	private final List<String> openSettings = new ArrayList<>();
-	
+	private String filter = filters[0];
+	private boolean syncLocal;
+
 	public PluginPresetsPluginPanel(PluginPresetsPlugin pluginPresetsPlugin)
 	{
 		super(false);
@@ -300,6 +314,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		});
 
 		updateAll.setToolTipText("Update all modified configurations with your current settings.");
+		updateAll.setBorder(new EmptyBorder(3, 0, 0, 0));
 		updateAll.setText("Update all");
 		updateAll.setForeground(Color.WHITE);
 		updateAll.setVisible(false);
@@ -355,7 +370,32 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		searchWrapper.add(searchBar, BorderLayout.CENTER);
 		searchWrapper.add(editActionsWrapper, BorderLayout.NORTH);
 
-		ellipsisMenu.setBorder(new EmptyBorder(0, 0, 0, 10));
+		JPanel rightActions = new JPanel();
+		rightActions.setLayout(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+
+		syncLocal = true;
+		syncLabel.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				plugin.getPresetEditor().toggleLocal();
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				syncLabel.setIcon(syncLocal ? SYNC_LOCAL_HOVER_ICON : SYNC_CONFIG_HOVER_ICON);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				syncLabel.setIcon(syncLocal ? SYNC_LOCAL_ICON : SYNC_CONFIG_ICON);
+			}
+		});
+
+		ellipsisMenu.setBorder(new EmptyBorder(0, 5, 0, 10));
 		ellipsisMenu.addMouseListener(new MouseAdapter()
 		{
 			private final JPopupMenu popup = getEllipsisMenuPopup();
@@ -388,9 +428,12 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			}
 		});
 
+		rightActions.add(syncLabel);
+		rightActions.add(ellipsisMenu);
+
 		editPanel.add(stopEdit, BorderLayout.WEST);
 		editPanel.add(editTitle, BorderLayout.CENTER);
-		editPanel.add(ellipsisMenu, BorderLayout.EAST);
+		editPanel.add(rightActions, BorderLayout.EAST);
 		editPanel.add(searchWrapper, BorderLayout.SOUTH);
 		editPanel.setVisible(false);
 
@@ -466,6 +509,8 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		PluginPreset editedPreset = plugin.getPresetEditor().getEditedPreset();
 		List<PluginConfig> presetConfigs = editedPreset.getPluginConfigs();
 
+		setLocalIcon(editedPreset.getLocal());
+
 		editTitle.setText("Editing " + editedPreset.getName());
 
 		searchBar.requestFocusInWindow();
@@ -517,8 +562,25 @@ public class PluginPresetsPluginPanel extends PluginPanel
 				constraints.gridy++;
 			}
 		}
-		
+
 		updateAll.setVisible(modified);
+	}
+
+	private void setLocalIcon(Boolean local)
+	{
+		syncLocal = local;
+		if (local)
+		{
+			syncLabel.setIcon(SYNC_LOCAL_ICON);
+			syncLabel.setText("Local");
+			syncLabel.setToolTipText("Stored in presets folder (Click to change)");
+		}
+		else
+		{
+			syncLabel.setIcon(SYNC_CONFIG_ICON);
+			syncLabel.setText("Config");
+			syncLabel.setToolTipText("Stored in RuneLite config (Click to change)");
+		}
 	}
 
 	private boolean configsMatch(PluginConfig presetConfig, PluginConfig currentConfig)

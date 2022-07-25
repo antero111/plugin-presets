@@ -40,8 +40,8 @@ public class PluginPresetsSharingManager
 {
 	private final PluginPresetsPlugin plugin;
 	private final PluginPresetsPluginPanel pluginPanel;
-	
-	private Gson gson = new Gson();
+
+	private final Gson gson = new Gson();
 
 	public PluginPresetsSharingManager(PluginPresetsPlugin plugin, final PluginPresetsPluginPanel pluginPanel)
 	{
@@ -104,6 +104,7 @@ public class PluginPresetsSharingManager
 
 		newPreset.setId(Instant.now().toEpochMilli());
 		newPreset.setName(createNameWithSuffixIfNeeded(newPreset.getName()));
+		newPreset.setLocal(true); // Presets are imported to /presets folder 
 
 		return newPreset;
 	}
@@ -111,7 +112,8 @@ public class PluginPresetsSharingManager
 	private String createNameWithSuffixIfNeeded(String name)
 	{
 		int duplicates = 0;
-		for (PluginPreset preset : plugin.getPluginPresets()) {
+		for (PluginPreset preset : plugin.getPluginPresets())
+		{
 			if (preset.getName().contains(name))
 			{
 				duplicates++;

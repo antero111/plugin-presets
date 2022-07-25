@@ -70,6 +70,26 @@ public class PluginPresetsStorage
 		}
 	}
 
+	public void deletePresetFolderIfEmpty()
+	{
+		if (PRESETS_DIR.exists() && Objects.requireNonNull(PRESETS_DIR.listFiles()).length > 0)
+		{
+			return;
+		}
+
+		deletePresetFolder();
+	}
+
+	private void deletePresetFolder()
+	{
+		boolean folderDeleted = PRESETS_DIR.delete();
+
+		if (!folderDeleted)
+		{
+			log.warn(String.format("Could not delete %s", PRESETS_DIR.getName()));
+		}
+	}
+
 	public void savePresets(final List<PluginPreset> pluginPresets)
 	{
 		clearPresetFolder();
@@ -101,6 +121,12 @@ public class PluginPresetsStorage
 	@SneakyThrows
 	private void storePluginPresetToJsonFile(final PluginPreset pluginPreset)
 	{
+		// Only store local presets
+		if (!pluginPreset.getLocal())
+		{
+			return;
+		}
+
 		File presetJsonFile = getPresetJsonFileFrom(pluginPreset);
 
 		if (presetJsonFile.exists())
@@ -127,11 +153,23 @@ public class PluginPresetsStorage
 		return presetJsonFile;
 	}
 
-	private void writePresetDataToJsonFile(final PluginPreset pluginPreset, final File presetJsonFile) throws IOException
+	private void writePresetDataToJsonFile(final PluginPreset pluginPreset, final File presetJsonFile)
 	{
-		Writer writer = new FileWriter(presetJsonFile);
-		gson.toJson(pluginPreset, writer);
-		writer.close();
+		pluginPreset.setLocal(null); // Don't store status value to file
+
+		try (Writer writer = new FileWriter(presetJsonFile))
+		{
+			gson.toJson(pluginPreset, writer);
+		}
+		catch (Exception e)
+		{
+			// Ignore
+		}
+		finally
+		{
+			pluginPreset.setLocal(true);
+		}
+
 	}
 
 	public List<PluginPreset> loadPresets() throws IOException
@@ -152,6 +190,7 @@ public class PluginPresetsStorage
 					long id = pluginPreset.getId();
 					if (!(loadedIds.contains(id)))
 					{
+						pluginPreset.setLocal(true);
 						pluginPresetsFromFolder.add(pluginPreset);
 						loadedIds.add(id);
 					}

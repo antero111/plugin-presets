@@ -35,7 +35,8 @@ import net.runelite.client.config.Keybind;
  *
  * @param id            Time of creation used as id
  * @param name          Name of the preset
- * @param keybind       Used to enable the preset without the sidepanel. (Optional)
+ * @param keybind       Used to enable the preset without the side panel. (Optional)
+ * @param local         Used to identify whether the preset is stored in /presets or settings.properties
  * @param pluginConfigs List of saved plugin configurations.
  */
 @Data
@@ -46,5 +47,6 @@ public class PluginPreset
 	private long id;
 	private String name;
 	private Keybind keybind;
+	private Boolean local;
 	private List<PluginConfig> pluginConfigs;
 }

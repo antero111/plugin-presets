@@ -256,18 +256,40 @@ public class PluginPresetsPresetEditor
 		updateEditedPreset();
 	}
 
-	private void updateEditedPreset()
+	private PluginPreset getPreset()
 	{
-		plugin.getPluginPresets().forEach(preset ->
+		for (PluginPreset preset : plugin.getPluginPresets())
 		{
 			if (preset.getId() == editedPreset.getId())
 			{
-				preset.setPluginConfigs(editedPreset.getPluginConfigs());
+				return preset;
 			}
-		});
+		}
+		return null;
+	}
+
+	public void toggleLocal()
+	{
+		editedPreset.setLocal(!editedPreset.getLocal());
+
+		PluginPreset preset = getPreset();
+		if (preset != null)
+		{
+			preset.setLocal(editedPreset.getLocal());
+		}
+
+		plugin.savePresets();
+	}
+
+	private void updateEditedPreset()
+	{
+		PluginPreset preset = getPreset();
+		if (preset != null)
+		{
+			preset.setPluginConfigs(editedPreset.getPluginConfigs());
+		}
 
 		plugin.savePresets();
 		plugin.refreshPresets();
 	}
-
 }
