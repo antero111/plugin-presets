@@ -1,81 +1,53 @@
 # RuneLite Plugin Presets plugin [![](https://img.shields.io/endpoint?url=https://i.pluginhub.info/shields/installs/plugin/plugin-presets)](https://runelite.net/plugin-hub)
 
-This plugin adds the ability to create presets of your RuneLite plugin configurations.
+This plugin adds the ability to create presets from your RuneLite plugin configurations.
 
 ![Plugin demo](readme_visuals/plugin_presets_demo.gif)
 
 ## Using Plugin Presets
 
-Firstly, download the Plugin Presets plugin from the RuneLite Plugin Hub and enable it.
+Download the Plugin Presets plugin from the RuneLite Plugin Hub and enable it.
 
-Click the green + sign to create a new _plugin preset_ from your current plugin configurations. Name your new preset and your current plugin settings are saved to that preset.
+Click the green + sign to create a new empty _plugin preset_. Plugin Preset are text files that are stored in your presets folder at `~/.runelite/presets/` or alternatively in your RuneLite configurations in `~/.runelite/settings.properties` file and they store any configurations that you can edit from the RuneLite configuration sidepanel.
 
-_Plugin presets_ are "copies" of your current plugin configurations from the moment of creating or modifying a preset. Creating a new preset means that Plugin Presets saves a copy of your current plugin configurations to be used later. To make new presets, simply modify your RuneLite plugin configurations as usual and create a new preset.
+The orange switch indicates whether or not the presets saved configurations **match** your current configurations. Loading a preset will copy all of those setting in the preset file to your current runelite configurations as if you manually changed all of your plugin configurations to match the presets ones. If the switch is off, it means that some of your configurations don't match the presets configurations.
 
-![Plugin create demo](readme_visuals/create_preset_demo.gif)
+The cog icon in the preset panel opens the preset editor. In the editor view you can view, add, update and remove plugin configurations from your plugin presets. The checkboxes visualize whether or not the preset has stored any configurations to a certain plugin. If the checkbox is checked, that preset has stored some configurations and loading it will enable those configurations for you.
 
-To load a preset, simply click the "load preset" button to enable configurations from that preset. **If you have "unsaved" configurations when loading to a different preset, those configurations are lost.**. Plugin Presets will notify you with an orange pen icon if you have unsaved plugin configurations.
+![Create demo](readme_visuals/create_preset_demo.gif)
 
-Modifying presets happen by updating (overwriting) its configurations by pressing the pen icon.
+When the presets and your configurations differ, the edit panel will display a **modified** icon next to the checkbox. This means that the preset has stored different configuration to the plugin that you currently have enabled. One case would be that the preset has stored a nice yellow sunset color for the Skybox plugin, but after creating that preset, you have changed your skybox color to a blue daylight. In that case, left of the checkbox, a modified icon would be visible. Clicking the modified icon will **Update the presets configuration with your current configuration**, which means that after clicking it, the preset would now store your blue daylight color instead of the yellow sunset.
 
-![Plugin modify demo](readme_visuals/modify_preset_demo.gif)
+![Update demo](readme_visuals/update_preset_demo.gif)
 
-When downloading external plugins from the Plugin Hub, new plugins won't be added to your existing presets. To fix this, simply update your presets with the new plugin loaded. Plugin Presets will notify you when you have plugins that are not saved to a certain preset with an orange pen icon.
+The modification icon does not mean that you need to allways update that configuration since the reason to use this plugin is to have the ability to change between different configurations easily. For example you could have 2 presets that store different color configurations to the skybox plugin and when enabling one of the presets, naturally the other preset will display a modified icon since, from the other presets perspective, the configurations have changed since creation.  
 
-![Unsaved plugin demo](readme_visuals/unsaved_plugins_demo.png)
+Presets can be bound to custom keybinds by clicking the _Not set_ text. After cliking, type a key combination and it should be show on the panel. Once you are happy with the keybind, click save or press enter. Now the preset gets loaded after you press the keybind in game. Note that other plugins also have keybinds and those may or may not override your preset keybind, so prefer not to use duplicate keybindings.
 
-Note that Plugin Presets does not check if you have already saved your RuneLite configurations to a preset. To stay organized, name your presets well and delete unnecessary duplicate configurations.
+> Single keybind only enables one preset so if you want to enable multiple presets with one keybind, consider creating a single preset containing the configurations from the presets you wish to enable.
 
-<details>
-  <summary>How to revert back to default RuneLite settings</summary>
-    If you need to revert back to default RuneLite settings, delete the <code>settings.properties</code> file from <code>~/.runelite/</code> and reload your client. This does not affect any of your plugin presets but <i>all</i> of your current plugin configurations will be set to default values. (This works for all plugins, not a Plugin Presets feature.)
-</details>
+![Keybind demo](readme_visuals/keybind_demo.gif)
+
+Your plugin presets can become fairly messy after a while or cause problems if changing a lot of configurations between preset creations. To avoid confusion and problems, name your presets well, keep your presets up to date. Prefer to have presets **only contain the configurations you wish to change**, this also increases performance and reduces the strain to keep your presets up to date.
 
 ### Sharing plugin presets
 
-Your presets are stored in `~/.runelite/presets/`. You can share these .json files with others, they don't contain information about your account, RuneLite notes, Discord or Twitch. Alternatively you can right-click on of your presets and click the "Export preset to clipboard". This will copy the preset to your clipboard for easier sharing. **When sending presets to others, make sure to always double check for sensetive information!**
+Your presets are stored in the `~/.runelite/presets/` folder or alternative in the `settings.properties` configuration file. In the preset editor view you can toggle where the plugin is stored by clicking the file/cloud icon.
 
-To "install" new presets, simply copy the .json file to the preset folder and then press the "refresh presets" button. Alternatively you can right-click the green + sign to import presets from clipboard. You can easily access your preset folder by right-clicking the Plugin Preset icon in the RuneLite sidebar.
+You can share these _.json_ files with others, they don't contain information about your account, Discord or Twitch. Alternatively you can click the copy icon in the preset panel to copy the presets data to your clipboard for easier sharing e.g. through Discord, Pastebin etc...
 
-Note that these presets contains _all_ of your plugin configurations, so when installing presets from others, they might have changed eg. keybinds that you might have set up differently.
+To "install" new presets, paste the .json file to the preset folder and then press the "refresh presets" button. Alternatively you can right-click the green + sign to import presets from clipboard. You can easily access your preset folder by right-clicking the Plugin Preset icon in the RuneLite sidebar.
 
-Presets from others might have settings to plugins installed from the Plugin Hub. Plugin Presets will notify you when you have "uninstalled" plugins with a red warning sign.
-
-![Missing plugins demo](readme_visuals/missing_plugins_demo.png)
-
-If you don't want to install external plugins, enable the preset and update (overwrite) it with your new settings. This will discard the external plugin settings from the preset.
+Note that external presets might contain configurations different to yours, so when enabling presets from others, they might have changed e.g. keybinds that you might have set up differently. In the edit panel, you can view the plugins that the preset has some configurations. Alternatively you can view the raw [json](https://en.wikipedia.org/wiki/JSON) by copying it and pasting it to a [json viewer](http://jsonviewer.stack.hu/). **When sending presets to others, make sure to always double check for sensetive information!**
 
 ## Issues
 
-If you've experienced an issue with Plugin Presets, or have a recommendation on how to improve it, please [create an issue](https://github.com/antero111/plugin-presets/issues/new) with the relevant details.
+If you've experienced an issue with Plugin Presets, or have a recommendation on how to improve it, please [create an issue](https://github.com/antero111/plugin-presets/issues/new) or [start a discussion](https://github.com/antero111/plugin-presets/discussion/new) with the relevant details.
+
+### License
+
+See [LICENSE](LICENSE).
 
 ### Changelog
 
-#### 1.6
-
-Presets now include RuneLite client settings. Added ability to ignore certain plugin setting keys, fixes some sensitive data showing in shareable presets.
-
-#### 1.5
-
-Plugin now warns from unsaved configurations when making changes to plugin configurations. Fixed presets not staying in alphabethical order when renaming them. Preset renaming improvements. Preset names now contains more valid characters. Fixed bug causing all presets disappearing when turning the plugin off.
-
-#### 1.4
-
-Added unsaved plugin configuration detection/notification and tooltips to preset renaming.
-Removed preset unloading, caused unnessesscary issues and confusion. Fixed some tooltip typos.
-
-#### 1.3
-
-Added the ability to import/export presets to and from clipboard. Added error notificator. Fixed it so that presets will now stay in alphabethical order when they are created.
-
-#### 1.2
-
-Added unsaved/uninstalled external plugin notification, plugin icon. Changed "overwrite" to "update".
-
-#### 1.1
-
-Added the ability to unload a preset. Fixed unsaved Plugin Hub plugin handling
-
-#### 1.0
-
-Plugin added
+See [CHANGELOG.md](CHANGELOG.md).
