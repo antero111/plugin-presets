@@ -103,15 +103,22 @@ public class PluginPresetsPresetManager
 				}
 			}
 
-			if (!currentConfigurations.get(config.getConfigName()).isEmpty())
+			try
 			{
-				for (PluginSetting setting : config.getSettings())
+				if (!currentConfigurations.get(config.getConfigName()).isEmpty())
 				{
-					if (setting.getValue() != null && !currentConfigurations.get(config.getConfigName()).get(setting.getKey()).equals(setting.getValue()))
+					for (PluginSetting setting : config.getSettings())
 					{
-						return false;
+						if (setting.getValue() != null && !currentConfigurations.get(config.getConfigName()).get(setting.getKey()).equals(setting.getValue()))
+						{
+							return false;
+						}
 					}
 				}
+			}
+			catch (NullPointerException e)
+			{
+				return false;
 			}
 		}
 
