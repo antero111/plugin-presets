@@ -24,9 +24,9 @@
  */
 package com.pluginpresets.ui;
 
-import com.pluginpresets.PluginSetting;
 import com.pluginpresets.PluginConfig;
 import com.pluginpresets.PluginPresetsPlugin;
+import com.pluginpresets.PluginSetting;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -384,7 +384,7 @@ public class ConfigPanel extends JPanel
 		{
 			for (PluginSetting setting : presetSettings)
 			{
-				if (setting.getName().equals(currentSetting.getName()))
+				if (setting.getKey().equals(currentSetting.getKey()))
 				{
 					presetSetting = setting;
 					break;

@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigDescriptor;
@@ -47,6 +48,14 @@ import net.runelite.client.plugins.PluginManager;
 @Slf4j
 public class PluginPresetsPresetManager
 {
+	private static final List<String> IGNORED_PLUGINS = Stream.of("Plugin Presets", "Configuration", "Xtea").collect(Collectors.toList());
+
+	/**
+	 * Non-user configurable settings that don't contain any context or user
+	 * sensitive data that should not to be saved to presets
+	 */
+	private static final List<String> IGNORED_KEYS = Stream.of("channel", "oauth", "username", "notesData", "tzhaarStartTime", "tzhaarLastTime", "chatsData", "previousPartyId", "lastWorld", "tab", "position").collect(Collectors.toList());
+
 	private final PluginPresetsPlugin plugin;
 	private final PluginManager pluginManager;
 	private final ConfigManager configManager;
@@ -225,7 +234,7 @@ public class PluginPresetsPresetManager
 		pluginManager.getPlugins().forEach(p ->
 		{
 			String name = p.getName();
-			if (!PluginPresetsPlugin.IGNORED_PLUGINS.contains(name))
+			if (!IGNORED_PLUGINS.contains(name))
 			{
 				Config pluginConfigProxy = pluginManager.getPluginConfigProxy(p);
 
@@ -246,15 +255,17 @@ public class PluginPresetsPresetManager
 
 					configDescriptor.getItems().forEach(i ->
 					{
-						if (!PluginPresetsPlugin.IGNORED_KEYS.contains(i.key()))
+						if (!IGNORED_KEYS.contains(i.key()))
 						{
-							// Don't save 'hidden' plugin configs to presets 
-							if (!i.name().equals(""))
+							String settingName = i.name();
+							if (i.name().equals(""))
 							{
-								PluginSetting pluginSetting = new PluginSetting(i.name(), i.key(),
-									configManager.getConfiguration(configDescriptor.getGroup().value(), i.key()));
-								pluginSettings.add(pluginSetting);
+								settingName = Utils.splitAndCapitalize(settingName);
 							}
+
+							PluginSetting pluginSetting = new PluginSetting(settingName, i.key(),
+								configManager.getConfiguration(configDescriptor.getGroup().value(), i.key()));
+							pluginSettings.add(pluginSetting);
 						}
 
 					});
@@ -274,7 +285,7 @@ public class PluginPresetsPresetManager
 
 		configManager.getConfigDescriptor(runeLiteConfig).getItems().forEach(i ->
 		{
-			if (!PluginPresetsPlugin.IGNORED_KEYS.contains(i.key()))
+			if (!IGNORED_KEYS.contains(i.key()))
 			{
 				PluginSetting pluginSetting = new PluginSetting(i.name(), i.key(),
 					configManager.getConfiguration(RuneLiteConfig.GROUP_NAME, i.key()));

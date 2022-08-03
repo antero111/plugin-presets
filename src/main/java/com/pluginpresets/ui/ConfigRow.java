@@ -24,9 +24,10 @@
  */
 package com.pluginpresets.ui;
 
-import com.pluginpresets.PluginSetting;
 import com.pluginpresets.PluginConfig;
 import com.pluginpresets.PluginPresetsPlugin;
+import com.pluginpresets.PluginSetting;
+import com.pluginpresets.Utils;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -75,8 +76,16 @@ public class ConfigRow extends JPanel
 		setBorder(new EmptyBorder(0, 0, 0, 0));
 
 		JLabel title = new JLabel();
-		title.setText(currentSetting.getName().length() == 0 ? currentSetting.getKey() : currentSetting.getName());
-		title.setToolTipText(currentSetting.getName() + " - " + currentSetting.getKey());
+		if (currentSetting.getName().length() == 0)
+		{
+			title.setText(Utils.splitAndCapitalize(currentSetting.getKey()));
+			title.setToolTipText(currentSetting.getKey());
+		}
+		else
+		{
+			title.setText(currentSetting.getName());
+			title.setToolTipText(currentSetting.getName() + " - " + currentSetting.getKey());
+		}
 		// 0 width is to prevent the title causing the panel to grow in y direction on long setting descriptions
 		// 16 height is UPDATE_ICONs height
 		title.setPreferredSize(new Dimension(0, 16));
@@ -85,7 +94,7 @@ public class ConfigRow extends JPanel
 		if (presetHasConfigurations)
 		{
 			checkboxLabel.setIcon(CHECKBOX_CHECKED_ICON);
-			checkboxLabel.setToolTipText("Remove " + currentSetting.getName() +" from preset.");
+			checkboxLabel.setToolTipText("Remove " + currentSetting.getName() + " from preset.");
 			checkboxLabel.addMouseListener(new MouseAdapter()
 			{
 				@Override
@@ -120,7 +129,7 @@ public class ConfigRow extends JPanel
 		{
 			title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
 			checkboxLabel.setIcon(CHECKBOX_ICON);
-			checkboxLabel.setToolTipText("Add " +currentSetting.getName() + " to preset.");
+			checkboxLabel.setToolTipText("Add " + currentSetting.getName() + " to preset.");
 			checkboxLabel.addMouseListener(new MouseAdapter()
 			{
 				@Override

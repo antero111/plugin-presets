@@ -26,6 +26,7 @@ package com.pluginpresets;
 
 import java.util.List;
 import java.util.regex.Pattern;
+import org.apache.commons.text.WordUtils;
 
 public class Utils
 {
@@ -35,6 +36,14 @@ public class Utils
 	public static boolean stringContainsInvalidCharacters(final String string)
 	{
 		return !(Pattern.compile("(?i)^[ a-ö0-9-_.,;=()+!]+$").matcher(string).matches());
+	}
+
+	/**
+	 * Split from uppercase letters and capitalize
+	 */
+	public static String splitAndCapitalize(final String string)
+	{
+		return WordUtils.capitalize(string.replaceAll("\\d+", "").replaceAll("(.)([A-Z])", "$1 $2"));
 	}
 
 	/**

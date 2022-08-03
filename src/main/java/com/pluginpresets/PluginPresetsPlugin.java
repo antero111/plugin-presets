@@ -37,7 +37,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
 import lombok.Getter;
@@ -72,8 +71,6 @@ public class PluginPresetsPlugin extends Plugin
 	public static final File PRESETS_DIR = new File(RUNELITE_DIR, "presets");
 	public static final String HELP_LINK = "https://github.com/antero111/plugin-presets#using-plugin-presets";
 	public static final String DEFAULT_PRESET_NAME = "Preset";
-	protected static final List<String> IGNORED_PLUGINS = Stream.of("Plugin Presets", "Configuration", "Xtea").collect(Collectors.toList());
-	protected static final List<String> IGNORED_KEYS = Stream.of("channel", "oauth", "username", "notesData").collect(Collectors.toList());
 	private static final String PLUGIN_NAME = "Plugin Presets";
 	private static final String ICON_FILE = "panel_icon.png";
 	private static final String CONFIG_GROUP = "pluginpresets";
