@@ -1,5 +1,9 @@
 # Changelog
 
+#### 2.1
+
+Configurations that don't have a name set can now be edited, this fixed volume sliders not being available in music plugin option. Added warning label for invalid plugin setting configurations. Preset switch now turns on correctly when loading presets if they contain invalid configurations.
+
 ## 2.0
 
 The Plugin was mostly rewritten to use a new Plugin Preset file format and fit to a new way of editing presets with the editor panel. Previously presets contained all of your RuneLite configurations, now the presets only include those that user stores in them with the new preset editor panel. The new preset file format is much easier to work with and is much more future proof for future additions e.g. description.
