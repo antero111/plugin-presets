@@ -114,11 +114,19 @@ public class PluginPresetsPresetManager
 
 			try
 			{
-				if (!currentConfigurations.get(config.getConfigName()).isEmpty())
+				HashMap<String, String> configurations = currentConfigurations.get(config.getConfigName());
+				if (!configurations.isEmpty())
 				{
 					for (PluginSetting setting : config.getSettings())
 					{
-						if (setting.getValue() != null && !currentConfigurations.get(config.getConfigName()).get(setting.getKey()).equals(setting.getValue()))
+						String string = configurations.get(setting.getKey());
+						if (string == null)
+						{
+							continue;
+						}
+
+						boolean equals = string.equals(setting.getValue());
+						if (setting.getValue() != null && !equals)
 						{
 							return false;
 						}

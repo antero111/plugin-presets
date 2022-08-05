@@ -60,12 +60,17 @@ public class ConfigPanel extends JPanel
 	private static final ImageIcon UPDATE_HOVER_ICON;
 	private static final ImageIcon ARROW_DOWN_ICON;
 	private static final ImageIcon NOTIFICATION_ICON;
+	private static final ImageIcon NOT_INSTALLED_ICON;
 
 	static
 	{
 		final BufferedImage notificationImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
 			"warning_icon.png");
 		NOTIFICATION_ICON = new ImageIcon(notificationImg);
+
+		final BufferedImage notInstalledImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
+			"not_installed_icon.png");
+		NOT_INSTALLED_ICON = new ImageIcon(notInstalledImg);
 
 		final BufferedImage checkboxImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_icon.png");
 		CHECKBOX_ICON = new ImageIcon(checkboxImg);
@@ -87,6 +92,7 @@ public class ConfigPanel extends JPanel
 	private final PluginPresetsPlugin plugin;
 	private final JCheckBox checkbox = new JCheckBox();
 	private final JLabel updateLabel = new JLabel();
+	private final JLabel notificationLabel = new JLabel();
 	private final boolean presetHasConfigurations;
 	private final boolean external;
 	private final boolean configsMatch;
@@ -221,7 +227,7 @@ public class ConfigPanel extends JPanel
 
 			if (external && !installed)
 			{
-				notInstalledLabel.setIcon(NOTIFICATION_ICON);
+				notInstalledLabel.setIcon(NOT_INSTALLED_ICON);
 				notInstalledLabel.setToolTipText("Plugin not installed, download from Plugin Hub if you want to use these settings.");
 				title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
 			}
@@ -251,6 +257,9 @@ public class ConfigPanel extends JPanel
 			});
 		}
 
+		notificationLabel.setIcon(NOTIFICATION_ICON);
+		notificationLabel.setVisible(false);
+
 		JLabel downArrow = new JLabel();
 		downArrow.setIcon(ARROW_DOWN_ICON);
 		downArrow.setVisible(settingsVisible);
@@ -266,6 +275,7 @@ public class ConfigPanel extends JPanel
 		rightActions.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
 		rightActions.add(statusLabel);
 		rightActions.add(notInstalledLabel);
+		rightActions.add(notificationLabel);
 		rightActions.add(updateLabel);
 		rightActions.add(checkbox);
 
@@ -296,9 +306,37 @@ public class ConfigPanel extends JPanel
 
 		// Some plugins don't have settings like Ammo, Account, Emojis etc.
 		ArrayList<PluginSetting> presetSettings = (presetConfig != null) ? presetConfig.getSettings() : null;
+
+		ArrayList<String> loopedInvalidConfigurations = new ArrayList<>();
+
 		currentConfig.getSettings().forEach(currentSetting ->
 		{
+			List<String> keys = currentConfig.getSettings().stream().map(PluginSetting::getKey).collect(Collectors.toList());
+
 			PluginSetting presetSetting = getPresetSettings(presetSettings, currentSetting);
+
+			if (presetSettings != null)
+			{
+				if (!loopedInvalidConfigurations.contains(currentConfig.getConfigName()))
+				{
+					presetSettings.forEach(setting ->
+					{
+						if (!keys.contains(setting.getKey()))
+						{
+							settings.add(new ConfigRow(null, null, setting, plugin), constraints);
+							constraints.gridy++;
+
+							if (!settingsVisible)
+							{
+								notificationLabel.setVisible(true);
+								notificationLabel.setToolTipText("Preset contains invalid configurations for this plugin");
+							}
+						}
+					});
+
+					loopedInvalidConfigurations.add(currentConfig.getConfigName());
+				}
+			}
 			settings.add(new ConfigRow(currentConfig, currentSetting, presetSetting, plugin), constraints);
 			constraints.gridy++;
 		});

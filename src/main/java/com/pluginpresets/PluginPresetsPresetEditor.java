@@ -87,9 +87,10 @@ public class PluginPresetsPresetEditor
 	{
 		editedPreset.getPluginConfigs().forEach(configurations ->
 		{
-			if (configurations.getConfigName().equals(currentConfig.getConfigName()))
+			if (currentConfig == null || configurations.getConfigName().equals(currentConfig.getConfigName()))
 			{
 				configurations.getSettings().removeIf(s -> s.getKey().equals(setting.getKey()));
+
 				if (configurations.getSettings().isEmpty() && configurations.getEnabled() == null)
 				{
 					removeConfigurationFromEdited(configurations);

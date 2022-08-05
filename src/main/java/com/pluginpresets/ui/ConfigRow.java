@@ -48,6 +48,8 @@ public class ConfigRow extends JPanel
 	private static final ImageIcon CHECKBOX_CHECKED_ICON;
 	private static final ImageIcon CHECKBOX_CHECKED_HOVER_ICON;
 	private static final ImageIcon CHECKBOX_ICON;
+	private static final ImageIcon NOTIFICATION_ICON;
+	private static final ImageIcon NOTIFICATION_HOVER_ICON;
 
 	static
 	{
@@ -57,6 +59,11 @@ public class ConfigRow extends JPanel
 
 		final BufferedImage checkboxImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_icon.png");
 		CHECKBOX_ICON = new ImageIcon(checkboxImg);
+
+		final BufferedImage notificationImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
+			"warning_icon.png");
+		NOTIFICATION_ICON = new ImageIcon(notificationImg);
+		NOTIFICATION_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(notificationImg, 20));
 	}
 
 	private final PluginSetting currentSetting;
@@ -76,7 +83,13 @@ public class ConfigRow extends JPanel
 		setBorder(new EmptyBorder(0, 0, 0, 0));
 
 		JLabel title = new JLabel();
-		if (currentSetting.getName().length() == 0)
+		if (currentSetting == null)
+		{
+			title.setText(Utils.splitAndCapitalize(presetSetting.getKey()));
+			title.setForeground(ColorScheme.PROGRESS_ERROR_COLOR);
+			title.setToolTipText(presetSetting.getKey());
+		}
+		else if (currentSetting.getName().length() == 0)
 		{
 			title.setText(Utils.splitAndCapitalize(currentSetting.getKey()));
 			title.setToolTipText(currentSetting.getKey());
@@ -125,6 +138,32 @@ public class ConfigRow extends JPanel
 				title.setForeground(ColorScheme.BRAND_ORANGE);
 			}
 		}
+		else if (currentSetting == null)
+		{
+			checkboxLabel.setIcon(NOTIFICATION_ICON);
+			checkboxLabel.setToolTipText("Invalid plugin setting configuration (Click to remove)");
+			checkboxLabel.setBorder(new EmptyBorder(2, 0, 2, 0));
+			checkboxLabel.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent mouseEvent)
+				{
+					plugin.getPresetEditor().removeSettingFromEdited(null, presetSetting);
+				}
+
+				@Override
+				public void mouseEntered(MouseEvent mouseEvent)
+				{
+					checkboxLabel.setIcon(NOTIFICATION_HOVER_ICON);
+				}
+
+				@Override
+				public void mouseExited(MouseEvent mouseEvent)
+				{
+					checkboxLabel.setIcon(NOTIFICATION_ICON);
+				}
+			});
+		}
 		else
 		{
 			title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
@@ -153,7 +192,7 @@ public class ConfigRow extends JPanel
 
 	private boolean presetHasConfigurations()
 	{
-		return presetSetting != null;
+		return currentSetting != null && presetSetting != null;
 	}
 
 	private boolean configsMatch()
