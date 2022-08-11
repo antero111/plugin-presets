@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigDescriptor;
@@ -176,17 +177,30 @@ public class PluginPresetsPresetManager
 				// or color inputs with "Pick a color" option appears as null
 				if (setting.getValue() != null)
 				{
-					configManager.setConfiguration(pluginConfig.getConfigName(), setting.getKey(), setting.getValue());
+					boolean customConfig = setting.getCustomConfigName() != null;
+					String groupName = customConfig ? setting.getCustomConfigName() : pluginConfig.getConfigName();
+					configManager.setConfiguration(groupName, setting.getKey(), setting.getValue());
+
+					if (customConfig)
+					{
+						// Restart plugin that contained custom configs
+						Plugin p = findPlugin(pluginConfig.getName(), plugins);
+
+						boolean enabled = pluginConfig.getEnabled() != null;
+						if (p != null)
+						{
+							SwingUtilities.invokeLater(() -> enablePlugin(p, !enabled));
+							SwingUtilities.invokeLater(() -> enablePlugin(p, enabled));
+						}
+					}
 				}
 			});
 
 			Plugin p = findPlugin(pluginConfig.getName(), plugins);
-			if (p != null)
+			Boolean enabled = pluginConfig.getEnabled();
+			if (p != null && enabled != null)
 			{
-				if (pluginConfig.getEnabled() != null)
-				{
-					enablePlugin(p, pluginConfig.getEnabled());
-				}
+				enablePlugin(p, enabled);
 			}
 		});
 
@@ -271,8 +285,9 @@ public class PluginPresetsPresetManager
 								settingName = Utils.splitAndCapitalize(settingName);
 							}
 
+							String configuration = configManager.getConfiguration(configDescriptor.getGroup().value(), i.key());
 							PluginSetting pluginSetting = new PluginSetting(settingName, i.key(),
-								configManager.getConfiguration(configDescriptor.getGroup().value(), i.key()));
+								configuration, null);
 							pluginSettings.add(pluginSetting);
 						}
 
@@ -295,13 +310,24 @@ public class PluginPresetsPresetManager
 		{
 			if (!IGNORED_KEYS.contains(i.key()))
 			{
+				String configuration = configManager.getConfiguration(RuneLiteConfig.GROUP_NAME, i.key());
 				PluginSetting pluginSetting = new PluginSetting(i.name(), i.key(),
-					configManager.getConfiguration(RuneLiteConfig.GROUP_NAME, i.key()));
+					configuration, null);
 				runelitePluginSettings.add(pluginSetting);
 			}
 		});
 
 		pluginConfigs.add(runeliteConfig);
+
+		pluginConfigs.forEach(config ->
+		{
+			if (config.getConfigName().equals("screenmarkerplugin"))
+			{
+				String configuration = configManager.getConfiguration("screenmarkers", "markers");
+				PluginSetting pluginSetting = new PluginSetting("Markers", "markers", configuration, "screenmarkers");
+				config.getSettings().add(pluginSetting);
+			}
+		});
 
 		return pluginConfigs;
 	}
@@ -421,7 +447,7 @@ public class PluginPresetsPresetManager
 			String name = legacyGetSettingName(configName, key, currentConfigurations);
 			if (name != null)
 			{
-				PluginSetting pluginSetting = new PluginSetting(name, key, value);
+				PluginSetting pluginSetting = new PluginSetting(name, key, value, null);
 				pluginSettings.add(pluginSetting);
 			}
 		});

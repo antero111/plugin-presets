@@ -31,9 +31,11 @@ import lombok.NoArgsConstructor;
 /**
  * Class for storing single plugin setting
  *
- * @param name  Name of the setting
- * @param key   Key used internally by configManager
- * @param value Value of the setting
+ * @param name             Name of the setting
+ * @param key              Key used internally by configManager
+ * @param value            Value of the setting
+ * @param customConfigName Optional different config name that Plugin configs
+ *                         since with custom settings, they might differ
  */
 @Data
 @NoArgsConstructor
@@ -43,4 +45,5 @@ public class PluginSetting
 	private String name;
 	private String key;
 	private String value;
+	private String customConfigName;
 }
