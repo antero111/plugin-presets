@@ -137,6 +137,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final IconTextField searchBar = new IconTextField();
 	private final String[] filters = new String[]{"All A to Z", "Included", "Not included", "Modified", "Configs match", "Only Plugin Hub"};
 	private final List<String> openSettings = new ArrayList<>();
+	private final List<PluginConfig> filtered = new ArrayList<>();
 	private String filter = filters[0];
 	private boolean syncLocal;
 
@@ -648,10 +649,14 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 	private List<PluginConfig> filterConfigurations(final String filter, final List<PluginConfig> configurations, final List<PluginConfig> presetConfigs)
 	{
-		List<PluginConfig> filtered = new ArrayList<>();
+		if (!filtered.isEmpty())
+		{
+			filtered.clear();
+		}
 
 		if (filter.equals("All A to Z"))
 		{
+			filtered.addAll(configurations);
 			return sortAlphabetically(configurations);
 		}
 
@@ -661,7 +666,12 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		{
 			PluginConfig presetConfig = getPresetConfig(presetConfigs, config);
 
-			if (presetConfig == null)
+			boolean isExternalPlugin = presetManager.isExternalPlugin(config.getName());
+			if (filter.equals("Only Plugin Hub") && isExternalPlugin)
+			{
+				filtered.add(config);
+			}
+			else if (presetConfig == null)
 			{
 				if (filter.equals("Not included"))
 				{
@@ -671,12 +681,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			else
 			{
 				if (filter.equals("Included"))
-				{
-					filtered.add(config);
-				}
-
-				boolean isExternalPlugin = presetManager.isExternalPlugin(config.getName());
-				if (filter.equals("Only Plugin Hub") && isExternalPlugin)
 				{
 					filtered.add(config);
 				}
@@ -705,20 +709,30 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private JPopupMenu getEllipsisMenuPopup()
 	{
 		JMenuItem enableAllOption = new JMenuItem();
-		enableAllOption.setText("Enable all configurations");
-		enableAllOption.setToolTipText("Add all of your current settings to this preset");
-		enableAllOption.addActionListener(e -> plugin.getPresetEditor().toggleAll(true));
+		enableAllOption.setText("Add all");
+		enableAllOption.setToolTipText("Adds all currently visible configurations to edited preset");
+		enableAllOption.addActionListener(e -> enableAllVisible());
 
 		JMenuItem disableAllOption = new JMenuItem();
-		disableAllOption.setText("Disable all configurations");
-		disableAllOption.setToolTipText("Remove all of your settings from this preset");
-		disableAllOption.addActionListener(e -> plugin.getPresetEditor().toggleAll(false));
+		disableAllOption.setText("Remove all");
+		disableAllOption.setToolTipText("Removes all currently visible settings from edited preset.");
+		disableAllOption.addActionListener(e -> disableAllVisible());
 
 		JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
 		popupMenu.add(enableAllOption);
 		popupMenu.add(disableAllOption);
 		return popupMenu;
+	}
+
+	private void enableAllVisible() {
+		List<PluginConfig> configs = filterIfSearchKeyword(filtered);
+		plugin.getPresetEditor().addAll(configs);
+	}
+
+	private void disableAllVisible() {
+		List<PluginConfig> configs = filterIfSearchKeyword(filtered);
+		plugin.getPresetEditor().removeAll(configs);
 	}
 
 	private JPopupMenu getImportMenuPopup()

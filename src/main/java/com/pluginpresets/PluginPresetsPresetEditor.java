@@ -242,6 +242,22 @@ public class PluginPresetsPresetEditor
 		updateEditedPreset();
 	}
 
+	public void addAll(List<PluginConfig> pluginConfigs)
+	{
+		for (PluginConfig pluginConfig : pluginConfigs) {
+			addConfigurationToEdited(pluginConfig, true);
+		}
+		updateEditedPreset();
+	}
+
+	public void removeAll(List<PluginConfig> pluginConfigs)
+	{
+		for (PluginConfig pluginConfig : pluginConfigs) {
+			removeConfigurationFromEdited(pluginConfig, true);
+		}
+		updateEditedPreset();
+	}
+
 	public void toggleAll(boolean enable)
 	{
 		if (enable)
