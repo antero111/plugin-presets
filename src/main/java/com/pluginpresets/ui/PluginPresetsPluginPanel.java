@@ -135,7 +135,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final JLabel title = new JLabel();
 	private final JLabel editTitle = new JLabel();
 	private final IconTextField searchBar = new IconTextField();
-	private final String[] filters = new String[]{"All A to Z", "Modified", "Configs match", "Only Plugin Hub"};
+	private final String[] filters = new String[]{"All A to Z", "Included", "Not included", "Modified", "Configs match", "Only Plugin Hub"};
 	private final List<String> openSettings = new ArrayList<>();
 	private String filter = filters[0];
 	private boolean syncLocal;
@@ -661,17 +661,41 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		{
 			PluginConfig presetConfig = getPresetConfig(presetConfigs, config);
 
-			if (filter.equals("Modified") && presetConfig != null && !configsMatch(presetConfig, config))
+			if (presetConfig == null)
 			{
-				filtered.add(config);
+				if (filter.equals("Not included"))
+				{
+					filtered.add(config);
+				}
 			}
-			else if (filter.equals("Configs match") && presetConfig != null && configsMatch(presetConfig, config))
+			else
 			{
-				filtered.add(config);
-			}
-			else if (filter.equals("Only Plugin Hub") && presetManager.isExternalPlugin(config.getName()))
-			{
-				filtered.add(config);
+				if (filter.equals("Included"))
+				{
+					filtered.add(config);
+				}
+
+				boolean isExternalPlugin = presetManager.isExternalPlugin(config.getName());
+				if (filter.equals("Only Plugin Hub") && isExternalPlugin)
+				{
+					filtered.add(config);
+				}
+
+				boolean match = configsMatch(presetConfig, config);
+				if (match)
+				{
+					if (filter.equals("Configs match"))
+					{
+						filtered.add(config);
+					}
+				}
+				else
+				{
+					if (filter.equals("Modified"))
+					{
+						filtered.add(config);
+					}
+				}
 			}
 		}
 
