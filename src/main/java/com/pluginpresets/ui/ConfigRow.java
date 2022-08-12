@@ -181,7 +181,7 @@ public class ConfigRow extends JPanel
 		}
 
 		JPanel rightActions = new JPanel();
-		rightActions.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
+		rightActions.setLayout(new FlowLayout(FlowLayout.LEFT, 14, 0));
 		JLabel updateLabel = new JLabel();
 		rightActions.add(updateLabel);
 		rightActions.add(checkboxLabel);

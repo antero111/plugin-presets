@@ -59,6 +59,8 @@ public class ConfigPanel extends JPanel
 	private static final ImageIcon UPDATE_ICON;
 	private static final ImageIcon UPDATE_HOVER_ICON;
 	private static final ImageIcon ARROW_DOWN_ICON;
+	private static final ImageIcon ARROW_RIGHT_ICON;
+	private static final ImageIcon ARROW_RIGHT_HOVER_ICON;
 	private static final ImageIcon NOTIFICATION_ICON;
 	private static final ImageIcon NOT_INSTALLED_ICON;
 
@@ -79,8 +81,10 @@ public class ConfigPanel extends JPanel
 		CHECKBOX_CHECKED_ICON = new ImageIcon(checkboxCheckedImg);
 		CHECKBOX_CHECKED_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(checkboxCheckedImg, 20));
 
-		final BufferedImage arrowDownImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "arrow_up_icon.png");
-		ARROW_DOWN_ICON = new ImageIcon(arrowDownImg);
+		final BufferedImage arrowDownImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "arrow_right_icon.png");
+		ARROW_DOWN_ICON = new ImageIcon(ImageUtil.rotateImage(arrowDownImg, (Math.PI / 2)));
+		ARROW_RIGHT_ICON = new ImageIcon(ImageUtil.alphaOffset(arrowDownImg, 0.45f));
+		ARROW_RIGHT_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(arrowDownImg, 0.80f));
 
 		final BufferedImage updateImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "refresh_icon.png");
 		UPDATE_ICON = new ImageIcon(updateImg);
@@ -114,10 +118,11 @@ public class ConfigPanel extends JPanel
 		settingsVisible = isSettingsVisible();
 
 		setLayout(new BorderLayout());
-		setBorder(new EmptyBorder(0, 10, 0, 0));
+		setBorder(new EmptyBorder(0, 3, 0, 0));
 		checkbox.setBackground(ColorScheme.LIGHT_GRAY_COLOR);
 
 		JLabel title = new JLabel();
+		JLabel downArrow = new JLabel();
 		title.setText(currentConfig.getName());
 		// 0 width is to prevent the title causing the panel to grow in y direction on long plugin names
 		// 16 height is UPDATE_ICONs height
@@ -137,12 +142,14 @@ public class ConfigPanel extends JPanel
 			{
 				foreground = title.getForeground(); // Remember the original foreground color
 				title.setForeground(ColorScheme.BRAND_ORANGE);
+				if (!settingsVisible) downArrow.setIcon(ARROW_RIGHT_HOVER_ICON);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
 				title.setForeground(foreground);
+				if (!settingsVisible) downArrow.setIcon(ARROW_RIGHT_ICON);
 			}
 		});
 
@@ -260,16 +267,40 @@ public class ConfigPanel extends JPanel
 		notificationLabel.setIcon(NOTIFICATION_ICON);
 		notificationLabel.setVisible(false);
 
-		JLabel downArrow = new JLabel();
-		downArrow.setIcon(ARROW_DOWN_ICON);
-		downArrow.setVisible(settingsVisible);
+		downArrow.setIcon(settingsVisible ? ARROW_DOWN_ICON : ARROW_RIGHT_ICON);
+		downArrow.addMouseListener(new MouseAdapter()
+		{
+			private Color foreground;
+
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				toggleSettings();
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				foreground = title.getForeground(); // Remember the original foreground color
+				title.setForeground(ColorScheme.BRAND_ORANGE);
+				if (!settingsVisible) downArrow.setIcon(ARROW_RIGHT_HOVER_ICON);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				title.setForeground(foreground);
+				if (!settingsVisible) downArrow.setIcon(ARROW_RIGHT_ICON);
+			}
+		});
+
 		checkbox.setVisible(!settingsVisible);
 
 		JPanel leftActions = new JPanel();
 		leftActions.setLayout(new BoxLayout(leftActions, BoxLayout.X_AXIS));
+		leftActions.add(downArrow);
 		leftActions.add(title);
 		leftActions.add(externalNotice);
-		leftActions.add(downArrow);
 
 		JPanel rightActions = new JPanel();
 		rightActions.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
@@ -312,30 +343,27 @@ public class ConfigPanel extends JPanel
 		currentConfig.getSettings().forEach(currentSetting ->
 		{
 			List<String> keys = currentConfig.getSettings().stream().map(PluginSetting::getKey).collect(Collectors.toList());
-
 			PluginSetting presetSetting = getPresetSettings(presetSettings, currentSetting);
-
-			if (presetSettings != null)
+			String configName = currentConfig.getConfigName();
+			
+			if (presetSettings != null && !loopedInvalidConfigurations.contains(configName))
 			{
-				if (!loopedInvalidConfigurations.contains(currentConfig.getConfigName()))
+				presetSettings.forEach(setting ->
 				{
-					presetSettings.forEach(setting ->
+					if (!keys.contains(setting.getKey()))
 					{
-						if (!keys.contains(setting.getKey()))
+						settings.add(new ConfigRow(null, null, setting, plugin), constraints);
+						constraints.gridy++;
+
+						if (!settingsVisible)
 						{
-							settings.add(new ConfigRow(null, null, setting, plugin), constraints);
-							constraints.gridy++;
-
-							if (!settingsVisible)
-							{
-								notificationLabel.setVisible(true);
-								notificationLabel.setToolTipText("Preset contains invalid configurations for this plugin");
-							}
+							notificationLabel.setVisible(true);
+							notificationLabel.setToolTipText("Preset contains invalid configurations for this plugin");
 						}
-					});
+					}
+				});
 
-					loopedInvalidConfigurations.add(currentConfig.getConfigName());
-				}
+				loopedInvalidConfigurations.add(configName);
 			}
 			settings.add(new ConfigRow(currentConfig, currentSetting, presetSetting, plugin), constraints);
 			constraints.gridy++;
@@ -406,7 +434,7 @@ public class ConfigPanel extends JPanel
 		}
 
 		JPanel rightActions = new JPanel();
-		rightActions.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 0));
+		rightActions.setLayout(new FlowLayout(FlowLayout.LEFT, 14, 0));
 		rightActions.add(checkBox);
 
 		enabledRow.add(title, BorderLayout.CENTER);
