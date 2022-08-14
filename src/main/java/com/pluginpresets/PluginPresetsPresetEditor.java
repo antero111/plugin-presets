@@ -87,7 +87,7 @@ public class PluginPresetsPresetEditor
 	{
 		editedPreset.getPluginConfigs().forEach(configurations ->
 		{
-			if (currentConfig == null || configurations.getConfigName().equals(currentConfig.getConfigName()))
+			if (currentConfig == null || configurations.getName().equals(currentConfig.getName()))
 			{
 				configurations.getSettings().removeIf(s -> s.getKey().equals(setting.getKey()));
 
@@ -103,7 +103,7 @@ public class PluginPresetsPresetEditor
 	public void addSettingToEdited(PluginConfig currentConfig, PluginSetting setting)
 	{
 		if (editedPreset.getPluginConfigs().stream()
-			.noneMatch(c -> c.getConfigName().equals(currentConfig.getConfigName())))
+			.noneMatch(c -> c.getName().equals(currentConfig.getName())))
 		{
 			ArrayList<PluginSetting> settings = new ArrayList<>();
 			settings.add(setting);
@@ -115,7 +115,7 @@ public class PluginPresetsPresetEditor
 		{
 			editedPreset.getPluginConfigs().forEach(configuration ->
 			{
-				if (configuration.getConfigName().equals(currentConfig.getConfigName()))
+				if (configuration.getName().equals(currentConfig.getName()))
 				{
 					configuration.getSettings().add(setting);
 				}
@@ -127,7 +127,7 @@ public class PluginPresetsPresetEditor
 	public void addEnabledToEdited(PluginConfig currentConfig)
 	{
 		if (editedPreset.getPluginConfigs().stream()
-			.noneMatch(c -> c.getConfigName().equals(currentConfig.getConfigName())))
+			.noneMatch(c -> c.getName().equals(currentConfig.getName())))
 		{
 			ArrayList<PluginSetting> settings = new ArrayList<>();
 
@@ -139,7 +139,7 @@ public class PluginPresetsPresetEditor
 		{
 			editedPreset.getPluginConfigs().forEach(configuration ->
 			{
-				if (configuration.getConfigName().equals(currentConfig.getConfigName()))
+				if (configuration.getName().equals(currentConfig.getName()))
 				{
 					configuration.setEnabled(currentConfig.getEnabled());
 				}
@@ -152,7 +152,7 @@ public class PluginPresetsPresetEditor
 	{
 		editedPreset.getPluginConfigs().forEach(configurations ->
 		{
-			if (configurations.getConfigName().equals(currentConfig.getConfigName()))
+			if (configurations.getName().equals(currentConfig.getName()))
 			{
 				configurations.setEnabled(null);
 				if (configurations.getSettings().isEmpty())
@@ -210,7 +210,7 @@ public class PluginPresetsPresetEditor
 		{
 			PluginConfig currentConfig = currentConfigurations
 				.stream()
-				.filter(c -> c.getConfigName().equals(presetConfig.getConfigName()))
+				.filter(c -> c.getName().equals(presetConfig.getName()))
 				.findAny()
 				.orElse(null);
 

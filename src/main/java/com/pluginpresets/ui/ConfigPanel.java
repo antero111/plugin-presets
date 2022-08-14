@@ -462,18 +462,19 @@ public class ConfigPanel extends JPanel
 
 	private boolean isSettingsVisible()
 	{
-		return openSettings.contains(currentConfig.getConfigName());
+		return openSettings.contains(currentConfig.getName());
 	}
 
 	private void toggleSettings()
 	{
+		String name = currentConfig.getName();
 		if (settingsVisible)
 		{
-			openSettings.remove(currentConfig.getConfigName());
+			openSettings.remove(name);
 		}
 		else
 		{
-			openSettings.add(currentConfig.getConfigName());
+			openSettings.add(name);
 		}
 
 		plugin.rebuildPluginUi();
