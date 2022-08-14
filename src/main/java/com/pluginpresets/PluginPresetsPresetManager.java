@@ -78,9 +78,8 @@ public class PluginPresetsPresetManager
 	 */
 	public List<PluginPreset> getMatchingPresets()
 	{
-		HashMap<String, HashMap<String, String>> currentConfigurations = getCurrentConfigurationsMap();
-
 		ArrayList<PluginPreset> presets = new ArrayList<>();
+		List<PluginConfig> currentConfigurations = getCurrentConfigurations();
 
 		for (PluginPreset preset : plugin.getPluginPresets())
 		{
@@ -93,73 +92,55 @@ public class PluginPresetsPresetManager
 		return presets;
 	}
 
-	private boolean configurationsMatch(PluginPreset preset,
-										HashMap<String, HashMap<String, String>> currentConfigurations)
+	private boolean configurationsMatch(PluginPreset preset, List<PluginConfig> currentConfigurations)
 	{
-		for (PluginConfig config : preset.getPluginConfigs())
+
+		for (PluginConfig presetConfig : preset.getPluginConfigs())
 		{
-			if (config.getEnabled() != null)
+			PluginConfig currentConfig = getFromCurrentConfigs(presetConfig, currentConfigurations);
+			if (currentConfig == null)
 			{
-				try
-				{
-					if (!currentConfigurations.get(config.getConfigName()).get("enabled").equals(config.getEnabled().toString()))
-					{
-						return false;
-					}
-				}
-				catch (NullPointerException e)
-				{
-					continue;
-				}
+				continue;
 			}
-
-			try
-			{
-				HashMap<String, String> configurations = currentConfigurations.get(config.getConfigName());
-				if (!configurations.isEmpty())
-				{
-					for (PluginSetting setting : config.getSettings())
-					{
-						String string = configurations.get(setting.getKey());
-						if (string == null)
-						{
-							continue;
-						}
-
-						boolean equals = string.equals(setting.getValue());
-						if (setting.getValue() != null && !equals)
-						{
-							return false;
-						}
-					}
-				}
-			}
-			catch (NullPointerException e)
+			
+			if (presetConfig.getEnabled() != null && !presetConfig.getEnabled().equals(currentConfig.getEnabled()))
 			{
 				return false;
 			}
-		}
 
+			ArrayList<PluginSetting> currentSettings = currentConfig.getSettings();
+			// Compare plugin settings from preset to current config settings
+			for (PluginSetting presetConfigSetting : presetConfig.getSettings())
+			{
+				// Get current config setting for compared preset setting
+				PluginSetting currentConfigSetting = currentSettings.stream()
+					.filter(c -> c.getKey().equals(presetConfigSetting.getKey()))
+					.findFirst()
+					.orElse(null);
+
+				if (currentConfigSetting != null &&
+					presetConfigSetting.getValue() != null &&
+					!presetConfigSetting.getValue().equals(currentConfigSetting.getValue()))
+				{
+					return false;
+				}
+			}
+		}
 		return true;
 	}
 
-	private HashMap<String, HashMap<String, String>> getCurrentConfigurationsMap()
+	private PluginConfig getFromCurrentConfigs(PluginConfig presetConfig, List<PluginConfig> currentConfigurations)
 	{
-		HashMap<String, HashMap<String, String>> configurations = new HashMap<>();
-
-		getCurrentConfigurations().forEach(configuration ->
+		PluginConfig currentConfig = null;
+		for (PluginConfig config : currentConfigurations)
 		{
-			HashMap<String, String> settings = new HashMap<>();
-
-			configuration.getSettings().forEach(setting -> settings.put(setting.getKey(), setting.getValue()));
-
-			settings.put("enabled", configuration.getEnabled().toString());
-
-			configurations.put(configuration.getConfigName(), settings);
-
-		});
-
-		return configurations;
+			if (config.getName().equals(presetConfig.getName()))
+			{
+				currentConfig = config;
+				break;
+			}
+		}
+		return currentConfig;
 	}
 
 	/**
