@@ -62,6 +62,7 @@ public class PluginPresetsPresetManager
 	private final ConfigManager configManager;
 	private final RuneLiteConfig runeLiteConfig;
 	private final List<String> corePlugins;
+	private final List<PluginSetting> customConfigs;
 
 	public PluginPresetsPresetManager(PluginPresetsPlugin plugin, PluginManager pluginManager,
 									  ConfigManager configManager, RuneLiteConfig runeLiteConfig)
@@ -71,6 +72,7 @@ public class PluginPresetsPresetManager
 		this.configManager = configManager;
 		this.runeLiteConfig = runeLiteConfig;
 		this.corePlugins = getCorePlugins();
+		this.customConfigs = new ArrayList<>();
 	}
 
 	/**
@@ -102,7 +104,7 @@ public class PluginPresetsPresetManager
 			{
 				continue;
 			}
-			
+
 			if (presetConfig.getEnabled() != null && !presetConfig.getEnabled().equals(currentConfig.getEnabled()))
 			{
 				return false;
@@ -233,6 +235,7 @@ public class PluginPresetsPresetManager
 	public List<PluginConfig> getCurrentConfigurations()
 	{
 		ArrayList<PluginConfig> pluginConfigs = new ArrayList<>();
+		List<String> customConfigNames = customConfigs.stream().map(PluginSetting::getConfigName).collect(Collectors.toList());
 
 		pluginManager.getPlugins().forEach(p ->
 		{
@@ -268,12 +271,27 @@ public class PluginPresetsPresetManager
 
 							String configuration = configManager.getConfiguration(configDescriptor.getGroup().value(), i.key());
 							PluginSetting pluginSetting = new PluginSetting(settingName, i.key(),
-								configuration, null);
+								configuration, null, null);
 							pluginSettings.add(pluginSetting);
 						}
 
 					});
 
+				}
+
+				// Add custom settings to current RuneLite configurations
+				if (customConfigNames.contains(configName))
+				{
+					for (PluginSetting setting : customConfigs)
+					{
+						if (configName.equals(setting.getConfigName()))
+						{
+							String value = configManager.getConfiguration(setting.getCustomConfigName(), setting.getKey());
+							setting.setValue(value);
+
+							pluginSettings.add(setting);
+						}
+					}
 				}
 
 				PluginConfig pluginConfig = new PluginConfig(name, configName, enabled, pluginSettings);
@@ -293,22 +311,26 @@ public class PluginPresetsPresetManager
 			{
 				String configuration = configManager.getConfiguration(RuneLiteConfig.GROUP_NAME, i.key());
 				PluginSetting pluginSetting = new PluginSetting(i.name(), i.key(),
-					configuration, null);
+					configuration, null, null);
 				runelitePluginSettings.add(pluginSetting);
 			}
 		});
 
-		pluginConfigs.add(runeliteConfig);
-
-		pluginConfigs.forEach(config ->
+		if (customConfigNames.contains(RuneLiteConfig.GROUP_NAME))
 		{
-			if (config.getConfigName().equals("screenmarkerplugin"))
+			for (PluginSetting setting : customConfigs)
 			{
-				String configuration = configManager.getConfiguration("screenmarkers", "markers");
-				PluginSetting pluginSetting = new PluginSetting("Markers", "markers", configuration, "screenmarkers");
-				config.getSettings().add(pluginSetting);
+				if (RuneLiteConfig.GROUP_NAME.equals(setting.getConfigName()))
+				{
+					String value = configManager.getConfiguration(setting.getCustomConfigName(), setting.getKey());
+					setting.setValue(value);
+
+					runelitePluginSettings.add(setting);
+				}
 			}
-		});
+		}
+
+		pluginConfigs.add(runeliteConfig);
 
 		return pluginConfigs;
 	}
@@ -336,6 +358,33 @@ public class PluginPresetsPresetManager
 		Collection<Plugin> plugins = pluginManager.getPlugins();
 		List<String> names = plugins.stream().map(Plugin::getName).collect(Collectors.toList());
 		return names.contains(pluginName);
+	}
+
+	public void addCustomSetting(PluginSetting setting)
+	{
+		boolean anyMatch = customConfigs.stream().anyMatch(c -> c.getKey().equals(setting.getKey()));
+		if (!anyMatch)
+		{
+			customConfigs.add(setting);
+		}
+	}
+
+	public void removeCustomSetting(PluginSetting setting)
+	{
+		for (PluginSetting customSetting : customConfigs)
+		{
+			if (customSetting.getKey().equals(setting.getKey()))
+			{
+				customConfigs.remove(customSetting);
+				plugin.rebuildPluginUi();
+				return;
+			}
+		}
+	}
+
+	public String getConfiguration(String groupName, String key)
+	{
+		return configManager.getConfiguration(groupName, key);
 	}
 
 	private List<String> getCorePlugins()
@@ -428,7 +477,7 @@ public class PluginPresetsPresetManager
 			String name = legacyGetSettingName(configName, key, currentConfigurations);
 			if (name != null)
 			{
-				PluginSetting pluginSetting = new PluginSetting(name, key, value, null);
+				PluginSetting pluginSetting = new PluginSetting(name, key, value, null, null);
 				pluginSettings.add(pluginSetting);
 			}
 		});

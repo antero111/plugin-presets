@@ -37,7 +37,9 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.border.EmptyBorder;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
@@ -66,6 +68,7 @@ public class ConfigRow extends JPanel
 		NOTIFICATION_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(notificationImg, 20));
 	}
 
+	private final PluginPresetsPlugin plugin;
 	private final PluginSetting currentSetting;
 	private final PluginSetting presetSetting;
 	private final JLabel checkboxLabel = new JLabel();
@@ -75,6 +78,7 @@ public class ConfigRow extends JPanel
 	{
 		this.currentSetting = currentSetting;
 		this.presetSetting = presetSetting;
+		this.plugin = plugin;
 
 		presetHasConfigurations = presetHasConfigurations();
 		boolean configsMatch = configsMatch();
@@ -107,7 +111,7 @@ public class ConfigRow extends JPanel
 		if (presetHasConfigurations)
 		{
 			checkboxLabel.setIcon(CHECKBOX_CHECKED_ICON);
-			checkboxLabel.setToolTipText("Remove " + currentSetting.getName() + " from preset.");
+			checkboxLabel.setToolTipText("Remove " + presetSetting.getName() + " from preset.");
 			checkboxLabel.addMouseListener(new MouseAdapter()
 			{
 				@Override
@@ -180,13 +184,38 @@ public class ConfigRow extends JPanel
 			});
 		}
 
+		JLabel customSettingLabel = new JLabel();
+		if ((currentSetting != null && currentSetting.getCustomConfigName() != null) || (presetSetting != null && presetSetting.getCustomConfigName() != null))
+		{
+			customSettingLabel.setText("(Custom) ");
+			customSettingLabel.setToolTipText("User added custom setting");
+			customSettingLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+			title.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent mouseEvent)
+				{
+					if (mouseEvent.getButton() == MouseEvent.BUTTON3) // Right click
+					{
+						JPopupMenu popup = getMenuPopup();
+						title.setComponentPopupMenu(popup);
+					}
+				}
+			});
+		}
+
 		JPanel rightActions = new JPanel();
 		rightActions.setLayout(new FlowLayout(FlowLayout.LEFT, 14, 0));
 		JLabel updateLabel = new JLabel();
 		rightActions.add(updateLabel);
 		rightActions.add(checkboxLabel);
 
-		add(title, BorderLayout.CENTER);
+		JPanel leftActions = new JPanel();
+		leftActions.setLayout(new BorderLayout());
+		leftActions.add(title, BorderLayout.CENTER);
+		leftActions.add(customSettingLabel, BorderLayout.EAST);
+
+		add(leftActions, BorderLayout.CENTER);
 		add(rightActions, BorderLayout.EAST);
 	}
 
@@ -198,5 +227,24 @@ public class ConfigRow extends JPanel
 	private boolean configsMatch()
 	{
 		return presetHasConfigurations && presetSetting.equals(currentSetting);
+	}
+
+	private JPopupMenu getMenuPopup()
+	{
+		JMenuItem removeOption = new JMenuItem();
+		removeOption.setText("Remove custom setting");
+		removeOption.addActionListener(e -> removeSetting());
+
+		JPopupMenu popupMenu = new JPopupMenu();
+		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
+		popupMenu.add(removeOption);
+		return popupMenu;
+	}
+
+	private void removeSetting()
+	{
+		plugin.getPresetEditor().removeCustomSetting(currentSetting);
+		plugin.getPresetManager().removeCustomSetting(currentSetting);
+
 	}
 }

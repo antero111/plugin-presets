@@ -193,6 +193,7 @@ public class PluginPresetsStorage
 						pluginPreset.setLocal(true);
 						pluginPresetsFromFolder.add(pluginPreset);
 						loadedIds.add(id);
+						parseCustomSettings(pluginPreset);
 					}
 				}
 				else
@@ -203,6 +204,18 @@ public class PluginPresetsStorage
 		}
 
 		return pluginPresetsFromFolder;
+	}
+
+	private void parseCustomSettings(PluginPreset pluginPreset)
+	{
+		pluginPreset.getPluginConfigs().forEach(c ->
+			c.getSettings().forEach(s ->
+			{
+				if (s.getCustomConfigName() != null)
+				{
+					presetManager.addCustomSetting(s);
+				}
+			}));
 	}
 
 	private PluginPreset parsePluginPresetFrom(final File file) throws IOException

@@ -44,6 +44,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.border.EmptyBorder;
@@ -134,7 +135,15 @@ public class ConfigPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				toggleSettings();
+				if (mouseEvent.getButton() == MouseEvent.BUTTON3) // Right click
+				{
+					JPopupMenu importPopupMenu = getImportMenuPopup();
+					title.setComponentPopupMenu(importPopupMenu);
+				}
+				else
+				{
+					toggleSettings();
+				}
 			}
 
 			@Override
@@ -142,14 +151,20 @@ public class ConfigPanel extends JPanel
 			{
 				foreground = title.getForeground(); // Remember the original foreground color
 				title.setForeground(ColorScheme.BRAND_ORANGE);
-				if (!settingsVisible) downArrow.setIcon(ARROW_RIGHT_HOVER_ICON);
+				if (!settingsVisible)
+				{
+					downArrow.setIcon(ARROW_RIGHT_HOVER_ICON);
+				}
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
 				title.setForeground(foreground);
-				if (!settingsVisible) downArrow.setIcon(ARROW_RIGHT_ICON);
+				if (!settingsVisible)
+				{
+					downArrow.setIcon(ARROW_RIGHT_ICON);
+				}
 			}
 		});
 
@@ -160,6 +175,15 @@ public class ConfigPanel extends JPanel
 			externalNotice.setToolTipText("Plugin from Plugin Hub");
 			externalNotice.setBorder(new EmptyBorder(0, 3, 0, 0));
 			externalNotice.setForeground(ColorScheme.BRAND_ORANGE);
+		}
+
+		JLabel customNotice = new JLabel();
+		if (containsCustomSettings())
+		{
+			customNotice.setText("(C)");
+			customNotice.setToolTipText("Contains custom settings");
+			customNotice.setBorder(new EmptyBorder(0, 3, 0, 0));
+			customNotice.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		}
 
 		JLabel statusLabel = new JLabel();
@@ -283,14 +307,20 @@ public class ConfigPanel extends JPanel
 			{
 				foreground = title.getForeground(); // Remember the original foreground color
 				title.setForeground(ColorScheme.BRAND_ORANGE);
-				if (!settingsVisible) downArrow.setIcon(ARROW_RIGHT_HOVER_ICON);
+				if (!settingsVisible)
+				{
+					downArrow.setIcon(ARROW_RIGHT_HOVER_ICON);
+				}
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
 				title.setForeground(foreground);
-				if (!settingsVisible) downArrow.setIcon(ARROW_RIGHT_ICON);
+				if (!settingsVisible)
+				{
+					downArrow.setIcon(ARROW_RIGHT_ICON);
+				}
 			}
 		});
 
@@ -301,6 +331,7 @@ public class ConfigPanel extends JPanel
 		leftActions.add(downArrow);
 		leftActions.add(title);
 		leftActions.add(externalNotice);
+		leftActions.add(customNotice);
 
 		JPanel rightActions = new JPanel();
 		rightActions.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
@@ -320,6 +351,19 @@ public class ConfigPanel extends JPanel
 
 		add(topActions, BorderLayout.NORTH);
 		add(settings, BorderLayout.CENTER);
+	}
+
+	private boolean containsCustomSettings()
+	{
+		for (PluginSetting s : currentConfig.getSettings())
+		{
+			if (s.getCustomConfigName() != null)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private void createSettings()
@@ -345,7 +389,7 @@ public class ConfigPanel extends JPanel
 			List<String> keys = currentConfig.getSettings().stream().map(PluginSetting::getKey).collect(Collectors.toList());
 			PluginSetting presetSetting = getPresetSettings(presetSettings, currentSetting);
 			String configName = currentConfig.getConfigName();
-			
+
 			if (presetSettings != null && !loopedInvalidConfigurations.contains(configName))
 			{
 				presetSettings.forEach(setting ->
@@ -463,6 +507,29 @@ public class ConfigPanel extends JPanel
 	private boolean isSettingsVisible()
 	{
 		return openSettings.contains(currentConfig.getName());
+	}
+
+	private JPopupMenu getImportMenuPopup()
+	{
+		JMenuItem importOption = new JMenuItem();
+		importOption.setText("Add custom setting");
+		importOption.addActionListener(e -> promptPresetCreation());
+
+		JPopupMenu popupMenu = new JPopupMenu();
+		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
+		popupMenu.add(importOption);
+		return popupMenu;
+	}
+
+	private void promptPresetCreation()
+	{
+		String customPresetName = JOptionPane.showInputDialog(ConfigPanel.this,
+			"Format: configName.settingKey", "Add custom setting to " + currentConfig.getName(), JOptionPane.PLAIN_MESSAGE);
+
+		if (customPresetName != null && customPresetName.length() > 0)
+		{
+			plugin.getPresetEditor().addCustomSettingToEdited(currentConfig, customPresetName);
+		}
 	}
 
 	private void toggleSettings()

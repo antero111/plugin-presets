@@ -28,7 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class PluginPresetsPresetEditor
 {
 	private final PluginPresetsPlugin plugin;
@@ -122,6 +124,66 @@ public class PluginPresetsPresetEditor
 			});
 		}
 		updateEditedPreset();
+	}
+
+	public void addCustomSettingToEdited(PluginConfig currentConfig, String customSetting)
+	{
+		String configName;
+		String key;
+
+		// Parse user input
+		try
+		{
+			String[] split = customSetting.split("\\.");
+			configName = split[0];
+			key = split[1].split("=")[0];
+		}
+		catch (Exception e)
+		{
+			log.warn("Failed to add custom setting " + customSetting + " to preset. Reason: " + e.getMessage());
+			return;
+		}
+
+		boolean added = false;
+		for (PluginConfig configuration : editedPreset.getPluginConfigs())
+		{
+			boolean equals = currentConfig.getConfigName().equals(configuration.getConfigName());
+			if (!added && equals)
+			{
+				String value = plugin.getPresetManager().getConfiguration(configName, key);
+				PluginSetting setting = new PluginSetting(Utils.splitAndCapitalize(key), key, value, configName, configuration.getConfigName());
+				
+				boolean present = configuration.getSettings().stream().anyMatch(c -> c.getKey().equals(setting.getKey()));
+				if (!present)
+				{
+					configuration.getSettings().add(setting);
+					log.info("Added custom setting " + customSetting + " to preset " + editedPreset.getName());
+				}
+				else
+				{
+					log.info("Custom setting " + customSetting + " already exists in preset " + editedPreset.getName());
+				}
+				added = true;
+			}
+		}
+
+		if (!added)
+		{
+			log.warn("Failed to add custom setting " + customSetting + " to preset.");
+		}
+
+		updateEditedPreset();
+	}
+
+	public void removeCustomSetting(PluginSetting setting)
+	{
+		for (PluginConfig config : editedPreset.getPluginConfigs())
+		{
+			if (config.getConfigName().equals(setting.getConfigName()))
+			{
+				removeSettingFromEdited(config, setting);
+			}
+		}
 	}
 
 	public void addEnabledToEdited(PluginConfig currentConfig)
@@ -244,7 +306,8 @@ public class PluginPresetsPresetEditor
 
 	public void addAll(List<PluginConfig> pluginConfigs)
 	{
-		for (PluginConfig pluginConfig : pluginConfigs) {
+		for (PluginConfig pluginConfig : pluginConfigs)
+		{
 			addConfigurationToEdited(pluginConfig, true);
 		}
 		updateEditedPreset();
@@ -252,7 +315,8 @@ public class PluginPresetsPresetEditor
 
 	public void removeAll(List<PluginConfig> pluginConfigs)
 	{
-		for (PluginConfig pluginConfig : pluginConfigs) {
+		for (PluginConfig pluginConfig : pluginConfigs)
+		{
 			removeConfigurationFromEdited(pluginConfig, true);
 		}
 		updateEditedPreset();

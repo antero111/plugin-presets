@@ -43,7 +43,7 @@ public class Utils
 	 */
 	public static String splitAndCapitalize(final String string)
 	{
-		return WordUtils.capitalize(string.replaceAll("\\d+", "").replaceAll("(.)([A-Z])", "$1 $2"));
+		return WordUtils.capitalize(string.replaceAll("\\W", "").replaceAll("(.)([A-Z])", "$1 $2"));
 	}
 
 	/**
