@@ -40,14 +40,28 @@ To "install" new presets, paste the .json file to the preset folder and then pre
 
 Note that external presets might contain configurations different to yours, so when enabling presets from others, they might have changed e.g. keybinds that you might have set up differently. In the edit panel, you can view the plugins that the preset has some configurations. Alternatively you can view the raw [json](https://en.wikipedia.org/wiki/JSON) by copying it and pasting it to a [json viewer](http://jsonviewer.stack.hu/). **When sending presets to others, make sure to always double check for sensetive information!**
 
+### Custom settings
+
+Some plugins have settings that are not configurable from the configurations tab such as screen markers or object indicators. You can add those settings that are not included in presets by right clicking the config name and choosing _Add custom setting_.
+
+Custom settings require the configs _configName_ and the custom settings _settingKey_. You can find those from your `settings.properties` file in `~/.runelite/` folder. **There is no guaranteed that custom settings work correctly for some plugins since mostly those settings are not meant to be changed on the fly. Use at your own risk.**
+
+<details>
+  <summary>Adding screen markers to presets</summary>
+    Screen markers are not added to presets automatically since you can't edit markers from the configurations tab.
+    To add markers to your presets, add custom setting "screenmarkers.markers" to your screen markers configurations and then "Markers" setting should be added to the preset.
+
+![Update demo](readme_visuals/markers_demo.gif)
+</details>
+
 ## Issues
 
 If you've experienced an issue with Plugin Presets, or have a recommendation on how to improve it, please [create an issue](https://github.com/antero111/plugin-presets/issues/new) or [start a discussion](https://github.com/antero111/plugin-presets/discussions/new) with the relevant details.
 
-### License
+## License
 
 See [LICENSE](LICENSE).
 
-### Changelog
+## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md).
