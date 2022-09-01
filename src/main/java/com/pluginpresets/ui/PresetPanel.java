@@ -26,7 +26,8 @@ package com.pluginpresets.ui;
 
 import com.pluginpresets.PluginPreset;
 import com.pluginpresets.PluginPresetsPlugin;
-import com.pluginpresets.Utils;
+import com.pluginpresets.PluginPresetsPresetEditor;
+import com.pluginpresets.PluginPresetsUtils;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -480,7 +481,7 @@ class PresetPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				plugin.editPreset(preset);
+				editPreset(preset);
 			}
 
 			@Override
@@ -547,7 +548,7 @@ class PresetPanel extends JPanel
 
 	private boolean nameIsValid(String name)
 	{
-		return !nameInput.getText().equals("") && !Utils.stringContainsInvalidCharacters(name);
+		return !nameInput.getText().equals("") && !PluginPresetsUtils.stringContainsInvalidCharacters(name);
 	}
 
 	private void setDefaultPresetName()
@@ -677,5 +678,11 @@ class PresetPanel extends JPanel
 	{
 		keybind.setText("No keybind set");
 		keybind.setToolTipText("Save to clear keybind");
+	}
+
+	public void editPreset(PluginPreset preset)
+	{
+		plugin.setPresetEditor(new PluginPresetsPresetEditor(plugin, preset));
+		plugin.rebuildPluginUi();
 	}
 }

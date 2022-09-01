@@ -29,9 +29,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.pluginpresets.ui.PluginPresetsPluginPanel;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -105,8 +108,6 @@ public class PluginPresetsPlugin extends Plugin
 
 	private PluginPresetsPluginPanel pluginPanel;
 
-	private PluginPresetsSharingManager sharingManager;
-
 	@Getter
 	private PluginPresetsPresetManager presetManager;
 
@@ -150,9 +151,8 @@ public class PluginPresetsPlugin extends Plugin
 		PluginPresetsStorage.createPresetFolder();
 
 		pluginPanel = new PluginPresetsPluginPanel(this);
-		sharingManager = new PluginPresetsSharingManager(this, pluginPanel);
 		presetManager = new PluginPresetsPresetManager(this, pluginManager, configManager, runeLiteConfig);
-		presetStorage = new PluginPresetsStorage(presetManager);
+		presetStorage = new PluginPresetsStorage(this, presetManager);
 
 		loadPresets();
 		savePresets();
@@ -185,7 +185,6 @@ public class PluginPresetsPlugin extends Plugin
 		presetStorage.deletePresetFolderIfEmpty();
 
 		pluginPanel = null;
-		sharingManager = null;
 		presetManager = null;
 		presetStorage = null;
 		navigationButton = null;
@@ -329,35 +328,40 @@ public class PluginPresetsPlugin extends Plugin
 
 	public void importPresetFromClipboard()
 	{
-		PluginPreset newPreset = sharingManager.importPresetFromClipboard();
+		String clipboardText = PluginPresetsUtils.getClipboardText();
+		if (clipboardText == null)
+		{
+			renderPanelErrorNotification("Unable read to clipboard content.");
+			return;
+		}
+
+		PluginPreset newPreset = presetStorage.parsePluginPresetFrom(clipboardText);
 		if (newPreset != null)
 		{
+			newPreset.setId(Instant.now().toEpochMilli());
+			newPreset.setName(PluginPresetsUtils.createNameWithSuffixIfNeeded(newPreset.getName(), getPluginPresets()));
+			newPreset.setLocal(true); // Presets are imported to /presets folder 
+
 			pluginPresets.add(newPreset);
 			savePresets();
 			refreshPresets();
 		}
-
 	}
 
 	public void exportPresetToClipboard(final PluginPreset preset)
 	{
-		sharingManager.exportPresetToClipboard(preset);
+		final String json = gson.toJson(preset);
+		final StringSelection contents = new StringSelection(json);
+		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(contents, null);
+	}
+
+	public void renderPanelErrorNotification(String message)
+	{
+		pluginPanel.renderNotification(message);
 	}
 
 	public void rebuildPluginUi()
 	{
 		pluginPanel.rebuild();
-	}
-
-	public void editPreset(PluginPreset preset)
-	{
-		setPresetEditor(new PluginPresetsPresetEditor(this, preset));
-		rebuildPluginUi();
-	}
-
-	public void stopEdit()
-	{
-		setPresetEditor(null);
-		rebuildPluginUi();
 	}
 }

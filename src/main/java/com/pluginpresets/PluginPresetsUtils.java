@@ -24,11 +24,16 @@
  */
 package com.pluginpresets;
 
+import com.google.common.base.Strings;
+import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
 import org.apache.commons.text.WordUtils;
 
-public class Utils
+public class PluginPresetsUtils
 {
 	/**
 	 * Checks whether given string is valid for a preset filename.
@@ -80,6 +85,58 @@ public class Utils
 		else
 		{
 			return message + " plugins.";
+		}
+	}
+
+	public static String getClipboardText()
+	{
+		final String clipboardText;
+		try
+		{
+			clipboardText = Toolkit.getDefaultToolkit()
+				.getSystemClipboard()
+				.getData(DataFlavor.stringFlavor)
+				.toString();
+		}
+		catch (IOException | UnsupportedFlavorException ignore)
+		{
+			return null;
+		}
+
+		if (Strings.isNullOrEmpty(clipboardText))
+		{
+			return null;
+		}
+
+		return clipboardText;
+	}
+
+	public static String createNameWithSuffixIfNeeded(String name, List<PluginPreset> pluginPresets)
+	{
+		int duplicates = 0;
+		for (PluginPreset preset : pluginPresets)
+		{
+			if (preset.getName().contains(name))
+			{
+				duplicates++;
+			}
+		}
+
+		if (duplicates > 0)
+		{
+			boolean endWithSuffix = name.charAt((name.length() - 2)) == '(' && name.endsWith(")");
+			if (endWithSuffix)
+			{
+				return String.format("%s (%d)", name.substring(0, name.length() - 3), duplicates);
+			}
+			else
+			{
+				return String.format("%s (%d)", name, duplicates);
+			}
+		}
+		else
+		{
+			return name;
 		}
 	}
 }

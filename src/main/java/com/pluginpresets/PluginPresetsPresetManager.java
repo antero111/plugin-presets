@@ -266,7 +266,7 @@ public class PluginPresetsPresetManager
 							String settingName = i.name();
 							if (i.name().equals(""))
 							{
-								settingName = Utils.splitAndCapitalize(settingName);
+								settingName = PluginPresetsUtils.splitAndCapitalize(settingName);
 							}
 
 							String configuration = configManager.getConfiguration(configDescriptor.getGroup().value(), i.key());

@@ -151,7 +151,7 @@ public class PluginPresetsPresetEditor
 			if (!added && equals)
 			{
 				String value = plugin.getPresetManager().getConfiguration(configName, key);
-				PluginSetting setting = new PluginSetting(Utils.splitAndCapitalize(key), key, value, configName, configuration.getConfigName());
+				PluginSetting setting = new PluginSetting(PluginPresetsUtils.splitAndCapitalize(key), key, value, configName, configuration.getConfigName());
 				
 				boolean present = configuration.getSettings().stream().anyMatch(c -> c.getKey().equals(setting.getKey()));
 				if (!present)

@@ -270,7 +270,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				plugin.stopEdit();
+				stopEdit();
 				emptyBar();
 				rebuild();
 			}
@@ -725,12 +725,14 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		return popupMenu;
 	}
 
-	private void enableAllVisible() {
+	private void enableAllVisible()
+	{
 		List<PluginConfig> configs = filterIfSearchKeyword(filtered);
 		plugin.getPresetEditor().addAll(configs);
 	}
 
-	private void disableAllVisible() {
+	private void disableAllVisible()
+	{
 		List<PluginConfig> configs = filterIfSearchKeyword(filtered);
 		plugin.getPresetEditor().removeAll(configs);
 	}
@@ -771,5 +773,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private void emptyBar()
 	{
 		searchBar.setText("");
+	}
+
+	private void stopEdit()
+	{
+		plugin.setPresetEditor(null);
 	}
 }

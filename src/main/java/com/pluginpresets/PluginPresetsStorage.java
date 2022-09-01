@@ -44,15 +44,18 @@ public class PluginPresetsStorage
 {
 	private static final File PRESETS_DIR = PluginPresetsPlugin.PRESETS_DIR;
 
+	private final PluginPresetsPlugin plugin;
+
 	private final List<String> failedFileNames = new ArrayList<>();
 
 	private final Gson gson = new Gson();
 
 	private final PluginPresetsPresetManager presetManager;
 
-	public PluginPresetsStorage(PluginPresetsPresetManager presetManager)
+	public PluginPresetsStorage(PluginPresetsPlugin plugin, PluginPresetsPresetManager presetManager)
 	{
 		this.presetManager = presetManager;
+		this.plugin = plugin;
 	}
 
 	private static File createNewPresetFileWithCustomSuffix(final PluginPreset pluginPreset, final int fileNumber)
@@ -220,11 +223,11 @@ public class PluginPresetsStorage
 
 	private PluginPreset parsePluginPresetFrom(final File file) throws IOException
 	{
-		PluginPreset pluginPreset;
+		PluginPreset newPreset;
 
 		try (Reader reader = new FileReader(file))
 		{
-			pluginPreset = gson.fromJson(reader, new TypeToken<PluginPreset>()
+			newPreset = gson.fromJson(reader, new TypeToken<PluginPreset>()
 			{
 			}.getType());
 		}
@@ -234,7 +237,7 @@ public class PluginPresetsStorage
 			return null;
 		}
 
-		if (pluginPreset.getName() == null || pluginPreset.getPluginConfigs() == null)
+		if (newPreset.getName() == null || newPreset.getPluginConfigs() == null)
 		{
 			// Something wrong with the parsed preset
 			// Check if file contains old styled preset
@@ -254,16 +257,41 @@ public class PluginPresetsStorage
 			if (legacyPluginPreset != null)
 			{
 				log.info(String.format("Converting legacy styled preset to new plugin preset format, file: %s, preset: %s", file.getAbsolutePath(), legacyPluginPreset));
-				pluginPreset = presetManager.convertLegacyPreset(legacyPluginPreset);
-				return pluginPreset;
+				newPreset = presetManager.convertLegacyPreset(legacyPluginPreset);
+				return newPreset;
 			}
 			else
 			{
-				log.warn(String.format("Plugin Preset data is malformed in file and could not be loaded %s, %s", file.getAbsolutePath(), pluginPreset));
+				log.warn(String.format("Plugin Preset data is malformed in file and could not be loaded %s, %s", file.getAbsolutePath(), newPreset));
 			}
 			return null;
 		}
 
-		return pluginPreset;
+		return newPreset;
+	}
+
+	public PluginPreset parsePluginPresetFrom(String string)
+	{
+		PluginPreset newPreset;
+
+		try
+		{
+			newPreset = gson.fromJson(string, new TypeToken<PluginPreset>()
+			{
+			}.getType());
+		}
+		catch (JsonSyntaxException e)
+		{
+			plugin.renderPanelErrorNotification("You do not have any valid presets in your clipboard.");
+			return null;
+		}
+
+		if (newPreset == null || newPreset.getName() == null || newPreset.getPluginConfigs() == null)
+		{
+			plugin.renderPanelErrorNotification("You do not have any valid presets in your clipboard.");
+			return null;
+		}
+
+		return newPreset;
 	}
 }

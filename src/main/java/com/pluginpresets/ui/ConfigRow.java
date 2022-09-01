@@ -27,7 +27,7 @@ package com.pluginpresets.ui;
 import com.pluginpresets.PluginConfig;
 import com.pluginpresets.PluginPresetsPlugin;
 import com.pluginpresets.PluginSetting;
-import com.pluginpresets.Utils;
+import com.pluginpresets.PluginPresetsUtils;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -89,13 +89,13 @@ public class ConfigRow extends JPanel
 		JLabel title = new JLabel();
 		if (currentSetting == null)
 		{
-			title.setText(Utils.splitAndCapitalize(presetSetting.getKey()));
+			title.setText(PluginPresetsUtils.splitAndCapitalize(presetSetting.getKey()));
 			title.setForeground(ColorScheme.PROGRESS_ERROR_COLOR);
 			title.setToolTipText(presetSetting.getKey());
 		}
 		else if (currentSetting.getName().length() == 0)
 		{
-			title.setText(Utils.splitAndCapitalize(currentSetting.getKey()));
+			title.setText(PluginPresetsUtils.splitAndCapitalize(currentSetting.getKey()));
 			title.setToolTipText(currentSetting.getKey());
 		}
 		else
