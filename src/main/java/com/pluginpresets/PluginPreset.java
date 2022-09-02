@@ -24,10 +24,10 @@
  */
 package com.pluginpresets;
 
+import java.time.Instant;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import net.runelite.client.config.Keybind;
 
 /**
@@ -39,14 +39,34 @@ import net.runelite.client.config.Keybind;
  * @param local         Used to identify whether the preset is stored in /presets or settings.properties
  * @param pluginConfigs List of saved plugin configurations.
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class PluginPreset
 {
+	@Getter
+	@Setter
 	private long id;
+
+	@Getter
+	@Setter
 	private String name;
+
+	@Getter
+	@Setter
 	private Keybind keybind;
+
+	@Getter
+	@Setter
 	private Boolean local;
+
+	@Getter
+	@Setter
 	private List<PluginConfig> pluginConfigs;
+
+	public PluginPreset(String name, List<PluginConfig> pluginConfigs)
+	{
+		this.id = Instant.now().toEpochMilli();
+		this.name = name;
+		this.keybind = null;
+		this.local = true;
+		this.pluginConfigs = pluginConfigs;
+	}
 }
