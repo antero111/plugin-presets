@@ -70,6 +70,51 @@ public class PluginPreset
 		this.pluginConfigs = pluginConfigs;
 	}
 
+	public Boolean match(List<PluginConfig> currentConfigurations)
+	{
+		for (PluginConfig presetConfig : pluginConfigs)
+		{
+			PluginConfig currentConfig = null;
+			for (PluginConfig config : currentConfigurations)
+			{
+				if (config.getName().equals(presetConfig.getName()))
+				{
+					currentConfig = config;
+					break;
+				}
+			}
+
+			if (currentConfig == null)
+			{
+				continue;
+			}
+
+			if (presetConfig.getEnabled() != null && !presetConfig.getEnabled().equals(currentConfig.getEnabled()))
+			{
+				return false;
+			}
+
+			List<PluginSetting> currentSettings = currentConfig.getSettings();
+			// Compare plugin settings from preset to current config settings
+			for (PluginSetting presetConfigSetting : presetConfig.getSettings())
+			{
+				// Get current config setting for compared preset setting
+				PluginSetting currentConfigSetting = currentSettings.stream()
+					.filter(c -> c.getKey().equals(presetConfigSetting.getKey()))
+					.findFirst()
+					.orElse(null);
+
+				if (currentConfigSetting != null &&
+					presetConfigSetting.getValue() != null &&
+					!presetConfigSetting.getValue().equals(currentConfigSetting.getValue()))
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
 	public PluginConfig getConfig(final PluginConfig searchedConfig)
 	{
 		PluginConfig presetConfig = null;

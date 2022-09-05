@@ -75,76 +75,6 @@ public class PluginPresetsPresetManager
 	}
 
 	/**
-	 * Returns a list of presets matching current configuration.
-	 */
-	public List<PluginPreset> getMatchingPresets()
-	{
-		ArrayList<PluginPreset> presets = new ArrayList<>();
-		List<PluginConfig> currentConfigurations = getCurrentConfigurations();
-
-		for (PluginPreset preset : plugin.getPluginPresets())
-		{
-			if (configurationsMatch(preset, currentConfigurations))
-			{
-				presets.add(preset);
-			}
-		}
-
-		return presets;
-	}
-
-	private boolean configurationsMatch(PluginPreset preset, List<PluginConfig> currentConfigurations)
-	{
-
-		for (PluginConfig presetConfig : preset.getPluginConfigs())
-		{
-			PluginConfig currentConfig = getFromCurrentConfigs(presetConfig, currentConfigurations);
-			if (currentConfig == null)
-			{
-				continue;
-			}
-
-			if (presetConfig.getEnabled() != null && !presetConfig.getEnabled().equals(currentConfig.getEnabled()))
-			{
-				return false;
-			}
-
-			List<PluginSetting> currentSettings = currentConfig.getSettings();
-			// Compare plugin settings from preset to current config settings
-			for (PluginSetting presetConfigSetting : presetConfig.getSettings())
-			{
-				// Get current config setting for compared preset setting
-				PluginSetting currentConfigSetting = currentSettings.stream()
-					.filter(c -> c.getKey().equals(presetConfigSetting.getKey()))
-					.findFirst()
-					.orElse(null);
-
-				if (currentConfigSetting != null &&
-					presetConfigSetting.getValue() != null &&
-					!presetConfigSetting.getValue().equals(currentConfigSetting.getValue()))
-				{
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-
-	private PluginConfig getFromCurrentConfigs(PluginConfig presetConfig, List<PluginConfig> currentConfigurations)
-	{
-		PluginConfig currentConfig = null;
-		for (PluginConfig config : currentConfigurations)
-		{
-			if (config.getName().equals(presetConfig.getName()))
-			{
-				currentConfig = config;
-				break;
-			}
-		}
-		return currentConfig;
-	}
-
-	/**
 	 * Loads settings from given preset.
 	 */
 	public void loadPreset(PluginPreset preset)
@@ -352,14 +282,16 @@ public class PluginPresetsPresetManager
 
 	public boolean isExternalPluginInstalled(String pluginName)
 	{
-		Collection<Plugin> plugins = pluginManager.getPlugins();
-		List<String> names = plugins.stream().map(Plugin::getName).collect(Collectors.toList());
-		return names.contains(pluginName);
+		return pluginManager.getPlugins().stream()
+			.map(Plugin::getName).collect(Collectors.toList())
+			.contains(pluginName);
 	}
 
 	public void addCustomSetting(PluginSetting setting)
 	{
-		boolean anyMatch = customConfigs.stream().anyMatch(c -> c.getKey().equals(setting.getKey()));
+		boolean anyMatch = customConfigs.stream()
+			.anyMatch(c -> c.getKey()
+			.equals(setting.getKey()));
 		if (!anyMatch)
 		{
 			customConfigs.add(setting);

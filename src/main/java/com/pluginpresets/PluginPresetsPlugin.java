@@ -219,7 +219,16 @@ public class PluginPresetsPlugin extends Plugin
 
 	public List<PluginPreset> getMatchingPresets()
 	{
-		return presetManager.getMatchingPresets();
+		List<PluginConfig> currentConfigurations = presetManager.getCurrentConfigurations();
+		ArrayList<PluginPreset> matchingPresets = new ArrayList<>();
+		for (PluginPreset preset : pluginPresets)
+		{
+			if (preset.match(currentConfigurations))
+			{
+				matchingPresets.add(preset);
+			}
+		}
+		return matchingPresets;
 	}
 
 	public void updateConfig()
