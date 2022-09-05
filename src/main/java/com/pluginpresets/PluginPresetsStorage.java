@@ -44,18 +44,15 @@ public class PluginPresetsStorage
 {
 	private static final File PRESETS_DIR = PluginPresetsPlugin.PRESETS_DIR;
 
-	private final PluginPresetsPlugin plugin;
-
 	private final List<String> failedFileNames = new ArrayList<>();
 
 	private final Gson gson = new Gson();
 
 	private final PluginPresetsPresetManager presetManager;
 
-	public PluginPresetsStorage(PluginPresetsPlugin plugin, PluginPresetsPresetManager presetManager)
+	public PluginPresetsStorage(PluginPresetsPresetManager presetManager)
 	{
 		this.presetManager = presetManager;
-		this.plugin = plugin;
 	}
 
 	private static File createNewPresetFileWithCustomSuffix(final PluginPreset pluginPreset, final int fileNumber)
@@ -282,13 +279,11 @@ public class PluginPresetsStorage
 		}
 		catch (JsonSyntaxException e)
 		{
-			plugin.renderPanelErrorNotification("You do not have any valid presets in your clipboard.");
 			return null;
 		}
 
 		if (newPreset == null || newPreset.getName() == null || newPreset.getPluginConfigs() == null)
 		{
-			plugin.renderPanelErrorNotification("You do not have any valid presets in your clipboard.");
 			return null;
 		}
 

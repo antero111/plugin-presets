@@ -152,7 +152,7 @@ public class PluginPresetsPlugin extends Plugin
 
 		pluginPanel = new PluginPresetsPluginPanel(this);
 		presetManager = new PluginPresetsPresetManager(this, pluginManager, configManager, runeLiteConfig);
-		presetStorage = new PluginPresetsStorage(this, presetManager);
+		presetStorage = new PluginPresetsStorage(presetManager);
 
 		loadPresets();
 		savePresets();
@@ -345,6 +345,10 @@ public class PluginPresetsPlugin extends Plugin
 			pluginPresets.add(newPreset);
 			savePresets();
 			refreshPresets();
+		}
+		else
+		{
+			renderPanelErrorNotification("You do not have any valid presets in your clipboard.");
 		}
 	}
 
