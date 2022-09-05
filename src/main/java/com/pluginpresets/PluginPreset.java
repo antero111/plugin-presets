@@ -31,7 +31,7 @@ import lombok.Setter;
 import net.runelite.client.config.Keybind;
 
 /**
- * Class depicting single PluginPreset file. 
+ * Class depicting single PluginPreset file.
  *
  * @param id            Time of creation used as id
  * @param name          Name of the preset
@@ -68,5 +68,24 @@ public class PluginPreset
 		this.keybind = null;
 		this.local = true;
 		this.pluginConfigs = pluginConfigs;
+	}
+
+	public PluginConfig getConfig(final PluginConfig searchedConfig)
+	{
+		PluginConfig presetConfig = null;
+		for (PluginConfig config : pluginConfigs)
+		{
+			if (config.getName().equals(searchedConfig.getName()))
+			{
+				presetConfig = config;
+				break;
+			}
+		}
+		return presetConfig;
+	}
+
+	public boolean isEmpty()
+	{
+		return pluginConfigs.isEmpty();
 	}
 }

@@ -251,7 +251,7 @@ class PresetPanel extends JPanel
 			loadLabel.setIcon(SWITCH_ON_ICON);
 			loadLabel.setToolTipText("Current configurations match this preset");
 
-			emptyPreset = preset.getPluginConfigs().isEmpty();
+			emptyPreset = preset.isEmpty();
 			if (emptyPreset)
 			{
 				notice.setFont(FontManager.getRunescapeSmallFont());

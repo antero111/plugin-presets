@@ -26,8 +26,10 @@ package com.pluginpresets.ui;
 
 import com.pluginpresets.PluginConfig;
 import com.pluginpresets.PluginPresetsPlugin;
-import com.pluginpresets.PluginSetting;
+import com.pluginpresets.PluginPresetsPresetEditor;
+import com.pluginpresets.PluginPresetsPresetManager;
 import com.pluginpresets.PluginPresetsUtils;
+import com.pluginpresets.PluginSetting;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -68,17 +70,20 @@ public class ConfigRow extends JPanel
 		NOTIFICATION_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(notificationImg, 20));
 	}
 
-	private final PluginPresetsPlugin plugin;
 	private final PluginSetting currentSetting;
 	private final PluginSetting presetSetting;
 	private final JLabel checkboxLabel = new JLabel();
 	private final boolean presetHasConfigurations;
+	private final PluginPresetsPresetManager presetManager;
+	private final PluginPresetsPresetEditor presetEditor;
 
 	public ConfigRow(PluginConfig currentConfig, PluginSetting currentSetting, PluginSetting presetSetting, PluginPresetsPlugin plugin)
 	{
 		this.currentSetting = currentSetting;
 		this.presetSetting = presetSetting;
-		this.plugin = plugin;
+
+		presetManager = plugin.getPresetManager();
+		presetEditor = plugin.getPresetEditor();
 
 		presetHasConfigurations = presetHasConfigurations();
 		boolean configsMatch = configsMatch();
@@ -117,7 +122,7 @@ public class ConfigRow extends JPanel
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
-					plugin.getPresetEditor().removeSettingFromEdited(currentConfig, presetSetting);
+					presetEditor.removeSettingFromEdited(currentConfig, presetSetting);
 				}
 
 				@Override
@@ -152,7 +157,7 @@ public class ConfigRow extends JPanel
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
-					plugin.getPresetEditor().removeSettingFromEdited(null, presetSetting);
+					presetEditor.removeSettingFromEdited(null, presetSetting);
 				}
 
 				@Override
@@ -178,14 +183,15 @@ public class ConfigRow extends JPanel
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
-					plugin.getPresetEditor().addSettingToEdited(currentConfig, currentSetting);
+					presetEditor.addSettingToEdited(currentConfig, currentSetting);
 
 				}
 			});
 		}
 
 		JLabel customSettingLabel = new JLabel();
-		if ((currentSetting != null && currentSetting.getCustomConfigName() != null) || (presetSetting != null && presetSetting.getCustomConfigName() != null))
+		boolean isCustomSetting = (currentSetting != null && currentSetting.getCustomConfigName() != null) || (presetSetting != null && presetSetting.getCustomConfigName() != null);
+		if (isCustomSetting)
 		{
 			customSettingLabel.setText("(Custom) ");
 			customSettingLabel.setToolTipText("User added custom setting");
@@ -243,8 +249,7 @@ public class ConfigRow extends JPanel
 
 	private void removeSetting()
 	{
-		plugin.getPresetEditor().removeCustomSetting(currentSetting);
-		plugin.getPresetManager().removeCustomSetting(currentSetting);
-
+		presetEditor.removeCustomSetting(currentSetting);
+		presetManager.removeCustomSetting(currentSetting);
 	}
 }

@@ -26,6 +26,8 @@ package com.pluginpresets.ui;
 
 import com.pluginpresets.PluginConfig;
 import com.pluginpresets.PluginPresetsPlugin;
+import com.pluginpresets.PluginPresetsPresetEditor;
+import com.pluginpresets.PluginPresetsPresetManager;
 import com.pluginpresets.PluginSetting;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -104,6 +106,8 @@ public class ConfigPanel extends JPanel
 	private final JPanel settings = new JPanel(new GridBagLayout());
 	private final List<String> openSettings;
 	private final boolean settingsVisible;
+	private final PluginPresetsPresetManager presetManager;
+	private final PluginPresetsPresetEditor presetEditor;
 
 	public ConfigPanel(PluginConfig currentConfig, PluginConfig presetConfig, PluginPresetsPlugin plugin, List<String> openSettings)
 	{
@@ -112,8 +116,11 @@ public class ConfigPanel extends JPanel
 		this.plugin = plugin;
 		this.openSettings = openSettings;
 
+		presetManager = plugin.getPresetManager();
+		presetEditor = plugin.getPresetEditor();
+
 		presetHasConfigurations = presetHasConfigurations();
-		configsMatch = configsMatch();
+		configsMatch = currentConfig.match(presetConfig);
 		external = isExternalPluginConfig();
 		boolean installed = isExternalPluginInstalled();
 		settingsVisible = isSettingsVisible();
@@ -178,7 +185,7 @@ public class ConfigPanel extends JPanel
 		}
 
 		JLabel customNotice = new JLabel();
-		if (containsCustomSettings())
+		if (currentConfig.containsCustomSettings())
 		{
 			customNotice.setText("(C)");
 			customNotice.setToolTipText("Contains custom settings");
@@ -204,7 +211,7 @@ public class ConfigPanel extends JPanel
 					}
 					else
 					{
-						plugin.getPresetEditor().removeConfigurationFromEdited(presetConfig);
+						presetEditor.removeConfigurationFromEdited(presetConfig);
 					}
 				}
 			});
@@ -224,17 +231,18 @@ public class ConfigPanel extends JPanel
 					@Override
 					public void mousePressed(MouseEvent mouseEvent)
 					{
-						plugin.getPresetEditor().removeConfigurationFromEdited(presetConfig);
-						List<String> collect = presetConfig.getSettings().stream().map(PluginSetting::getKey).collect(Collectors.toList());
-						List<PluginSetting> collect2 = currentConfig.getSettings().stream().filter(s -> collect.contains(s.getKey())).collect(Collectors.toList());
-						currentConfig.setSettings((ArrayList<PluginSetting>) collect2);
+						// TODO: refactor
+						presetEditor.removeConfigurationFromEdited(presetConfig);
+						List<String> presetConfigKeys = presetConfig.getSettingKeys();
+						List<PluginSetting> currentSettings = currentConfig.getSettings().stream().filter(s -> presetConfigKeys.contains(s.getKey())).collect(Collectors.toList());
+						currentConfig.setSettings(currentSettings);
 
 						if (presetConfig.getEnabled() == null)
 						{
 							currentConfig.setEnabled(null);
 						}
 
-						plugin.getPresetEditor().addConfigurationToEdited(currentConfig);
+						presetEditor.addConfigurationToEdited(currentConfig);
 					}
 
 					@Override
@@ -282,7 +290,7 @@ public class ConfigPanel extends JPanel
 					}
 					else
 					{
-						plugin.getPresetEditor().addConfigurationToEdited(currentConfig);
+						presetEditor.addConfigurationToEdited(currentConfig);
 					}
 				}
 			});
@@ -353,19 +361,6 @@ public class ConfigPanel extends JPanel
 		add(settings, BorderLayout.CENTER);
 	}
 
-	private boolean containsCustomSettings()
-	{
-		for (PluginSetting s : currentConfig.getSettings())
-		{
-			if (s.getCustomConfigName() != null)
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	private void createSettings()
 	{
 		GridBagConstraints constraints = new GridBagConstraints();
@@ -380,15 +375,15 @@ public class ConfigPanel extends JPanel
 		constraints.gridy++;
 
 		// Some plugins don't have settings like Ammo, Account, Emojis etc.
-		ArrayList<PluginSetting> presetSettings = (presetConfig != null) ? presetConfig.getSettings() : null;
+		List<PluginSetting> presetSettings = (presetConfig != null) ? presetConfig.getSettings() : null;
 
 		ArrayList<String> loopedInvalidConfigurations = new ArrayList<>();
 
 		currentConfig.getSettings().forEach(currentSetting ->
 		{
-			List<String> keys = currentConfig.getSettings().stream().map(PluginSetting::getKey).collect(Collectors.toList());
-			PluginSetting presetSetting = getPresetSettings(presetSettings, currentSetting);
+			PluginSetting presetSetting = presetHasConfigurations ? presetConfig.getSetting(currentSetting) : null;
 			String configName = currentConfig.getConfigName();
+			List<String> keys = currentConfig.getSettingKeys();
 
 			if (presetSettings != null && !loopedInvalidConfigurations.contains(configName))
 			{
@@ -436,7 +431,7 @@ public class ConfigPanel extends JPanel
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
-					plugin.getPresetEditor().removeEnabledFromEdited(currentConfig);
+					presetEditor.removeEnabledFromEdited(currentConfig);
 				}
 
 				@Override
@@ -472,7 +467,7 @@ public class ConfigPanel extends JPanel
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
-					plugin.getPresetEditor().addEnabledToEdited(currentConfig);
+					presetEditor.addEnabledToEdited(currentConfig);
 				}
 			});
 		}
@@ -485,23 +480,6 @@ public class ConfigPanel extends JPanel
 		enabledRow.add(rightActions, BorderLayout.EAST);
 
 		return enabledRow;
-	}
-
-	private PluginSetting getPresetSettings(List<PluginSetting> presetSettings, final PluginSetting currentSetting)
-	{
-		PluginSetting presetSetting = null;
-		if (presetSettings != null)
-		{
-			for (PluginSetting setting : presetSettings)
-			{
-				if (setting.getKey().equals(currentSetting.getKey()))
-				{
-					presetSetting = setting;
-					break;
-				}
-			}
-		}
-		return presetSetting;
 	}
 
 	private boolean isSettingsVisible()
@@ -528,7 +506,7 @@ public class ConfigPanel extends JPanel
 
 		if (customPresetName != null && customPresetName.length() > 0)
 		{
-			plugin.getPresetEditor().addCustomSettingToEdited(currentConfig, customPresetName);
+			presetEditor.addCustomSettingToEdited(currentConfig, customPresetName);
 		}
 	}
 
@@ -552,44 +530,14 @@ public class ConfigPanel extends JPanel
 		return presetConfig != null;
 	}
 
-	private boolean configsMatch()
-	{
-		if (!presetHasConfigurations)
-		{
-			return false;
-		}
-
-		if (presetConfig.getEnabled() != null && !presetConfig.getEnabled().equals(currentConfig.getEnabled()))
-		{
-			return false;
-		}
-
-		ArrayList<PluginSetting> currentSettings = currentConfig.getSettings();
-		// Compare plugin settings from preset to current config settings
-		for (PluginSetting presetConfigSetting : presetConfig.getSettings())
-		{
-			// Get current config setting for compared preset setting
-			PluginSetting currentConfigSetting = currentSettings.stream().filter(c -> c.getKey().equals(presetConfigSetting.getKey())).findFirst().orElse(null);
-
-			if (currentConfigSetting != null &&
-				presetConfigSetting.getValue() != null &&
-				!presetConfigSetting.getValue().equals(currentConfigSetting.getValue()))
-			{
-				return false;
-			}
-		}
-
-		return true;
-	}
-
 	private boolean isExternalPluginConfig()
 	{
-		return plugin.getPresetManager().isExternalPlugin(currentConfig.getName());
+		return presetManager.isExternalPlugin(currentConfig.getName());
 	}
 
 	private boolean isExternalPluginInstalled()
 	{
-		return external && plugin.getPresetManager().isExternalPluginInstalled(currentConfig.getName());
+		return external && presetManager.isExternalPluginInstalled(currentConfig.getName());
 	}
 
 	private JPopupMenu getUpdateAllMenuPopup()
@@ -601,14 +549,14 @@ public class ConfigPanel extends JPanel
 		{
 			JMenuItem removeOption = new JMenuItem();
 			removeOption.setText("Remove " + currentConfig.getName() + " from all presets");
-			removeOption.addActionListener(e -> plugin.getPresetEditor().removeConfigurationFromPresets(currentConfig));
+			removeOption.addActionListener(e -> presetEditor.removeConfigurationFromPresets(currentConfig));
 			popupMenu.add(removeOption);
 		}
 		else
 		{
 			JMenuItem addOption = new JMenuItem();
 			addOption.setText("Add " + currentConfig.getName() + " to all presets");
-			addOption.addActionListener(e -> plugin.getPresetEditor().addConfigurationToPresets(currentConfig));
+			addOption.addActionListener(e -> presetEditor.addConfigurationToPresets(currentConfig));
 			popupMenu.add(addOption);
 		}
 

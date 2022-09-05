@@ -24,10 +24,10 @@
  */
 package com.pluginpresets;
 
-import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Class for a single RuneLite plugin.
@@ -39,12 +39,78 @@ import lombok.NoArgsConstructor;
  *                   Some plugins don't have any configurable settings e.g. Ammo Plugin, in those cases this will be an empty array.
  */
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class PluginConfig
 {
 	private String name;
 	private String configName;
 	private Boolean enabled;
-	private ArrayList<PluginSetting> settings;
+	private List<PluginSetting> settings;
+
+	public Boolean match(PluginConfig presetConfig)
+	{
+		if (presetConfig == null)
+		{
+			return false;
+		}
+
+		Boolean presetEnabled = presetConfig.getEnabled();
+		if ((presetEnabled != null && enabled != null) && !presetEnabled.equals(enabled))
+		{
+			return false;
+		}
+
+		List<PluginSetting> currentSettings = settings;
+		// Compare plugin settings from preset to current config settings
+		for (PluginSetting presetConfigSetting : presetConfig.getSettings())
+		{
+			// Get current config setting for compared preset setting
+			PluginSetting currentConfigSetting = currentSettings.stream()
+				.filter(c ->c.getKey().equals(presetConfigSetting.getKey()))
+				.findFirst()
+				.orElse(null);
+
+			if (currentConfigSetting != null &&
+				presetConfigSetting.getValue() != null &&
+				!presetConfigSetting.getValue().equals(currentConfigSetting.getValue()))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public PluginSetting getSetting(PluginSetting searchedSetting)
+	{
+		PluginSetting presetSetting = null;
+		if (settings != null)
+		{
+			for (PluginSetting setting : settings)
+			{
+				if (setting.getKey().equals(searchedSetting.getKey()))
+				{
+					presetSetting = setting;
+					break;
+				}
+			}
+		}
+		return presetSetting;
+	}
+
+	public List<String> getSettingKeys()
+	{
+		return settings.stream().map(PluginSetting::getKey).collect(Collectors.toList());
+	}
+
+	public boolean containsCustomSettings()
+	{
+		for (PluginSetting s : settings)
+		{
+			if (s.getCustomConfigName() != null)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 }

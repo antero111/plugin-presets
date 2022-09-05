@@ -27,7 +27,6 @@ package com.pluginpresets;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ClassInfo;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -110,7 +109,7 @@ public class PluginPresetsPresetManager
 				return false;
 			}
 
-			ArrayList<PluginSetting> currentSettings = currentConfig.getSettings();
+			List<PluginSetting> currentSettings = currentConfig.getSettings();
 			// Compare plugin settings from preset to current config settings
 			for (PluginSetting presetConfigSetting : presetConfig.getSettings())
 			{

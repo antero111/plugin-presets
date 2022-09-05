@@ -291,7 +291,7 @@ public class PluginPresetsPresetEditor
 				.filter(s -> keys.contains(s.getKey()))
 				.collect(Collectors.toList());
 
-			currentConfig.setSettings((ArrayList<PluginSetting>) updatedSettings);
+			currentConfig.setSettings(updatedSettings);
 
 			if (presetConfig.getEnabled() == null)
 			{

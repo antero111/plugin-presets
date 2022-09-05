@@ -3,7 +3,6 @@ package com.pluginpresets;
 import java.util.HashMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * This is only used to convert old plugin presets to new format.
@@ -11,7 +10,6 @@ import lombok.NoArgsConstructor;
  * @deprecated This is old format. From v2, use the new Plugin Preset class
  */
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 @Deprecated
 public class LegacyPluginPreset

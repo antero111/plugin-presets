@@ -26,7 +26,6 @@ package com.pluginpresets;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Class for storing single plugin setting
@@ -39,7 +38,6 @@ import lombok.NoArgsConstructor;
  * @param configName       Name of the config, where the setting contains
  */
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class PluginSetting
 {

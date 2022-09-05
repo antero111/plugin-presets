@@ -27,8 +27,6 @@ package com.pluginpresets.ui;
 import com.pluginpresets.PluginConfig;
 import com.pluginpresets.PluginPreset;
 import com.pluginpresets.PluginPresetsPlugin;
-import com.pluginpresets.PluginPresetsPresetManager;
-import com.pluginpresets.PluginSetting;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -140,6 +138,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final List<PluginConfig> filtered = new ArrayList<>();
 	private String filter = filters[0];
 	private boolean syncLocal;
+	private PluginPreset editedPreset;
 
 	public PluginPresetsPluginPanel(PluginPresetsPlugin pluginPresetsPlugin)
 	{
@@ -507,13 +506,9 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 	private void renderEditView()
 	{
-		PluginPreset editedPreset = plugin.getPresetEditor().getEditedPreset();
-		List<PluginConfig> presetConfigs = editedPreset.getPluginConfigs();
-
+		editedPreset = plugin.getPresetEditor().getEditedPreset();
 		setLocalIcon(editedPreset.getLocal());
-
 		editTitle.setText("Editing " + editedPreset.getName());
-
 		searchBar.requestFocusInWindow();
 
 		List<PluginConfig> configurations = plugin.getPresetManager().getCurrentConfigurations();
@@ -524,7 +519,8 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		List<String> names = configurations.stream()
 			.map(PluginConfig::getName)
 			.collect(Collectors.toList());
-		for (PluginConfig config : presetConfigs)
+
+		for (PluginConfig config : editedPreset.getPluginConfigs())
 		{
 			if (!names.contains(config.getName()))
 			{
@@ -536,7 +532,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			.stream().map(PluginConfig::getName)
 			.collect(Collectors.toList());
 
-		List<PluginConfig> filteredConfigs = filterConfigurations(filter, configurations, presetConfigs);
+		List<PluginConfig> filteredConfigs = filterConfigurations(filter, configurations);
 		List<String> filterConfigNames = filteredConfigs.stream().map(PluginConfig::getName).collect(Collectors.toList());
 
 		boolean modified = false;
@@ -550,9 +546,9 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		for (final PluginConfig currentConfig : configurations)
 		{
-			PluginConfig presetConfig = getPresetConfig(presetConfigs, currentConfig);
+			PluginConfig presetConfig = editedPreset.getConfig(currentConfig);
 
-			if (presetConfig != null && !configsMatch(presetConfig, currentConfig))
+			if (presetConfig != null && !presetConfig.match(currentConfig))
 			{
 				modified = true;
 			}
@@ -584,34 +580,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		}
 	}
 
-	private boolean configsMatch(PluginConfig presetConfig, PluginConfig currentConfig)
-	{
-		if (presetConfig.getEnabled() != null && !presetConfig.getEnabled().equals(currentConfig.getEnabled()))
-		{
-			return false;
-		}
-
-		ArrayList<PluginSetting> currentSettings = currentConfig.getSettings();
-		// Compare plugin settings from preset to current config settings
-		for (PluginSetting presetConfigSetting : presetConfig.getSettings())
-		{
-			// Get current config setting for compared preset setting
-			PluginSetting currentConfigSetting = currentSettings.stream()
-				.filter(c -> c.getKey().equals(presetConfigSetting.getKey()))
-				.findFirst()
-				.orElse(null);
-
-			if (currentConfigSetting != null &&
-				presetConfigSetting.getValue() != null &&
-				!presetConfigSetting.getValue().equals(currentConfigSetting.getValue()))
-			{
-				return false;
-			}
-		}
-
-		return true;
-	}
-
 	private List<PluginConfig> filterIfSearchKeyword(List<PluginConfig> currentConfigurations)
 	{
 		final String text = searchBar.getText();
@@ -626,20 +594,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		return currentConfigurations;
 	}
 
-	private PluginConfig getPresetConfig(List<PluginConfig> presetConfigs, final PluginConfig currentConfig)
-	{
-		PluginConfig presetConfig = null;
-		for (PluginConfig config : presetConfigs)
-		{
-			if (config.getName().equals(currentConfig.getName()))
-			{
-				presetConfig = config;
-				break;
-			}
-		}
-		return presetConfig;
-	}
-
 	private List<PluginConfig> sortAlphabetically(List<PluginConfig> configurations)
 	{
 		// // Sort alphabetically similar to the configurations tab
@@ -647,7 +601,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		return configurations;
 	}
 
-	private List<PluginConfig> filterConfigurations(final String filter, final List<PluginConfig> configurations, final List<PluginConfig> presetConfigs)
+	private List<PluginConfig> filterConfigurations(final String filter, final List<PluginConfig> configurations)
 	{
 		if (!filtered.isEmpty())
 		{
@@ -660,14 +614,11 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			return sortAlphabetically(configurations);
 		}
 
-		PluginPresetsPresetManager presetManager = plugin.getPresetManager();
-
 		for (final PluginConfig config : configurations)
 		{
-			PluginConfig presetConfig = getPresetConfig(presetConfigs, config);
+			PluginConfig presetConfig = editedPreset.getConfig(config);
 
-			boolean isExternalPlugin = presetManager.isExternalPlugin(config.getName());
-			if (filter.equals("Only Plugin Hub") && isExternalPlugin)
+			if (filter.equals("Only Plugin Hub") && plugin.getPresetManager().isExternalPlugin(config.getName()))
 			{
 				filtered.add(config);
 			}
@@ -685,8 +636,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 					filtered.add(config);
 				}
 
-				boolean match = configsMatch(presetConfig, config);
-				if (match)
+				if (presetConfig.match(config))
 				{
 					if (filter.equals("Configs match"))
 					{
@@ -778,5 +728,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private void stopEdit()
 	{
 		plugin.setPresetEditor(null);
+		editedPreset = null;
 	}
 }
