@@ -231,18 +231,7 @@ public class ConfigPanel extends JPanel
 					@Override
 					public void mousePressed(MouseEvent mouseEvent)
 					{
-						// TODO: refactor
-						presetEditor.removeConfigurationFromEdited(presetConfig);
-						List<String> presetConfigKeys = presetConfig.getSettingKeys();
-						List<PluginSetting> currentSettings = currentConfig.getSettings().stream().filter(s -> presetConfigKeys.contains(s.getKey())).collect(Collectors.toList());
-						currentConfig.setSettings(currentSettings);
-
-						if (presetConfig.getEnabled() == null)
-						{
-							currentConfig.setEnabled(null);
-						}
-
-						presetEditor.addConfigurationToEdited(currentConfig);
+						presetEditor.updateConfigurations(presetConfig, currentConfig);
 					}
 
 					@Override

@@ -263,6 +263,25 @@ public class PluginPresetsPresetEditor
 		plugin.refreshPresets();
 	}
 
+	public void updateConfigurations(PluginConfig presetConfig, PluginConfig currentConfig)
+	{
+		removeConfigurationFromEdited(presetConfig, true);
+		List<String> presetConfigKeys = presetConfig.getSettingKeys();
+		List<PluginSetting> currentSettings = currentConfig.getSettings().stream()
+			.filter(s -> presetConfigKeys.contains(s.getKey()))
+			.collect(Collectors.toList());
+
+		currentConfig.setSettings(currentSettings);
+
+		if (presetConfig.getEnabled() == null)
+		{
+			currentConfig.setEnabled(null);
+		}
+
+		addConfigurationToEdited(currentConfig, true);
+		updateEditedPreset();
+	}
+
 	public void updateAllModified()
 	{
 		List<PluginConfig> pluginConfigs = getEditedPreset().getPluginConfigs();
