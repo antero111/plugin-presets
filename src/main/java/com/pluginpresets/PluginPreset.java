@@ -25,6 +25,7 @@
 package com.pluginpresets;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -61,21 +62,21 @@ public class PluginPreset
 	@Setter
 	private List<PluginConfig> pluginConfigs;
 
-	public PluginPreset(String name, List<PluginConfig> pluginConfigs)
+	public PluginPreset(String name)
 	{
 		this.id = Instant.now().toEpochMilli();
 		this.name = name;
 		this.keybind = null;
 		this.local = true;
-		this.pluginConfigs = pluginConfigs;
+		this.pluginConfigs = new ArrayList<>();
 	}
 
-	public Boolean match(List<PluginConfig> currentConfigurations)
+	public Boolean match(CurrentConfigurations currentConfigurations)
 	{
 		for (PluginConfig presetConfig : pluginConfigs)
 		{
 			PluginConfig currentConfig = null;
-			for (PluginConfig config : currentConfigurations)
+			for (PluginConfig config : currentConfigurations.getPluginConfigs())
 			{
 				if (config.getName().equals(presetConfig.getName()))
 				{

@@ -511,7 +511,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		editTitle.setText("Editing " + editedPreset.getName());
 		searchBar.requestFocusInWindow();
 
-		List<PluginConfig> configurations = plugin.getPresetManager().getCurrentConfigurations();
+		List<PluginConfig> configurations = plugin.getCurrentConfigurations().getPluginConfigs();
 
 		// Add configurations that are in the preset but not in current configurations
 		// e.g. preset is from a friend and the preset has settings

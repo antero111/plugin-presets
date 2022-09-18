@@ -244,9 +244,8 @@ class PresetPanel extends JPanel
 
 		JLabel notice = new JLabel();
 
-		boolean presetMatches = plugin.getMatchingPresets().contains(preset);
 		boolean emptyPreset = false;
-		if (presetMatches)
+		if (preset.match(plugin.getCurrentConfigurations()))
 		{
 			loadLabel.setIcon(SWITCH_ON_ICON);
 			loadLabel.setToolTipText("Current configurations match this preset");

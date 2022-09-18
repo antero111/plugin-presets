@@ -40,6 +40,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
 import lombok.Getter;
@@ -48,6 +49,8 @@ import lombok.SneakyThrows;
 import net.runelite.api.GameState;
 import net.runelite.api.events.GameStateChanged;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
+import net.runelite.client.config.Config;
+import net.runelite.client.config.ConfigDescriptor;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.Keybind;
 import net.runelite.client.config.RuneLiteConfig;
@@ -74,6 +77,12 @@ public class PluginPresetsPlugin extends Plugin
 	public static final File PRESETS_DIR = new File(RUNELITE_DIR, "presets");
 	public static final String HELP_LINK = "https://github.com/antero111/plugin-presets#using-plugin-presets";
 	public static final String DEFAULT_PRESET_NAME = "Preset";
+	static final List<String> IGNORED_PLUGINS = Stream.of("Plugin Presets", "Configuration", "Xtea").collect(Collectors.toList());
+	/**
+	 * Non-user configurable settings that don't contain any context or user
+	 * sensitive data that should not to be saved to presets
+	 */
+	static final List<String> IGNORED_KEYS = Stream.of("channel", "oauth", "username", "notesData", "tzhaarStartTime", "tzhaarLastTime", "chatsData", "previousPartyId", "lastWorld", "tab", "position").collect(Collectors.toList());
 	private static final String PLUGIN_NAME = "Plugin Presets";
 	private static final String ICON_FILE = "panel_icon.png";
 	private static final String CONFIG_GROUP = "pluginpresets";
@@ -83,8 +92,10 @@ public class PluginPresetsPlugin extends Plugin
 	private final HashMap<Keybind, PluginPreset> keybinds = new HashMap<>();
 
 	@Getter
-	@Setter
-	private List<PluginPreset> pluginPresets = new ArrayList<>();
+	private final List<PluginPreset> pluginPresets = new ArrayList<>();
+
+	@Getter
+	private CurrentConfigurations currentConfigurations;
 
 	@Inject
 	private ClientToolbar clientToolbar;
@@ -145,14 +156,19 @@ public class PluginPresetsPlugin extends Plugin
 	@Getter
 	private Boolean loggedIn = false; // Used to inform that keybinds don't work in login screen
 
+	private Boolean loadingPreset = false;
+
 	@Override
 	protected void startUp()
 	{
 		PluginPresetsStorage.createPresetFolder();
 
 		pluginPanel = new PluginPresetsPluginPanel(this);
-		presetManager = new PluginPresetsPresetManager(this, pluginManager, configManager, runeLiteConfig);
+		presetManager = new PluginPresetsPresetManager(this, pluginManager, configManager);
 		presetStorage = new PluginPresetsStorage(presetManager);
+
+		currentConfigurations = new CurrentConfigurations();
+		updateCurrentConfigurations();
 
 		loadPresets();
 		savePresets();
@@ -193,16 +209,23 @@ public class PluginPresetsPlugin extends Plugin
 	@Subscribe
 	public void onExternalPluginsChanged(ExternalPluginsChanged externalPluginsChanged)
 	{
+		updateCurrentConfigurations();
 		SwingUtilities.invokeLater(this::rebuildPluginUi);
 	}
 
 	@Subscribe
 	public void onConfigChanged(ConfigChanged configChanged)
 	{
-		if (validConfigChange(configChanged))
+		if (validConfigChange(configChanged) && !loadingPreset)
 		{
+			updateCurrentConfigurations();
 			SwingUtilities.invokeLater(this::rebuildPluginUi);
 		}
+	}
+
+	private void updateCurrentConfigurations()
+	{
+		currentConfigurations.setPluginConfigs(getCurrentConfigs());
 	}
 
 	private boolean validConfigChange(ConfigChanged configChanged)
@@ -215,20 +238,6 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		loggedIn = event.getGameState() == GameState.LOGGED_IN;
 		SwingUtilities.invokeLater(this::rebuildPluginUi);
-	}
-
-	public List<PluginPreset> getMatchingPresets()
-	{
-		List<PluginConfig> currentConfigurations = presetManager.getCurrentConfigurations();
-		ArrayList<PluginPreset> matchingPresets = new ArrayList<>();
-		for (PluginPreset preset : pluginPresets)
-		{
-			if (preset.match(currentConfigurations))
-			{
-				matchingPresets.add(preset);
-			}
-		}
-		return matchingPresets;
 	}
 
 	public void updateConfig()
@@ -269,7 +278,17 @@ public class PluginPresetsPlugin extends Plugin
 
 	public void createPreset(String presetName, boolean empty)
 	{
-		PluginPreset preset = presetManager.createPluginPreset(presetName, empty);
+		if (presetName.equals(""))
+		{
+			presetName = PluginPresetsPlugin.DEFAULT_PRESET_NAME + " " + (pluginPresets.size() + 1);
+		}
+
+		PluginPreset preset = presetManager.createPluginPreset(presetName);
+		if (!empty)
+		{
+			preset.setPluginConfigs(currentConfigurations.getPluginConfigs());
+		}
+
 		pluginPresets.add(preset);
 
 		savePresets();
@@ -294,7 +313,12 @@ public class PluginPresetsPlugin extends Plugin
 	@SneakyThrows
 	public void loadPreset(final PluginPreset preset)
 	{
+		loadingPreset = true;
 		presetManager.loadPreset(preset);
+		loadingPreset = false;
+
+		updateCurrentConfigurations();
+		rebuildPluginUi();
 	}
 
 	public void deletePreset(final PluginPreset preset)
@@ -308,6 +332,7 @@ public class PluginPresetsPlugin extends Plugin
 	public void loadPresets()
 	{
 		pluginPresets.addAll(presetStorage.loadPresets());
+		presetManager.parseCustomSettings(pluginPresets);
 		loadConfig(configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY));
 		pluginPresets.sort(Comparator.comparing(PluginPreset::getName)); // Keep presets in order
 		cacheKeybins();
@@ -348,7 +373,7 @@ public class PluginPresetsPlugin extends Plugin
 		if (newPreset != null)
 		{
 			newPreset.setId(Instant.now().toEpochMilli());
-			newPreset.setName(PluginPresetsUtils.createNameWithSuffixIfNeeded(newPreset.getName(), getPluginPresets()));
+			newPreset.setName(PluginPresetsUtils.createNameWithSuffixIfNeeded(newPreset.getName(), pluginPresets));
 			newPreset.setLocal(true); // Presets are imported to /presets folder 
 
 			pluginPresets.add(newPreset);
@@ -377,4 +402,109 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		pluginPanel.rebuild();
 	}
+
+	private List<PluginConfig> getCurrentConfigs()
+	{
+		ArrayList<PluginConfig> pluginConfigs = new ArrayList<>();
+		// List<String> customConfigNames = customConfigs.stream().map(PluginSetting::getConfigName).collect(Collectors.toList());
+
+		pluginManager.getPlugins().forEach(p ->
+		{
+			String name = p.getName();
+			if (!PluginPresetsPlugin.IGNORED_PLUGINS.contains(name))
+			{
+				Config pluginConfigProxy = pluginManager.getPluginConfigProxy(p);
+
+				boolean enabled = pluginManager.isPluginEnabled(p);
+
+				ArrayList<PluginSetting> pluginSettings = new ArrayList<>();
+				String configName = null;
+
+				if (pluginConfigProxy == null)
+				{
+					configName = p.getClass().getSimpleName().toLowerCase();
+				}
+
+				if (pluginConfigProxy != null)
+				{
+					ConfigDescriptor configDescriptor = configManager.getConfigDescriptor(pluginConfigProxy);
+					configName = configDescriptor.getGroup().value();
+
+					configDescriptor.getItems().forEach(i ->
+					{
+						if (!PluginPresetsPlugin.IGNORED_KEYS.contains(i.key()))
+						{
+							String settingName = i.name();
+							if (i.name().equals(""))
+							{
+								settingName = PluginPresetsUtils.splitAndCapitalize(settingName);
+							}
+
+							String configuration = configManager.getConfiguration(configDescriptor.getGroup().value(), i.key());
+							PluginSetting pluginSetting = new PluginSetting(settingName, i.key(),
+								configuration, null, null);
+							pluginSettings.add(pluginSetting);
+						}
+
+					});
+
+				}
+
+				// FIXME: reimplement custom settings
+				// Add custom settings to current RuneLite configurations
+				// if (customConfigNames.contains(configName))
+				// {
+				// 	for (PluginSetting setting : customConfigs)
+				// 	{
+				// 		if (configName.equals(setting.getConfigName()))
+				// 		{
+				// 			String value = configManager.getConfiguration(setting.getCustomConfigName(), setting.getKey());
+				// 			setting.setValue(value);
+
+				// 			pluginSettings.add(setting);
+				// 		}
+				// 	}
+				// }
+
+				PluginConfig pluginConfig = new PluginConfig(name, configName, enabled, pluginSettings);
+
+				pluginConfigs.add(pluginConfig);
+			}
+		});
+
+		// Add RuneLite settings
+		ArrayList<PluginSetting> runelitePluginSettings = new ArrayList<>();
+
+		PluginConfig runeliteConfig = new PluginConfig("RuneLite", RuneLiteConfig.GROUP_NAME, true, runelitePluginSettings);
+
+		configManager.getConfigDescriptor(runeLiteConfig).getItems().forEach(i ->
+		{
+			if (!PluginPresetsPlugin.IGNORED_KEYS.contains(i.key()))
+			{
+				String configuration = configManager.getConfiguration(RuneLiteConfig.GROUP_NAME, i.key());
+				PluginSetting pluginSetting = new PluginSetting(i.name(), i.key(),
+					configuration, null, null);
+				runelitePluginSettings.add(pluginSetting);
+			}
+		});
+
+		// if (customConfigNames.contains(RuneLiteConfig.GROUP_NAME))
+		// {
+		// 	for (PluginSetting setting : customConfigs)
+		// 	{
+		// 		if (RuneLiteConfig.GROUP_NAME.equals(setting.getConfigName()))
+		// 		{
+		// 			String value = configManager.getConfiguration(setting.getCustomConfigName(), setting.getKey());
+		// 			setting.setValue(value);
+
+		// 			runelitePluginSettings.add(setting);
+		// 		}
+		// 	}
+		// }
+
+		pluginConfigs.add(runeliteConfig);
+
+		return pluginConfigs;
+	}
+
 }

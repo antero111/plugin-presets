@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PluginPresetsPresetEditor
 {
 	private final PluginPresetsPlugin plugin;
+	private final CurrentConfigurations currentConfigurations;
 
 	@Getter
 	private final PluginPreset editedPreset;
@@ -42,11 +43,7 @@ public class PluginPresetsPresetEditor
 	{
 		this.editedPreset = editedPreset;
 		this.plugin = plugin;
-	}
-
-	private List<PluginConfig> getCurrentConfigurations(PluginPresetsPlugin plugin)
-	{
-		return plugin.getPresetManager().getCurrentConfigurations();
+		this.currentConfigurations = plugin.getCurrentConfigurations();
 	}
 
 	public void removeConfigurationFromEdited(PluginConfig configuration)
@@ -152,7 +149,7 @@ public class PluginPresetsPresetEditor
 			{
 				String value = plugin.getPresetManager().getConfiguration(configName, key);
 				PluginSetting setting = new PluginSetting(PluginPresetsUtils.splitAndCapitalize(key), key, value, configName, configuration.getConfigName());
-				
+
 				boolean present = configuration.getSettings().stream().anyMatch(c -> c.getKey().equals(setting.getKey()));
 				if (!present)
 				{
@@ -284,12 +281,12 @@ public class PluginPresetsPresetEditor
 
 	public void updateAllModified()
 	{
-		List<PluginConfig> pluginConfigs = getEditedPreset().getPluginConfigs();
-		List<PluginConfig> currentConfigurations = getCurrentConfigurations(plugin);
+		List<PluginConfig> pluginConfigs = editedPreset.getPluginConfigs();
 
 		pluginConfigs.forEach(presetConfig ->
 		{
 			PluginConfig currentConfig = currentConfigurations
+				.getPluginConfigs()
 				.stream()
 				.filter(c -> c.getName().equals(presetConfig.getName()))
 				.findAny()
@@ -345,8 +342,7 @@ public class PluginPresetsPresetEditor
 	{
 		if (enable)
 		{
-			List<PluginConfig> currentConfigurations = getCurrentConfigurations(plugin);
-			editedPreset.setPluginConfigs(currentConfigurations);
+			editedPreset.setPluginConfigs(currentConfigurations.getPluginConfigs());
 		}
 		else
 		{
