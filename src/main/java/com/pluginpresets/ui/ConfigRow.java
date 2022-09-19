@@ -27,7 +27,6 @@ package com.pluginpresets.ui;
 import com.pluginpresets.PluginConfig;
 import com.pluginpresets.PluginPresetsPlugin;
 import com.pluginpresets.PluginPresetsPresetEditor;
-import com.pluginpresets.PluginPresetsPresetManager;
 import com.pluginpresets.PluginPresetsUtils;
 import com.pluginpresets.PluginSetting;
 import java.awt.BorderLayout;
@@ -74,15 +73,15 @@ public class ConfigRow extends JPanel
 	private final PluginSetting presetSetting;
 	private final JLabel checkboxLabel = new JLabel();
 	private final boolean presetHasConfigurations;
-	private final PluginPresetsPresetManager presetManager;
 	private final PluginPresetsPresetEditor presetEditor;
+	private final PluginPresetsPlugin plugin;
 
 	public ConfigRow(PluginConfig currentConfig, PluginSetting currentSetting, PluginSetting presetSetting, PluginPresetsPlugin plugin)
 	{
 		this.currentSetting = currentSetting;
 		this.presetSetting = presetSetting;
+		this.plugin = plugin;
 
-		presetManager = plugin.getPresetManager();
 		presetEditor = plugin.getPresetEditor();
 
 		presetHasConfigurations = presetHasConfigurations();
@@ -250,6 +249,7 @@ public class ConfigRow extends JPanel
 	private void removeSetting()
 	{
 		presetEditor.removeCustomSetting(currentSetting);
-		presetManager.removeCustomSetting(currentSetting);
+		plugin.getCustomConfigs().removeCustomSetting(currentSetting);
+		plugin.rebuildPluginUi();
 	}
 }

@@ -48,7 +48,6 @@ public class PluginPresetsPresetManager
 	private final PluginManager pluginManager;
 	private final ConfigManager configManager;
 	private final List<String> corePlugins;
-	private final List<PluginSetting> customConfigs;
 
 	public PluginPresetsPresetManager(PluginPresetsPlugin plugin, PluginManager pluginManager,
 									  ConfigManager configManager)
@@ -57,7 +56,6 @@ public class PluginPresetsPresetManager
 		this.pluginManager = pluginManager;
 		this.configManager = configManager;
 		this.corePlugins = getCorePlugins();
-		this.customConfigs = new ArrayList<>();
 	}
 
 	/**
@@ -156,45 +154,6 @@ public class PluginPresetsPresetManager
 		return pluginManager.getPlugins().stream()
 			.map(Plugin::getName).collect(Collectors.toList())
 			.contains(pluginName);
-	}
-
-	public void parseCustomSettings(List<PluginPreset> pluginPresets)
-	{
-		pluginPresets.forEach(preset ->
-		{
-			preset.getPluginConfigs().forEach(c ->
-				c.getSettings().forEach(s ->
-				{
-					if (s.getCustomConfigName() != null)
-					{
-						addCustomSetting(s);
-					}
-				}));
-		});
-	}
-
-	public void addCustomSetting(PluginSetting setting)
-	{
-		boolean anyMatch = customConfigs.stream()
-			.anyMatch(c -> c.getKey()
-				.equals(setting.getKey()));
-		if (!anyMatch)
-		{
-			customConfigs.add(setting);
-		}
-	}
-
-	public void removeCustomSetting(PluginSetting setting)
-	{
-		for (PluginSetting customSetting : customConfigs)
-		{
-			if (customSetting.getKey().equals(setting.getKey()))
-			{
-				customConfigs.remove(customSetting);
-				plugin.rebuildPluginUi();
-				return;
-			}
-		}
 	}
 
 	public String getConfiguration(String groupName, String key)
