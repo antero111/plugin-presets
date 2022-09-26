@@ -68,6 +68,7 @@ class PresetPanel extends JPanel
 	private static final ImageIcon DELETE_HOVER_ICON;
 	private static final ImageIcon EDIT_ICON;
 	private static final ImageIcon EDIT_HOVER_ICON;
+	private static final ImageIcon SYNC_CONFIG_ICON;
 
 	static
 	{
@@ -92,6 +93,9 @@ class PresetPanel extends JPanel
 		final BufferedImage editImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "edit_icon.png");
 		EDIT_ICON = new ImageIcon(editImg);
 		EDIT_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(editImg, 0.53f));
+
+		final BufferedImage cloudImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "cloud_icon.png");
+		SYNC_CONFIG_ICON = new ImageIcon(cloudImg);
 	}
 
 	private final PluginPresetsPlugin plugin;
@@ -111,6 +115,7 @@ class PresetPanel extends JPanel
 	private final JLabel saveKeybind = new JLabel("Save");
 	private final JLabel cancelKeybind = new JLabel("Cancel");
 	private KeyEvent savedKeybind = null;
+	private JPanel presetNameContainer = new JPanel();
 
 	PresetPanel(PluginPreset pluginPreset, PluginPresetsPlugin pluginPresetsPlugin)
 	{
@@ -186,7 +191,6 @@ class PresetPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				nameInput.setEditable(true);
 				updateNameActions(true);
 			}
 
@@ -207,13 +211,17 @@ class PresetPanel extends JPanel
 		nameActions.add(cancelRename, BorderLayout.WEST);
 		nameActions.add(rename, BorderLayout.CENTER);
 
+		JPanel nameContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+		nameContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+
 		nameInput.setText(preset.getName());
 		nameInput.setBorder(null);
 		nameInput.setEditable(false);
 		nameInput.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		nameInput.setPreferredSize(new Dimension(0, 24));
+		nameInput.setPreferredSize(new Dimension(145, 25));
+		nameInput.setVisible(false);
 		nameInput.getTextField().setForeground(Color.WHITE);
-		nameInput.getTextField().setBorder(new EmptyBorder(0, 8, 0, 0));
+		nameInput.getTextField().setBorder(new EmptyBorder(0, 5, 0, 0));
 		nameInput.addKeyListener(new KeyAdapter()
 		{
 			@Override
@@ -230,7 +238,23 @@ class PresetPanel extends JPanel
 			}
 		});
 
-		nameWrapper.add(nameInput, BorderLayout.CENTER);
+		JLabel nameLabel = new JLabel(preset.getName());
+		nameLabel.setPreferredSize(new Dimension(170, 15));
+		nameLabel.setForeground(Color.WHITE);
+		nameLabel.setHorizontalTextPosition(SwingConstants.LEFT);
+		if (!preset.getLocal())
+		{
+			nameLabel.setIcon(SYNC_CONFIG_ICON);
+			nameLabel.setToolTipText("Stored in RuneLite config");
+		}
+
+		presetNameContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		presetNameContainer.add(nameLabel);
+		
+		nameContainer.add(nameInput);
+		nameContainer.add(presetNameContainer);
+
+		nameWrapper.add(nameContainer, BorderLayout.CENTER);
 		nameWrapper.add(nameActions, BorderLayout.EAST);
 
 		JPanel bottomContainer = new JPanel(new BorderLayout());
@@ -569,6 +593,10 @@ class PresetPanel extends JPanel
 		saveRename.setVisible(saveAndCancel);
 		cancelRename.setVisible(saveAndCancel);
 		rename.setVisible(!saveAndCancel);
+
+		nameInput.setEditable(saveAndCancel);
+		nameInput.setVisible(saveAndCancel);
+		presetNameContainer.setVisible(!saveAndCancel);
 
 		if (saveAndCancel)
 		{
