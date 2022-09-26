@@ -40,7 +40,6 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
@@ -370,7 +369,16 @@ public class ConfigPanel extends JPanel
 
 		currentConfig.getSettings().forEach(currentSetting ->
 		{
-			PluginSetting presetSetting = presetHasConfigurations ? presetConfig.getSetting(currentSetting) : null;
+			PluginSetting presetSetting;
+			if (presetHasConfigurations)
+			{
+				assert presetConfig != null;
+				presetSetting = presetConfig.getSetting(currentSetting);
+			}
+			else
+			{
+				presetSetting = null;
+			}
 			String configName = currentConfig.getConfigName();
 			List<String> keys = currentConfig.getSettingKeys();
 

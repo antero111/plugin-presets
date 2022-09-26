@@ -163,7 +163,7 @@ public class PluginPresetsPlugin extends Plugin
 
 		pluginPanel = new PluginPresetsPluginPanel(this);
 		presetManager = new PluginPresetsPresetManager(this, pluginManager, configManager);
-		presetStorage = new PluginPresetsStorage(presetManager);
+		presetStorage = new PluginPresetsStorage(this, presetManager);
 
 		customConfigs = new CustomConfigs();
 
@@ -173,6 +173,8 @@ public class PluginPresetsPlugin extends Plugin
 		loadPresets();
 		savePresets();
 		rebuildPluginUi();
+
+		presetStorage.watchFolderChanges();
 
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), ICON_FILE);
 
@@ -196,9 +198,10 @@ public class PluginPresetsPlugin extends Plugin
 	protected void shutDown()
 	{
 		pluginPresets.clear();
-		customConfigs = null;
 		keybinds.clear();
+		customConfigs = null;
 
+		presetStorage.stopWatcher();
 		clientToolbar.removeNavigation(navigationButton);
 		keyManager.unregisterKeyListener(keybindListener);
 		presetStorage.deletePresetFolderIfEmpty();
@@ -262,6 +265,13 @@ public class PluginPresetsPlugin extends Plugin
 		}
 
 		syncPresets.forEach(preset -> preset.setLocal(false));
+
+		// If all presets are saved to config, do a refresh since...
+		// ...presetStorage folder watcher does not recognize any file change and doesn't refresh presets.
+		if (syncPresets.size() == pluginPresets.size())
+		{
+			refreshPresets();
+		}
 	}
 
 	private void loadConfig(String json)
@@ -295,9 +305,12 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPresets.add(preset);
 
 		savePresets();
-		refreshPresets();
 	}
 
+	/**
+	 * Saves presets to preset folder and RuneLite config.
+	 * Changes in preset directory or config causes refreshPresets() to run.
+	 */
 	@SneakyThrows
 	public void savePresets()
 	{
@@ -305,11 +318,13 @@ public class PluginPresetsPlugin extends Plugin
 		updateConfig();
 	}
 
+	/**
+	 * Clears presets from memory, loads them again and then rebuilds ui.
+	 */
 	public void refreshPresets()
 	{
 		pluginPresets.clear();
 		loadPresets();
-		savePresets();
 		rebuildPluginUi();
 	}
 
@@ -328,9 +343,11 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		pluginPresets.remove(preset);
 		savePresets();
-		refreshPresets();
 	}
 
+	/**
+	 * Loads presets from preset folder and RuneLite config and adds them to plugin memory.
+	 */
 	@SneakyThrows
 	public void loadPresets()
 	{
@@ -352,15 +369,6 @@ public class PluginPresetsPlugin extends Plugin
 				keybinds.put(keybind, preset);
 			}
 		});
-	}
-
-	public void updatePreset(PluginPreset preset)
-	{
-		pluginPresets.removeIf(pluginPreset -> pluginPreset.getId() == preset.getId());
-		pluginPresets.add(preset);
-
-		savePresets();
-		refreshPresets();
 	}
 
 	public void importPresetFromClipboard()

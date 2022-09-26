@@ -242,7 +242,6 @@ public class PluginPresetsPresetEditor
 			preset.getPluginConfigs().add(configuration);
 		});
 		plugin.savePresets();
-		plugin.refreshPresets();
 	}
 
 	public void removeConfigurationFromPresets(PluginConfig configuration)
@@ -257,7 +256,6 @@ public class PluginPresetsPresetEditor
 			preset.setPluginConfigs(pluginConfigs);
 		});
 		plugin.savePresets();
-		plugin.refreshPresets();
 	}
 
 	public void updateConfigurations(PluginConfig presetConfig, PluginConfig currentConfig)

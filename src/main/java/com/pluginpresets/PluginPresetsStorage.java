@@ -33,9 +33,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.swing.SwingUtilities;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,13 +50,22 @@ public class PluginPresetsStorage
 	private static final File PRESETS_DIR = PluginPresetsPlugin.PRESETS_DIR;
 
 	private final List<String> failedFileNames = new ArrayList<>();
+	private final PluginPresetsPlugin plugin;
 
 	private final Gson gson = new Gson();
-
 	private final PluginPresetsPresetManager presetManager;
+	private Thread thread;
+	private WatchService watcher;
 
-	public PluginPresetsStorage(PluginPresetsPresetManager presetManager)
+	/**
+	 * Informs that preset folder edits were made from this client, and they should be refreshed first.
+	 */
+	private boolean localClientChange = false;
+	private long lastRefreshTime;
+
+	public PluginPresetsStorage(PluginPresetsPlugin plugin, PluginPresetsPresetManager presetManager)
 	{
+		this.plugin = plugin;
 		this.presetManager = presetManager;
 	}
 
@@ -92,6 +106,7 @@ public class PluginPresetsStorage
 
 	public void savePresets(final List<PluginPreset> pluginPresets)
 	{
+		localClientChange = true;
 		clearPresetFolder();
 		pluginPresets.forEach(this::storePluginPresetToJsonFile);
 	}
@@ -275,5 +290,101 @@ public class PluginPresetsStorage
 		}
 
 		return newPreset;
+	}
+
+	/**
+	 * Starts thread that runs method that watches preset folder for file changes that do preset refresh.
+	 */
+	public void watchFolderChanges()
+	{
+		thread = new Thread(this::watchFolder);
+		thread.setName("PresetFolderWatcher");
+		thread.start();
+	}
+
+	public void stopWatcher()
+	{
+		thread.interrupt();
+		try
+		{
+			watcher.close();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		watcher = null;
+		thread = null;
+	}
+
+	public void watchFolder()
+	{
+		Path presetDir = PRESETS_DIR.toPath();
+		log.info(String.format("Watching Preset folder changes at %s", presetDir));
+
+		try
+		{
+			watcher = presetDir.getFileSystem().newWatchService();
+			presetDir.register(
+				watcher,
+				StandardWatchEventKinds.ENTRY_CREATE,
+				StandardWatchEventKinds.ENTRY_DELETE,
+				StandardWatchEventKinds.ENTRY_MODIFY
+			);
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		while (watcher != null)
+		{
+			WatchKey wk;
+			if (!thread.isAlive())
+			{
+				return;
+			}
+
+			try
+			{
+				wk = watcher.take();
+			}
+			catch (InterruptedException e)
+			{
+				Thread.currentThread().interrupt();
+				return;
+			}
+
+			if (!wk.pollEvents().isEmpty())
+			{
+				// Run refreshPresets only once
+				boolean validMillisDiff = (System.currentTimeMillis() - lastRefreshTime) > 100;
+				if (validMillisDiff)
+				{
+					// Offset other clients so that file edits don't collapse
+					if (!localClientChange)
+					{
+						try
+						{
+							Thread.sleep(300);
+						}
+						catch (InterruptedException e)
+						{
+							Thread.currentThread().interrupt();
+							return;
+						}
+					}
+
+					lastRefreshTime = System.currentTimeMillis();
+					SwingUtilities.invokeLater(plugin::refreshPresets); // Refresh
+					localClientChange = false;
+				}
+			}
+			boolean valid = wk.reset();
+			if (!valid)
+			{
+				break;
+			}
+		}
 	}
 }

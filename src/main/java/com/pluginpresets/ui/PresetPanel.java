@@ -524,7 +524,6 @@ class PresetPanel extends JPanel
 		requestFocusInWindow();
 
 		plugin.savePresets();
-		plugin.refreshPresets();
 		plugin.rebuildPluginUi();
 	}
 
@@ -664,7 +663,9 @@ class PresetPanel extends JPanel
 			: new Keybind(savedKeybind);
 
 		preset.setKeybind(presetKeybind);
-		plugin.updatePreset(preset);
+
+		plugin.savePresets();
+		plugin.rebuildPluginUi();
 	}
 
 	private void cancelKeybind()
