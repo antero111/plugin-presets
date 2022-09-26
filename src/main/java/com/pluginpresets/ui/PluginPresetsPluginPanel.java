@@ -121,7 +121,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final JPanel editPanel = new JPanel(new BorderLayout());
 	private final JLabel errorNotification = new JLabel(NOTIFICATION_ICON);
 	private final JLabel helpButton = new JLabel(HELP_ICON);
-	private final JLabel refreshPlugins = new JLabel(REFRESH_ICON);
+	// private final JLabel refreshPlugins = new JLabel(REFRESH_ICON);
 	private final JLabel addPreset = new JLabel(ADD_ICON);
 	private final JLabel stopEdit = new JLabel(ARROW_LEFT_ICON);
 	private final JLabel ellipsisMenu = new JLabel(ELLIPSIS);
@@ -200,27 +200,27 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			}
 		});
 
-		refreshPlugins.setToolTipText("Refresh presets");
-		refreshPlugins.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent mouseEvent)
-			{
-				plugin.refreshPresets();
-			}
+		// refreshPlugins.setToolTipText("Refresh presets");
+		// refreshPlugins.addMouseListener(new MouseAdapter()
+		// {
+		// 	@Override
+		// 	public void mousePressed(MouseEvent mouseEvent)
+		// 	{
+		// 		plugin.refreshPresets();
+		// 	}
 
-			@Override
-			public void mouseEntered(MouseEvent mouseEvent)
-			{
-				refreshPlugins.setIcon(REFRESH_HOVER_ICON);
-			}
+		// 	@Override
+		// 	public void mouseEntered(MouseEvent mouseEvent)
+		// 	{
+		// 		refreshPlugins.setIcon(REFRESH_HOVER_ICON);
+		// 	}
 
-			@Override
-			public void mouseExited(MouseEvent mouseEvent)
-			{
-				refreshPlugins.setIcon(REFRESH_ICON);
-			}
-		});
+		// 	@Override
+		// 	public void mouseExited(MouseEvent mouseEvent)
+		// 	{
+		// 		refreshPlugins.setIcon(REFRESH_ICON);
+		// 	}
+		// });
 
 		addPreset.setToolTipText("Create new plugin preset");
 		addPreset.addMouseListener(new MouseAdapter()
@@ -254,7 +254,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		presetActions.add(errorNotification);
 		presetActions.add(helpButton);
-		presetActions.add(refreshPlugins);
+		// presetActions.add(refreshPlugins);
 		presetActions.add(addPreset);
 
 		titlePanel.add(title, BorderLayout.WEST);
