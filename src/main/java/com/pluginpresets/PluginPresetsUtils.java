@@ -124,7 +124,7 @@ public class PluginPresetsUtils
 
 		if (duplicates > 0)
 		{
-			boolean endWithSuffix = name.charAt((name.length() - 2)) == '(' && name.endsWith(")");
+			boolean endWithSuffix = name.length() > 2 && name.charAt((name.length() - 2)) == '(' && name.endsWith(")");
 			if (endWithSuffix)
 			{
 				return String.format("%s (%d)", name.substring(0, name.length() - 3), duplicates);
