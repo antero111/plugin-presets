@@ -39,11 +39,11 @@ public class PluginPresetsPresetEditor
 	@Getter
 	private final PluginPreset editedPreset;
 
-	public PluginPresetsPresetEditor(PluginPresetsPlugin plugin, PluginPreset editedPreset)
+	public PluginPresetsPresetEditor(PluginPresetsPlugin plugin, PluginPreset editedPreset, CurrentConfigurations currentConfigurations)
 	{
-		this.editedPreset = editedPreset;
 		this.plugin = plugin;
-		this.currentConfigurations = plugin.getCurrentConfigurations();
+		this.editedPreset = editedPreset;
+		this.currentConfigurations = currentConfigurations;
 	}
 
 	public void removeConfigurationFromEdited(PluginConfig configuration)
@@ -84,15 +84,18 @@ public class PluginPresetsPresetEditor
 
 	public void removeSettingFromEdited(PluginConfig currentConfig, PluginSetting setting)
 	{
-		editedPreset.getPluginConfigs().forEach(configurations ->
+		editedPreset.getPluginConfigs().forEach(configuration ->
 		{
-			if (currentConfig == null || configurations.getName().equals(currentConfig.getName()))
+			boolean configToBeRemoved = currentConfig == null || configuration.getName().equals(currentConfig.getName());
+			if (configToBeRemoved)
 			{
-				configurations.getSettings().removeIf(s -> s.getKey().equals(setting.getKey()));
+				List<PluginSetting> settings = configuration.getSettings().stream().filter((s -> !s.getKey().equals(setting.getKey()))).collect(Collectors.toList());
+				configuration.setSettings(settings);
 
-				if (configurations.getSettings().isEmpty() && configurations.getEnabled() == null)
+				boolean lastSetting = configuration.getSettings().isEmpty() && configuration.getEnabled() == null;
+				if (lastSetting)
 				{
-					removeConfigurationFromEdited(configurations);
+					removeConfigurationFromEdited(configuration);
 				}
 			}
 		});
@@ -101,14 +104,13 @@ public class PluginPresetsPresetEditor
 
 	public void addSettingToEdited(PluginConfig currentConfig, PluginSetting setting)
 	{
-		if (editedPreset.getPluginConfigs().stream()
-			.noneMatch(c -> c.getName().equals(currentConfig.getName())))
+		boolean noneMatch = editedPreset.getPluginConfigs().stream().noneMatch(c -> c.getName().equals(currentConfig.getName()));
+		if (noneMatch)
 		{
 			ArrayList<PluginSetting> settings = new ArrayList<>();
 			settings.add(setting);
-			currentConfig.setSettings(settings);
-			currentConfig.setEnabled(null);
-			editedPreset.getPluginConfigs().add(currentConfig);
+			PluginConfig pluginConfig = new PluginConfig(currentConfig.getName(), currentConfig.getConfigName(), null, settings);
+			editedPreset.getPluginConfigs().add(pluginConfig);
 		}
 		else
 		{
@@ -185,14 +187,12 @@ public class PluginPresetsPresetEditor
 
 	public void addEnabledToEdited(PluginConfig currentConfig)
 	{
-		if (editedPreset.getPluginConfigs().stream()
-			.noneMatch(c -> c.getName().equals(currentConfig.getName())))
+		boolean noneMatch = editedPreset.getPluginConfigs().stream().noneMatch(c -> currentConfig.getName().equals(c.getName()));
+		if (noneMatch)
 		{
 			ArrayList<PluginSetting> settings = new ArrayList<>();
-
-			currentConfig.setEnabled(currentConfig.getEnabled());
-			currentConfig.setSettings(settings);
-			editedPreset.getPluginConfigs().add(currentConfig);
+			PluginConfig pluginConfig = new PluginConfig(currentConfig.getName(), currentConfig.getConfigName(), currentConfig.getEnabled(), settings);
+			editedPreset.getPluginConfigs().add(pluginConfig);
 		}
 		else
 		{
@@ -230,8 +230,7 @@ public class PluginPresetsPresetEditor
 
 		plugin.getPluginPresets().forEach(preset ->
 		{
-			boolean contains = preset.getPluginConfigs().stream().map(PluginConfig::getName)
-				.collect(Collectors.toList()).contains(configuration.getName());
+			boolean contains = preset.getPluginConfigs().stream().map(PluginConfig::getName).collect(Collectors.toList()).contains(configuration.getName());
 			if (contains)
 			{
 				List<PluginConfig> pluginConfigs = preset.getPluginConfigs().stream()
@@ -335,38 +334,26 @@ public class PluginPresetsPresetEditor
 		updateEditedPreset();
 	}
 
-	private PluginPreset getPreset()
+	public void toggleLocal()
+	{
+		editedPreset.setLocal(!editedPreset.getLocal());
+		updateEditedPreset();
+	}
+
+	/**
+	 * Update edited presets plugin configs in pluginPresets and then save.
+	 */
+	private void updateEditedPreset()
 	{
 		for (PluginPreset preset : plugin.getPluginPresets())
 		{
 			if (preset.getId() == editedPreset.getId())
 			{
-				return preset;
+				preset.setPluginConfigs(editedPreset.getPluginConfigs());
+				preset.setLocal(editedPreset.getLocal());
+				plugin.savePresets();
+				return;
 			}
-		}
-		return null;
-	}
-
-	public void toggleLocal()
-	{
-		editedPreset.setLocal(!editedPreset.getLocal());
-
-		PluginPreset preset = getPreset();
-		if (preset != null)
-		{
-			preset.setLocal(editedPreset.getLocal());
-		}
-
-		plugin.savePresets();
-	}
-
-	private void updateEditedPreset()
-	{
-		PluginPreset preset = getPreset();
-		if (preset != null)
-		{
-			preset.setPluginConfigs(editedPreset.getPluginConfigs());
-			plugin.savePresets();
 		}
 	}
 }

@@ -25,12 +25,15 @@
 package com.pluginpresets;
 
 import java.util.List;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
 public class CurrentConfigurations
 {
+	@Getter
+	@Setter
 	private List<PluginConfig> pluginConfigs;
+
 	private PluginPresetsCurrentConfigManager currentConfigManager;
 
 	public CurrentConfigurations(PluginPresetsCurrentConfigManager currentConfigManager)

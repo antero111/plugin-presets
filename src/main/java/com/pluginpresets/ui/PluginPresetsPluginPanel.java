@@ -511,6 +511,8 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		List<PluginConfig> filteredConfigs = filterConfigurations(filter, configurations);
 		List<String> filterConfigNames = filteredConfigs.stream().map(PluginConfig::getName).collect(Collectors.toList());
 
+		plugin.getCurrentConfigurations().update();
+
 		boolean modified = false;
 
 		if (filteredConfigs.isEmpty() || keywordFilteredConfigNames.isEmpty())

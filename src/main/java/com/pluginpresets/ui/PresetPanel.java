@@ -115,7 +115,7 @@ class PresetPanel extends JPanel
 	private final JLabel saveKeybind = new JLabel("Save");
 	private final JLabel cancelKeybind = new JLabel("Cancel");
 	private KeyEvent savedKeybind = null;
-	private JPanel presetNameContainer = new JPanel();
+	private final JPanel presetNameContainer = new JPanel();
 
 	PresetPanel(PluginPreset pluginPreset, PluginPresetsPlugin pluginPresetsPlugin)
 	{
@@ -250,7 +250,7 @@ class PresetPanel extends JPanel
 
 		presetNameContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		presetNameContainer.add(nameLabel);
-		
+
 		nameContainer.add(nameInput);
 		nameContainer.add(presetNameContainer);
 
@@ -691,9 +691,7 @@ class PresetPanel extends JPanel
 			: new Keybind(savedKeybind);
 
 		preset.setKeybind(presetKeybind);
-
 		plugin.savePresets();
-		plugin.rebuildPluginUi();
 	}
 
 	private void cancelKeybind()
@@ -710,7 +708,7 @@ class PresetPanel extends JPanel
 
 	public void editPreset(PluginPreset preset)
 	{
-		plugin.setPresetEditor(new PluginPresetsPresetEditor(plugin, preset));
+		plugin.setPresetEditor(new PluginPresetsPresetEditor(plugin, preset, plugin.getCurrentConfigurations()));
 		plugin.rebuildPluginUi();
 	}
 }

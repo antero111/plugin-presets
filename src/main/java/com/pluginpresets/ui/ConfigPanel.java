@@ -223,6 +223,12 @@ public class ConfigPanel extends JPanel
 				statusLabel.setForeground(ColorScheme.PROGRESS_INPROGRESS_COLOR);
 				statusLabel.setToolTipText("Your configurations for " + currentConfig.getName() + " do not match the preset.");
 
+				if (settingsVisible)
+				{
+					statusLabel.setBorder(new EmptyBorder(5, 0, 0, 0));
+					updateLabel.setBorder(new EmptyBorder(4, 0, 0, 5));
+				}
+
 				updateLabel.setIcon(UPDATE_ICON);
 				updateLabel.setToolTipText("Replace presets configuration for " + currentConfig.getName() + " with your current configuration.");
 				updateLabel.addMouseListener(new MouseAdapter()
@@ -330,7 +336,7 @@ public class ConfigPanel extends JPanel
 		leftActions.add(customNotice);
 
 		JPanel rightActions = new JPanel();
-		rightActions.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
+		rightActions.setLayout(new FlowLayout(FlowLayout.LEFT, 3, 0));
 		rightActions.add(statusLabel);
 		rightActions.add(notInstalledLabel);
 		rightActions.add(notificationLabel);
@@ -341,7 +347,10 @@ public class ConfigPanel extends JPanel
 		topActions.add(leftActions, BorderLayout.CENTER);
 		topActions.add(rightActions, BorderLayout.EAST);
 
-		createSettings();
+		if (settingsVisible)
+		{
+			createSettings();
+		}
 		settings.setBorder(new EmptyBorder(0, 5, 3, 0));
 		settings.setVisible(settingsVisible);
 
@@ -366,6 +375,8 @@ public class ConfigPanel extends JPanel
 		List<PluginSetting> presetSettings = (presetConfig != null) ? presetConfig.getSettings() : null;
 
 		ArrayList<String> loopedInvalidConfigurations = new ArrayList<>();
+		String configName = currentConfig.getConfigName();
+		List<String> keys = currentConfig.getSettingKeys();
 
 		currentConfig.getSettings().forEach(currentSetting ->
 		{
@@ -379,8 +390,6 @@ public class ConfigPanel extends JPanel
 			{
 				presetSetting = null;
 			}
-			String configName = currentConfig.getConfigName();
-			List<String> keys = currentConfig.getSettingKeys();
 
 			if (presetSettings != null && !loopedInvalidConfigurations.contains(configName))
 			{
