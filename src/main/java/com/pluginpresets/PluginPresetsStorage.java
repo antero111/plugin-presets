@@ -253,8 +253,8 @@ public class PluginPresetsStorage
 
 			if (legacyPluginPreset != null)
 			{
-				// TODO: fix convert old style
-				log.info(String.format("file: %s contains old styled preset and it will not work.", file.getAbsolutePath()));
+				log.info(String.format("Converting legacy styled preset to new plugin preset format, file: %s, preset: %s", file.getAbsolutePath(), legacyPluginPreset));
+				newPreset = LegacyPluginPreset.convert(legacyPluginPreset, plugin.getCurrentConfigurations());
 				return newPreset;
 			}
 			else
@@ -318,7 +318,6 @@ public class PluginPresetsStorage
 	public void watchFolder()
 	{
 		Path presetDir = PRESETS_DIR.toPath();
-		log.info(String.format("Watching Preset folder changes at %s", presetDir));
 
 		try
 		{
