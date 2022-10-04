@@ -238,7 +238,7 @@ public class ConfigRow extends JPanel
 	{
 		JMenuItem removeOption = new JMenuItem();
 		removeOption.setText("Remove custom setting");
-		removeOption.addActionListener(e -> removeSetting());
+		removeOption.addActionListener(e -> removeCustomSetting());
 
 		JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
@@ -246,7 +246,7 @@ public class ConfigRow extends JPanel
 		return popupMenu;
 	}
 
-	private void removeSetting()
+	private void removeCustomSetting()
 	{
 		presetEditor.removeCustomSetting(currentSetting);
 		plugin.getCustomConfigs().removeCustomSetting(currentSetting);

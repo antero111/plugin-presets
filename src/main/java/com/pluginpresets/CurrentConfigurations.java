@@ -31,4 +31,15 @@ import lombok.Data;
 public class CurrentConfigurations
 {
 	private List<PluginConfig> pluginConfigs;
+	private PluginPresetsCurrentConfigManager currentConfigManager;
+
+	public CurrentConfigurations(PluginPresetsCurrentConfigManager currentConfigManager)
+	{
+		this.currentConfigManager = currentConfigManager;
+	}
+
+	public void update()
+	{
+		setPluginConfigs(currentConfigManager.getCurrentConfigs());
+	}
 }

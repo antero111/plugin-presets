@@ -241,7 +241,6 @@ public class PluginPresetsPresetEditor
 			}
 			preset.getPluginConfigs().add(configuration);
 		});
-		plugin.savePresets();
 	}
 
 	public void removeConfigurationFromPresets(PluginConfig configuration)
@@ -336,20 +335,6 @@ public class PluginPresetsPresetEditor
 		updateEditedPreset();
 	}
 
-	public void toggleAll(boolean enable)
-	{
-		if (enable)
-		{
-			editedPreset.setPluginConfigs(currentConfigurations.getPluginConfigs());
-		}
-		else
-		{
-			List<PluginConfig> pluginConfigs = editedPreset.getPluginConfigs();
-			pluginConfigs.clear();
-		}
-		updateEditedPreset();
-	}
-
 	private PluginPreset getPreset()
 	{
 		for (PluginPreset preset : plugin.getPluginPresets())
@@ -381,9 +366,7 @@ public class PluginPresetsPresetEditor
 		if (preset != null)
 		{
 			preset.setPluginConfigs(editedPreset.getPluginConfigs());
+			plugin.savePresets();
 		}
-
-		plugin.savePresets();
-		plugin.refreshPresets();
 	}
 }

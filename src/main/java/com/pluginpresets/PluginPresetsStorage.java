@@ -53,7 +53,6 @@ public class PluginPresetsStorage
 	private final PluginPresetsPlugin plugin;
 
 	private final Gson gson = new Gson();
-	private final PluginPresetsPresetManager presetManager;
 	private Thread thread;
 	private WatchService watcher;
 
@@ -63,10 +62,9 @@ public class PluginPresetsStorage
 	private boolean localClientChange = false;
 	private long lastRefreshTime;
 
-	public PluginPresetsStorage(PluginPresetsPlugin plugin, PluginPresetsPresetManager presetManager)
+	public PluginPresetsStorage(PluginPresetsPlugin plugin)
 	{
 		this.plugin = plugin;
-		this.presetManager = presetManager;
 	}
 
 	private static File createNewPresetFileWithCustomSuffix(final PluginPreset pluginPreset, final int fileNumber)
@@ -255,8 +253,8 @@ public class PluginPresetsStorage
 
 			if (legacyPluginPreset != null)
 			{
-				log.info(String.format("Converting legacy styled preset to new plugin preset format, file: %s, preset: %s", file.getAbsolutePath(), legacyPluginPreset));
-				newPreset = presetManager.convertLegacyPreset(legacyPluginPreset);
+				// TODO: fix convert old style
+				log.info(String.format("file: %s contains old styled preset and it will not work.", file.getAbsolutePath()));
 				return newPreset;
 			}
 			else
