@@ -395,7 +395,8 @@ public class ConfigPanel extends JPanel
 			{
 				presetSettings.forEach(setting ->
 				{
-					if (!keys.contains(setting.getKey()))
+					boolean invalidSetting = !keys.contains(setting.getKey()) && setting.getCustomConfigName() == null;
+					if (invalidSetting)
 					{
 						settings.add(new ConfigRow(null, null, setting, plugin), constraints);
 						constraints.gridy++;

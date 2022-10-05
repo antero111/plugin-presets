@@ -96,7 +96,7 @@ public class PluginPresetsPlugin extends Plugin
 	private CurrentConfigurations currentConfigurations;
 
 	@Getter
-	private CustomConfigs customConfigs;
+	private CustomSettings customSettings;
 
 	@Inject
 	private ClientToolbar clientToolbar;
@@ -162,13 +162,14 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPanel = new PluginPresetsPluginPanel(this);
 		presetManager = new PluginPresetsPresetManager(pluginManager, configManager);
 		presetStorage = new PluginPresetsStorage(this);
-		PluginPresetsCurrentConfigManager currentConfigManager = new PluginPresetsCurrentConfigManager(pluginManager, configManager, runeLiteConfig);
 
-		customConfigs = new CustomConfigs();
+		customSettings = new CustomSettings();
+		loadPresets();
+
+		PluginPresetsCurrentConfigManager currentConfigManager = new PluginPresetsCurrentConfigManager(pluginManager, configManager, runeLiteConfig, customSettings);
 		currentConfigurations = new CurrentConfigurations(currentConfigManager);
 		updateCurrentConfigurations();
 
-		loadPresets();
 		savePresets();
 		rebuildPluginUi();
 
@@ -197,8 +198,6 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		pluginPresets.clear();
 		keybinds.clear();
-		customConfigs = null;
-		currentConfigurations = null;
 
 		presetStorage.stopWatcher();
 		clientToolbar.removeNavigation(navigationButton);
@@ -208,6 +207,9 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPanel = null;
 		presetManager = null;
 		presetStorage = null;
+		presetEditor = null;
+		customSettings = null;
+		currentConfigurations = null;
 		navigationButton = null;
 	}
 
@@ -351,9 +353,9 @@ public class PluginPresetsPlugin extends Plugin
 	public void loadPresets()
 	{
 		pluginPresets.addAll(presetStorage.loadPresets());
-		customConfigs.parseCustomSettings(pluginPresets);
 		loadConfig(configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY));
 		pluginPresets.sort(Comparator.comparing(PluginPreset::getName)); // Keep presets in order
+		customSettings.parseCustomSettings(pluginPresets);
 		cacheKeybins();
 	}
 

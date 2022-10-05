@@ -24,6 +24,8 @@
  */
 package com.pluginpresets.ui;
 
+import com.pluginpresets.CurrentConfigurations;
+import com.pluginpresets.CustomSetting;
 import com.pluginpresets.PluginConfig;
 import com.pluginpresets.PluginPreset;
 import com.pluginpresets.PluginPresetsPlugin;
@@ -487,22 +489,16 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		editTitle.setText("Editing " + editedPreset.getName());
 		searchBar.requestFocusInWindow();
 
-		List<PluginConfig> configurations = plugin.getCurrentConfigurations().getPluginConfigs();
+		CurrentConfigurations currentConfigurations = plugin.getCurrentConfigurations();
+		List<PluginConfig> configurations = currentConfigurations.getPluginConfigs();
+
+		// Only show custom configs that are saved to edited preset
+		filterCustomConfigs(configurations);
 
 		// Add configurations that are in the preset but not in current configurations
 		// e.g. preset is from a friend and the preset has settings
 		// to some plugin hub plugin that you don't have in your current configs
-		List<String> names = configurations.stream()
-			.map(PluginConfig::getName)
-			.collect(Collectors.toList());
-
-		for (PluginConfig config : editedPreset.getPluginConfigs())
-		{
-			if (!names.contains(config.getName()))
-			{
-				configurations.add(config);
-			}
-		}
+		addMissingConfigurations(configurations);
 
 		List<String> keywordFilteredConfigNames = filterIfSearchKeyword(configurations)
 			.stream().map(PluginConfig::getName)
@@ -511,9 +507,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		List<PluginConfig> filteredConfigs = filterConfigurations(filter, configurations);
 		List<String> filterConfigNames = filteredConfigs.stream().map(PluginConfig::getName).collect(Collectors.toList());
 
-		plugin.getCurrentConfigurations().update();
-
-		boolean modified = false;
+		currentConfigurations.update();
 
 		if (filteredConfigs.isEmpty() || keywordFilteredConfigNames.isEmpty())
 		{
@@ -522,6 +516,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			constraints.gridy++;
 		}
 
+		boolean modified = false;
 		for (final PluginConfig currentConfig : configurations)
 		{
 			PluginConfig presetConfig = editedPreset.getConfig(currentConfig);
@@ -539,6 +534,28 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		}
 
 		updateAll.setVisible(modified);
+	}
+
+	private void filterCustomConfigs(List<PluginConfig> configurations)
+	{
+		List<CustomSetting> editedPresetCustomSettings = plugin.getCustomSettings().getCustomSettingsFor(editedPreset.getId());
+		List<String> customSettingKeys = editedPresetCustomSettings.stream().map(customSetting -> customSetting.getSetting().getKey()).collect(Collectors.toList());
+		configurations.forEach(c -> c.getSettings().removeIf(setting -> setting.getCustomConfigName() != null && !customSettingKeys.contains(setting.getKey())));
+	}
+
+	private void addMissingConfigurations(List<PluginConfig> configurations)
+	{
+		List<String> names = configurations.stream()
+			.map(PluginConfig::getName)
+			.collect(Collectors.toList());
+
+		for (PluginConfig config : editedPreset.getPluginConfigs())
+		{
+			if (!names.contains(config.getName()))
+			{
+				configurations.add(config);
+			}
+		}
 	}
 
 	private void setLocalIcon(Boolean local)

@@ -24,55 +24,14 @@
  */
 package com.pluginpresets;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-public class CustomConfigs
+@AllArgsConstructor
+public class CustomSetting
 {
-	private List<PluginSetting> configs;
-
-	public CustomConfigs()
-	{
-		this.configs = new ArrayList<>();
-	}
-
-	public void addCustomSetting(PluginSetting setting)
-	{
-		boolean anyMatch = configs.stream()
-			.anyMatch(c -> c.getKey()
-				.equals(setting.getKey()));
-		if (!anyMatch)
-		{
-			configs.add(setting);
-		}
-	}
-
-	public void removeCustomSetting(PluginSetting setting)
-	{
-		for (PluginSetting customSetting : configs)
-		{
-			if (customSetting.getKey().equals(setting.getKey()))
-			{
-				configs.remove(customSetting);
-				return;
-			}
-		}
-	}
-
-	public void parseCustomSettings(List<PluginPreset> pluginPresets)
-	{
-		configs.clear();
-
-		pluginPresets.forEach(preset ->
-			preset.getPluginConfigs().forEach(c ->
-				c.getSettings().forEach(s ->
-				{
-					if (s.getCustomConfigName() != null)
-					{
-						addCustomSetting(s);
-					}
-				})));
-	}
+	PluginSetting setting;
+	PluginConfig parentConfig;
+	PluginPreset parentPreset;
 }

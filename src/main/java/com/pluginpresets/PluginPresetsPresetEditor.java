@@ -143,46 +143,36 @@ public class PluginPresetsPresetEditor
 			return;
 		}
 
-		boolean added = false;
-		for (PluginConfig configuration : editedPreset.getPluginConfigs())
+		PluginConfig config = editedPreset.getPluginConfigs().stream()
+			.filter(customer -> customer.getConfigName().equals(currentConfig.getConfigName()))
+			.findAny()
+			.orElse(null);
+
+		if (config == null)
 		{
-			boolean equals = currentConfig.getConfigName().equals(configuration.getConfigName());
-			if (!added && equals)
+			for (PluginConfig c : currentConfigurations.getPluginConfigs())
 			{
-				String value = plugin.getPresetManager().getConfiguration(configName, key);
-				PluginSetting setting = new PluginSetting(PluginPresetsUtils.splitAndCapitalize(key), key, value, configName, configuration.getConfigName());
-
-				boolean present = configuration.getSettings().stream().anyMatch(c -> c.getKey().equals(setting.getKey()));
-				if (!present)
+				if (c.getConfigName().equals(currentConfig.getConfigName()))
 				{
-					configuration.getSettings().add(setting);
-					log.info("Added custom setting " + customSetting + " to preset " + editedPreset.getName());
+					config = new PluginConfig(c.getName(), c.getConfigName(), null, new ArrayList<>());
 				}
-				else
-				{
-					log.info("Custom setting " + customSetting + " already exists in preset " + editedPreset.getName());
-				}
-				added = true;
 			}
+			editedPreset.getPluginConfigs().add(config);
 		}
 
-		if (!added)
+		if (config == null)
 		{
-			log.warn("Failed to add custom setting " + customSetting + " to preset.");
+			log.warn("Could not add custom setting.");
+			return;
 		}
+
+		String value = plugin.getPresetManager().getConfiguration(configName, key);
+		PluginSetting setting = new PluginSetting(PluginPresetsUtils.splitAndCapitalize(key), key, value, configName, config.getConfigName());
+
+		config.getSettings().add(setting);
 
 		updateEditedPreset();
-	}
-
-	public void removeCustomSetting(PluginSetting setting)
-	{
-		for (PluginConfig config : editedPreset.getPluginConfigs())
-		{
-			if (config.getConfigName().equals(setting.getConfigName()))
-			{
-				removeSettingFromEdited(config, setting);
-			}
-		}
+		plugin.refreshPresets(); // Must do refresh to reload custom configs
 	}
 
 	public void addEnabledToEdited(PluginConfig currentConfig)
