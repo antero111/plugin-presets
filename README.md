@@ -56,7 +56,7 @@ Custom settings require the configs _configName_ and the custom settings _settin
 
 ## Issues
 
-If you've experienced an issue with Plugin Presets, or have a recommendation on how to improve it, please [create an issue](https://github.com/antero111/plugin-presets/issues/new) or [start a discussion](https://github.com/antero111/plugin-presets/discussions/new) with the relevant details.
+If you've experienced an issue with Plugin Presets, or have a recommendation on how to improve it, please [create an issue](https://github.com/antero111/plugin-presets/issues/new) with relevant details.
 
 ## License
 
