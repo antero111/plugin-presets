@@ -197,7 +197,7 @@ public class ConfigPanel extends JPanel
 		if (presetHasConfigurations)
 		{
 			checkbox.setSelected(true);
-			checkbox.setToolTipText("Remove " + currentConfig.getName() + " configurations from the preset.");
+			checkbox.setToolTipText("Remove '" + currentConfig.getName() + "' configurations from the preset.");
 			checkbox.addMouseListener(new MouseAdapter()
 			{
 				@Override
@@ -217,11 +217,11 @@ public class ConfigPanel extends JPanel
 
 			if (!configsMatch)
 			{
-				title.setToolTipText("Your configurations for " + currentConfig.getName() + " do not match the preset.");
+				title.setToolTipText("Your '" + currentConfig.getName() + "' configurations do not match the preset.");
 
 				statusLabel.setText("Modified");
 				statusLabel.setForeground(ColorScheme.PROGRESS_INPROGRESS_COLOR);
-				statusLabel.setToolTipText("Your configurations for " + currentConfig.getName() + " do not match the preset.");
+				statusLabel.setToolTipText("Your '" + currentConfig.getName() + "' configurations do not match the preset.");
 
 				if (settingsVisible)
 				{
@@ -230,7 +230,7 @@ public class ConfigPanel extends JPanel
 				}
 
 				updateLabel.setIcon(UPDATE_ICON);
-				updateLabel.setToolTipText("Replace presets configuration for " + currentConfig.getName() + " with your current configuration.");
+				updateLabel.setToolTipText("Replace presets '" + currentConfig.getName() + "' configurations with your current configuration.");
 				updateLabel.addMouseListener(new MouseAdapter()
 				{
 					@Override
@@ -254,7 +254,7 @@ public class ConfigPanel extends JPanel
 			}
 			else
 			{
-				title.setToolTipText("Your configurations for " + currentConfig.getName() + " match the preset.");
+				title.setToolTipText("Your '" + currentConfig.getName() + "' configurations match the preset.");
 				title.setForeground(Color.WHITE);
 			}
 
@@ -268,10 +268,10 @@ public class ConfigPanel extends JPanel
 		else
 		{
 			title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
-			title.setToolTipText("This preset does not include any configurations to " + currentConfig.getName() + " plugin.");
+			title.setToolTipText("This preset does not include any configurations to '" + currentConfig.getName() + "' plugin.");
 
 			checkbox.setSelected(false);
-			checkbox.setToolTipText("Add your current " + currentConfig.getName() + " configurations to the preset.");
+			checkbox.setToolTipText("Add your current '" + currentConfig.getName() + "' configurations to the preset.");
 			checkbox.addMouseListener(new MouseAdapter()
 			{
 				@Override
