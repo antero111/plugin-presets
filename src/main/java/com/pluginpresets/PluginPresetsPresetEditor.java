@@ -310,6 +310,7 @@ public class PluginPresetsPresetEditor
 	{
 		for (PluginConfig pluginConfig : pluginConfigs)
 		{
+			removeConfigurationFromEdited(pluginConfig, true);
 			addConfigurationToEdited(pluginConfig, true);
 		}
 		updateEditedPreset();
