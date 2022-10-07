@@ -35,6 +35,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -140,6 +141,8 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private String filter = filters[0];
 	private boolean syncLocal;
 	private PluginPreset editedPreset;
+	private boolean openPartialConfigs;
+	private boolean openAll;
 
 	public PluginPresetsPluginPanel(PluginPresetsPlugin pluginPresetsPlugin)
 	{
@@ -330,12 +333,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		filterDropdown.setFocusable(false);
 		filterDropdown.setForeground(Color.WHITE);
 		filterDropdown.setToolTipText("Filter configuration listing");
-		filterDropdown.addActionListener(e ->
-		{
-			JComboBox<String> cb = (JComboBox) e.getSource();
-			filter = (String) cb.getSelectedItem();
-			rebuild();
-		});
+		filterDropdown.addActionListener(this::selectFilter);
 
 		filterWrapper.add(filterDropdown);
 
@@ -431,6 +429,19 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		add(northPanel, BorderLayout.NORTH);
 		add(scrollableContainer, BorderLayout.CENTER);
+	}
+
+	private void selectFilter(ActionEvent e)
+	{
+		JComboBox<String> cb = (JComboBox) e.getSource();
+		filter = (String) cb.getSelectedItem();
+
+		rebuild();
+
+		if (filter.equals("Not included"))
+		{
+			openPartialConfigs();
+		}
 	}
 
 	public void rebuild()
@@ -589,11 +600,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		return currentConfigurations;
 	}
 
-	private List<PluginConfig> sortAlphabetically(List<PluginConfig> configurations)
+	private void sortAlphabetically(List<PluginConfig> configurations)
 	{
 		// // Sort alphabetically similar to the configurations tab
 		configurations.sort(Comparator.comparing(PluginConfig::getConfigName));
-		return configurations;
 	}
 
 	private List<PluginConfig> filterConfigurations(final String filter, final List<PluginConfig> configurations)
@@ -603,15 +613,17 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			filtered.clear();
 		}
 
-		if (filter.equals("All A to Z"))
-		{
-			filtered.addAll(configurations);
-			return sortAlphabetically(configurations);
-		}
+		sortAlphabetically(configurations);
 
 		for (final PluginConfig config : configurations)
 		{
 			PluginConfig presetConfig = editedPreset.getConfig(config);
+			boolean someSettingsUnticked = presetConfig != null && presetConfig.getSettings().size() < config.getSettings().size();
+
+			if (filter.equals("All A to Z"))
+			{
+				filtered.add(config);
+			}
 
 			if (filter.equals("Only Plugin Hub") && plugin.getPresetManager().isExternalPlugin(config.getName()))
 			{
@@ -631,6 +643,11 @@ public class PluginPresetsPluginPanel extends PluginPanel
 					filtered.add(config);
 				}
 
+				if (filter.equals("Not included") && someSettingsUnticked)
+				{
+					filtered.add(config);
+				}
+
 				if (presetConfig.match(config))
 				{
 					if (filter.equals("Configs match"))
@@ -646,27 +663,62 @@ public class PluginPresetsPluginPanel extends PluginPanel
 					}
 				}
 			}
+
+			// Runs when "Open partial configs" is clicked
+			if (openPartialConfigs && someSettingsUnticked)
+			{
+				openSettings.add(config.getName());
+			}
 		}
 
-		return sortAlphabetically(filtered);
+		if (openAll)
+		{
+			filtered.forEach(f -> openSettings.add(f.getName()));
+		}
+
+		return filtered;
 	}
 
 	private JPopupMenu getEllipsisMenuPopup()
 	{
 		JMenuItem enableAllOption = new JMenuItem();
 		enableAllOption.setText("Add all");
-		enableAllOption.setToolTipText("Adds all currently visible configurations to edited preset");
+		enableAllOption.setToolTipText("Adds all visible configurations to edited preset");
 		enableAllOption.addActionListener(e -> enableAllVisible());
 
 		JMenuItem disableAllOption = new JMenuItem();
 		disableAllOption.setText("Remove all");
-		disableAllOption.setToolTipText("Removes all currently visible settings from edited preset.");
+		disableAllOption.setToolTipText("Removes all visible settings from edited preset.");
 		disableAllOption.addActionListener(e -> disableAllVisible());
+
+		JMenuItem openAllOption = new JMenuItem();
+		openAllOption.setText("Open all");
+		openAllOption.setToolTipText("Opens all visible configuration dropdowns.");
+		openAllOption.addActionListener(e -> openAll());
+
+		JMenuItem openPartialOption = new JMenuItem();
+		openPartialOption.setText("Open partial");
+		openPartialOption.setToolTipText("Opens all visible configurations that have some settings ticked also unticked.");
+		openPartialOption.addActionListener(e -> openPartialConfigs());
+
+		JMenuItem collapseAllOption = new JMenuItem();
+		collapseAllOption.setText("Close all");
+		collapseAllOption.setToolTipText("Closes all open configuration dropdowns.");
+		collapseAllOption.addActionListener(e -> closeAll());
+
+		JMenuItem divider = new JMenuItem();
+		divider.setBorder(new EmptyBorder(1, 5, 1, 5));
+		divider.setPreferredSize(new Dimension(0, 1));
+		divider.setBackground(ColorScheme.DARKER_GRAY_HOVER_COLOR);
 
 		JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
 		popupMenu.add(enableAllOption);
 		popupMenu.add(disableAllOption);
+		popupMenu.add(divider);
+		popupMenu.add(openAllOption);
+		popupMenu.add(openPartialOption);
+		popupMenu.add(collapseAllOption);
 		return popupMenu;
 	}
 
@@ -680,6 +732,29 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	{
 		List<PluginConfig> configs = filterIfSearchKeyword(filtered);
 		plugin.getPresetEditor().removeAll(configs);
+	}
+
+	private void openAll()
+	{
+		openAll = true;
+		rebuild();
+		openAll = false;
+	}
+
+	private void openPartialConfigs()
+	{
+		openPartialConfigs = true;
+		rebuild();
+		openPartialConfigs = false;
+	}
+
+	private void closeAll()
+	{
+		if (!openSettings.isEmpty())
+		{
+			openSettings.clear();
+			rebuild();
+		}
 	}
 
 	private JPopupMenu getImportMenuPopup()
