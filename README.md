@@ -28,6 +28,14 @@ Presets can be bound to custom keybinds by clicking the _Not set_ text. After cl
 
 ![Keybind demo](readme_visuals/keybind_demo.gif)
 
+Presets can be loaded based on RuneLite client focus or unfocus. You can set the desired focus activation by right-clicking the load preset icon. Client unfocus can hapen when alt tabbing to other window, opening some other RuneLite sidebar panel, opening some context menu or popup. You can temporarily pause the focus activation by clicking the play/pause button in the top right corner. One should **pause the focus activation** if making changes to preset configurations (editing configurations, keybinds or renaming presets) or editing other RuneLite plugin configurations.
+
+Focus activation can be e.g. used to turn some plugins off to lower RuneLites computing power, limit draw distance or maybe make the client smaller when not using it. It's recommended to use focus activation with care since loading big presets will cause lag from loading many configurations and mostly cause more problems than help.
+
+![Focus demo](readme_visuals/focus_demo.gif)
+
+---
+
 Your plugin presets can become fairly messy after a while or cause problems if changing a lot of configurations between preset creations. To avoid confusion and problems, name your presets well, keep your presets up to date. Prefer to have presets **only contain the configurations you wish to change**, this also increases performance and reduces the strain to keep your presets up to date.
 
 ### Sharing plugin presets
