@@ -38,6 +38,7 @@ import net.runelite.client.config.Keybind;
  * @param name          Name of the preset
  * @param keybind       Used to enable the preset without the side panel. (Optional)
  * @param local         Used to identify whether the preset is stored in /presets or settings.properties
+ * @param loadOnFocus   Used to enable the preset when client is (un)focused (Optional)
  * @param pluginConfigs List of saved plugin configurations.
  */
 public class PluginPreset
@@ -58,6 +59,13 @@ public class PluginPreset
 	@Setter
 	private Boolean local;
 
+	/**
+	 * True when loaded on focus and false when loaded on unfocus.
+	 */
+	@Getter
+	@Setter
+	private Boolean loadOnFocus;
+
 	@Getter
 	@Setter
 	private List<PluginConfig> pluginConfigs;
@@ -68,6 +76,7 @@ public class PluginPreset
 		this.name = name;
 		this.keybind = null;
 		this.local = true;
+		this.loadOnFocus = null;
 		this.pluginConfigs = new ArrayList<>();
 	}
 

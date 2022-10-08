@@ -41,8 +41,10 @@ import java.awt.image.BufferedImage;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
@@ -69,6 +71,8 @@ class PresetPanel extends JPanel
 	private static final ImageIcon EDIT_ICON;
 	private static final ImageIcon EDIT_HOVER_ICON;
 	private static final ImageIcon SYNC_CONFIG_ICON;
+	private static final ImageIcon FOCUS_ICON;
+	private static final ImageIcon UNFOCUS_ICON;
 
 	static
 	{
@@ -96,6 +100,11 @@ class PresetPanel extends JPanel
 
 		final BufferedImage cloudImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "cloud_icon.png");
 		SYNC_CONFIG_ICON = new ImageIcon(cloudImg);
+
+		final BufferedImage focusImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "focus_icon.png");
+		final BufferedImage unfocusImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "unfocus_icon.png");
+		FOCUS_ICON = new ImageIcon(focusImg);
+		UNFOCUS_ICON = new ImageIcon(unfocusImg);
 	}
 
 	private final PluginPresetsPlugin plugin;
@@ -114,8 +123,8 @@ class PresetPanel extends JPanel
 	private final JLabel keybind = new JLabel();
 	private final JLabel saveKeybind = new JLabel("Save");
 	private final JLabel cancelKeybind = new JLabel("Cancel");
-	private KeyEvent savedKeybind = null;
 	private final JPanel presetNameContainer = new JPanel();
+	private KeyEvent savedKeybind = null;
 
 	PresetPanel(PluginPreset pluginPreset, PluginPresetsPlugin pluginPresetsPlugin)
 	{
@@ -264,7 +273,21 @@ class PresetPanel extends JPanel
 		JPanel leftActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 3));
 		leftActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		loadLabel.setBorder(new EmptyBorder(0, 5, 0, 0));
+		loadLabel.setBorder(new EmptyBorder(0, 5, 0, 5));
+
+		Boolean loadOnFocus = preset.getLoadOnFocus();
+		loadLabel.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				if (mouseEvent.getButton() == MouseEvent.BUTTON3) // Right click
+				{
+					JPopupMenu focusMenuPopup = getFocusMenuPopup(loadOnFocus);
+					loadLabel.setComponentPopupMenu(focusMenuPopup);
+				}
+			}
+		});
 
 		JLabel notice = new JLabel();
 
@@ -293,7 +316,10 @@ class PresetPanel extends JPanel
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
-					plugin.loadPreset(preset);
+					if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+					{
+						plugin.loadPreset(preset);
+					}
 				}
 
 				@Override
@@ -310,7 +336,23 @@ class PresetPanel extends JPanel
 			});
 		}
 
+		JLabel focusActionLabel = new JLabel();
+		if (loadOnFocus != null && !emptyPreset)
+		{
+			if (loadOnFocus)
+			{
+				focusActionLabel.setIcon(FOCUS_ICON);
+				focusActionLabel.setToolTipText("This preset gets loaded when client gets focused");
+			}
+			else
+			{
+				focusActionLabel.setIcon(UNFOCUS_ICON);
+				focusActionLabel.setToolTipText("This preset gets loaded when client gets unfocused");
+			}
+		}
+
 		leftActions.add(loadLabel);
+		leftActions.add(focusActionLabel);
 
 		JPanel rightActions = new JPanel();
 		rightActions.setLayout(new FlowLayout(FlowLayout.RIGHT, 8, 0));
@@ -379,7 +421,7 @@ class PresetPanel extends JPanel
 
 		keybind.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		keybind.setFont(FontManager.getRunescapeSmallFont());
-		int keybindWidth = emptyPreset ? 50 : 85;
+		int keybindWidth = emptyPreset ? 50 : 70;
 		keybind.setPreferredSize(new Dimension(keybindWidth, 12));
 		keybind.setHorizontalAlignment(SwingConstants.RIGHT);
 
@@ -706,9 +748,53 @@ class PresetPanel extends JPanel
 		keybind.setToolTipText("Save to clear keybind");
 	}
 
+	private JPopupMenu getFocusMenuPopup(Boolean loadOnFocus)
+	{
+		JMenuItem focusedOption = new JMenuItem();
+		focusedOption.setText("Load when focused");
+		focusedOption.setToolTipText("Load this preset automatically when client gets focused");
+		focusedOption.addActionListener(e -> setPresetWindowFocus(true));
+
+		JMenuItem unfocusedOption = new JMenuItem();
+		unfocusedOption.setText("Load when unfocused");
+		unfocusedOption.setToolTipText("Load this preset automatically when client gets unfocused");
+		unfocusedOption.addActionListener(e -> setPresetWindowFocus(false));
+
+		JMenuItem clearFocusOption = new JMenuItem();
+		clearFocusOption.setText("Clear focus action");
+		clearFocusOption.addActionListener(e -> setPresetWindowFocus(null));
+
+		if (loadOnFocus == null)
+		{
+			clearFocusOption.setVisible(false);
+		}
+		else if (loadOnFocus)
+		{
+			focusedOption.setVisible(false);
+		}
+		else
+		{
+			unfocusedOption.setVisible(false);
+		}
+
+		JPopupMenu popupMenu = new JPopupMenu();
+		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
+		popupMenu.add(focusedOption);
+		popupMenu.add(unfocusedOption);
+		popupMenu.add(clearFocusOption);
+		return popupMenu;
+	}
+
+	private void setPresetWindowFocus(Boolean loadOnFocus)
+	{
+		preset.setLoadOnFocus(loadOnFocus);
+		plugin.savePresets();
+	}
+
 	public void editPreset(PluginPreset preset)
 	{
 		plugin.setPresetEditor(new PluginPresetsPresetEditor(plugin, preset, plugin.getCurrentConfigurations()));
+		plugin.setFocusChangedPaused(true);
 		plugin.rebuildPluginUi();
 	}
 }

@@ -47,6 +47,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import net.runelite.api.GameState;
+import net.runelite.api.events.FocusChanged;
 import net.runelite.api.events.GameStateChanged;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.client.config.ConfigManager;
@@ -122,13 +123,22 @@ public class PluginPresetsPlugin extends Plugin
 
 	@Getter
 	private PluginPresetsPresetManager presetManager;
+
 	private PluginPresetsStorage presetStorage;
+
 	@Getter
 	@Setter
 	private PluginPresetsPresetEditor presetEditor = null;
+
 	@Getter
 	private Boolean loggedIn = false; // Used to inform that keybinds don't work in login screen
+
 	private Boolean loadingPreset = false;
+
+	@Getter
+	@Setter
+	private Boolean focusChangedPaused = false;
+
 	private final KeyListener keybindListener = new KeyListener()
 	{
 		@Override
@@ -245,6 +255,23 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		loggedIn = event.getGameState() == GameState.LOGGED_IN;
 		SwingUtilities.invokeLater(this::rebuildPluginUi);
+	}
+
+	@Subscribe
+	public void onFocusChanged(FocusChanged focusChanged)
+	{
+		if (!focusChangedPaused)
+		{
+			boolean focused = focusChanged.isFocused();
+			for (PluginPreset preset : pluginPresets)
+			{
+				Boolean loadOnFocus = preset.getLoadOnFocus();
+				if (loadOnFocus != null && loadOnFocus == focused)
+				{
+					loadPreset(preset);
+				}
+			}
+		}
 	}
 
 	public void updateConfig()

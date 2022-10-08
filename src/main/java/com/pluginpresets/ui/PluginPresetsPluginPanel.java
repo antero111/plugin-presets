@@ -44,6 +44,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.Box;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -81,6 +82,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private static final ImageIcon SYNC_LOCAL_HOVER_ICON;
 	private static final ImageIcon SYNC_CONFIG_ICON;
 	private static final ImageIcon SYNC_CONFIG_HOVER_ICON;
+	private static final ImageIcon PAUSE_ICON;
+	private static final ImageIcon PAUSE_HOVER_ICON;
+	private static final ImageIcon PLAY_ICON;
+	private static final ImageIcon PLAY_HOVER_ICON;
 
 	static
 	{
@@ -116,6 +121,14 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		final BufferedImage arrowLeftImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "arrow_left_icon.png");
 		ARROW_LEFT_ICON = new ImageIcon(arrowLeftImg);
 		ARROW_LEFT_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(arrowLeftImg, 0.53f));
+
+		final BufferedImage pauseImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "pause_icon.png");
+		PAUSE_ICON = new ImageIcon(pauseImg);
+		PAUSE_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(pauseImg, 0.53f));
+
+		final BufferedImage playImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "play_icon.png");
+		PLAY_ICON = new ImageIcon(playImg);
+		PLAY_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(playImg, 0.53f));
 	}
 
 	private final PluginPresetsPlugin plugin;
@@ -124,6 +137,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final JPanel editPanel = new JPanel(new BorderLayout());
 	private final JLabel errorNotification = new JLabel(NOTIFICATION_ICON);
 	private final JLabel helpButton = new JLabel(HELP_ICON);
+	private final JLabel pauseLabel = new JLabel();
 	private final JLabel addPreset = new JLabel(ADD_ICON);
 	private final JLabel stopEdit = new JLabel(ARROW_LEFT_ICON);
 	private final JLabel ellipsisMenu = new JLabel(ELLIPSIS);
@@ -143,6 +157,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private PluginPreset editedPreset;
 	private boolean openPartialConfigs;
 	private boolean openAll;
+	private MouseAdapter mouseAdapter;
 
 	public PluginPresetsPluginPanel(PluginPresetsPlugin pluginPresetsPlugin)
 	{
@@ -235,6 +250,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		});
 
 		presetActions.add(errorNotification);
+		presetActions.add(pauseLabel);
 		presetActions.add(helpButton);
 		presetActions.add(addPreset);
 
@@ -489,8 +505,65 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		title.setVisible(!empty);
 		openSettings.clear();
 
+		if (!empty)
+		{
+			boolean showPause = showPause();
+			pauseLabel.setVisible(showPause);
+			if (showPause)
+			{
+				showFocusPause();
+			}
+		}
+
 		contentView.add(noPresetsPanel, constraints);
 		constraints.gridy++;
+	}
+
+	private boolean showPause()
+	{
+		List<PluginPreset> presets = plugin.getPluginPresets();
+		for (PluginPreset p : presets)
+		{
+			if (p.getLoadOnFocus() != null && !p.getPluginConfigs().isEmpty())
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void showFocusPause()
+	{
+		Boolean paused = plugin.getFocusChangedPaused();
+		Icon icon = paused ? PLAY_ICON : PAUSE_ICON;
+		Icon hoverIcon = paused ? PLAY_HOVER_ICON : PAUSE_HOVER_ICON;
+		pauseLabel.setIcon(icon);
+		pauseLabel.setToolTipText(paused ? "Resume" : "Pause" + " focus preset loading");
+		pauseLabel.removeMouseListener(mouseAdapter);
+		mouseAdapter = new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				Boolean focusChangedPaused = plugin.getFocusChangedPaused();
+				plugin.setFocusChangedPaused(!focusChangedPaused);
+				rebuild();
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				pauseLabel.setIcon(hoverIcon);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				pauseLabel.setIcon(icon);
+			}
+		};
+
+		pauseLabel.addMouseListener(mouseAdapter);
 	}
 
 	private void renderEditView()
@@ -767,6 +840,11 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		createEmptyOption.setText("Create new preset with all settings");
 		createEmptyOption.addActionListener(e -> promptPresetCreation(false));
 
+		JMenuItem divider = new JMenuItem();
+		divider.setBorder(new EmptyBorder(1, 5, 1, 5));
+		divider.setPreferredSize(new Dimension(0, 1));
+		divider.setBackground(ColorScheme.DARKER_GRAY_HOVER_COLOR);
+
 		JMenuItem refreshOption = new JMenuItem();
 		refreshOption.setText("Refresh presets");
 		refreshOption.addActionListener(e -> plugin.refreshPresets());
@@ -775,6 +853,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
 		popupMenu.add(importOption);
 		popupMenu.add(createEmptyOption);
+		popupMenu.add(divider);
 		popupMenu.add(refreshOption);
 		return popupMenu;
 	}
@@ -803,6 +882,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private void stopEdit()
 	{
 		plugin.setPresetEditor(null);
+		plugin.setFocusChangedPaused(false);
 		editedPreset = null;
 	}
 }

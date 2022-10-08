@@ -143,8 +143,8 @@ public class ConfigPanel extends JPanel
 			{
 				if (mouseEvent.getButton() == MouseEvent.BUTTON3) // Right click
 				{
-					JPopupMenu importPopupMenu = getImportMenuPopup();
-					title.setComponentPopupMenu(importPopupMenu);
+					JPopupMenu customSettingPopupMenu = getCustomSettingPopupMenu();
+					title.setComponentPopupMenu(customSettingPopupMenu);
 				}
 				else
 				{
@@ -494,19 +494,19 @@ public class ConfigPanel extends JPanel
 		return openSettings.contains(currentConfig.getName());
 	}
 
-	private JPopupMenu getImportMenuPopup()
+	private JPopupMenu getCustomSettingPopupMenu()
 	{
-		JMenuItem importOption = new JMenuItem();
-		importOption.setText("Add custom setting");
-		importOption.addActionListener(e -> promptPresetCreation());
+		JMenuItem addCustomOption = new JMenuItem();
+		addCustomOption.setText("Add custom setting");
+		addCustomOption.addActionListener(e -> promptCustomSettingInput());
 
 		JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
-		popupMenu.add(importOption);
+		popupMenu.add(addCustomOption);
 		return popupMenu;
 	}
 
-	private void promptPresetCreation()
+	private void promptCustomSettingInput()
 	{
 		String customPresetName = JOptionPane.showInputDialog(ConfigPanel.this,
 			"Format: configName.settingKey", "Add custom setting to " + currentConfig.getName(), JOptionPane.PLAIN_MESSAGE);
