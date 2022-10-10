@@ -1,5 +1,19 @@
 # Changelog
 
+#### 2.3
+
+Presets are now refreshed automatically by detecting changes in the preset folder. Having multiple clients open and editing some preset causes that preset to also refresh on other open clients.
+
+Added preset loading based on client focus.
+
+Added open all/partial and close all buttons to config panel. Not included filter also shows partial configs. Fixed _Add all_ button to work with open configs.
+
+Custom settings were mostly rewritten and fixed issues causing custom settings to be reset when adding new ones. Custom settings are now only visible to the preset where they are stored. Added confirmation to removing custom settings.  
+
+Improved edit panel and preset loading performance. Added and improved tooltips and fixed some wrong ui alingments. Added cloud icon to preset panel and improved some other icons.
+
+Lots of code refactorings.
+
 #### 2.2
 
 Added _Included_ and _Not included_ filters and added a way to add custom settings e.g. for screen markers. Fixed duplicate configNames handling. Better dropdown arrows to edit panel and some other UX improvements.
