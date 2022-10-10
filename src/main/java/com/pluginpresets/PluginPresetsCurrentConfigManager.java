@@ -104,11 +104,9 @@ public class PluginPresetsCurrentConfigManager
 						if (!addedCustomSettings.contains(customConfigName))
 						{
 							String value = configManager.getConfiguration(customConfigName, setting.getKey());
-							setting.setValue(value);
-
+							PluginSetting pluginSetting = new PluginSetting(setting.getName(), setting.getKey(), value, customConfigName, setting.getConfigName());
+							pluginSettings.add(pluginSetting);
 							addedCustomSettings.add(customConfigName);
-
-							pluginSettings.add(setting);
 						}
 					});
 				}

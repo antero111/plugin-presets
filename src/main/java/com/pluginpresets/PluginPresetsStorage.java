@@ -28,6 +28,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -228,7 +229,7 @@ public class PluginPresetsStorage
 			{
 			}.getType());
 		}
-		catch (JsonSyntaxException e)
+		catch (JsonSyntaxException | FileNotFoundException e)
 		{
 			log.warn(String.format("Failed to load preset from %s, %s", file.getAbsolutePath(), e.getMessage()));
 			return null;

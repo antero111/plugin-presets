@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
@@ -62,39 +61,42 @@ public class PluginPresetsPresetManager
 
 		preset.getPluginConfigs().forEach(pluginConfig ->
 		{
+			Plugin plugin = findPlugin(pluginConfig.getName(), plugins);
+			
 			pluginConfig.getSettings().forEach(setting ->
 			{
+				boolean changedCustomSettings = false;
+				
 				// Some values e.g. hidden timers like tzhaar
 				// or color inputs with "Pick a color" option appears as null
-				if (setting.getValue() != null)
+				String value = setting.getValue();
+				if (value != null)
 				{
-					boolean customConfig = setting.getCustomConfigName() != null;
-					String groupName = customConfig ? setting.getCustomConfigName() : pluginConfig.getConfigName();
-					configManager.setConfiguration(groupName, setting.getKey(), setting.getValue());
-
+					String customConfigName = setting.getCustomConfigName();
+					boolean customConfig = customConfigName != null;
+					String groupName = customConfig ? customConfigName : pluginConfig.getConfigName();
+					
+					configManager.setConfiguration(groupName, setting.getKey(), value); // Set configuration
+					
 					if (customConfig)
 					{
-						// Restart plugin that contained custom configs
-						Plugin p = findPlugin(pluginConfig.getName(), plugins);
-
-						boolean enabled = pluginConfig.getEnabled() != null;
-						if (p != null)
-						{
-							SwingUtilities.invokeLater(() -> enablePlugin(p, !enabled));
-							SwingUtilities.invokeLater(() -> enablePlugin(p, enabled));
-						}
+						changedCustomSettings = true;
 					}
 				}
+				
+				if (changedCustomSettings)
+				{
+					restartPlugin(plugin);
+				}
 			});
-
-			Plugin p = findPlugin(pluginConfig.getName(), plugins);
+			
+			// Set plugin on/off
 			Boolean enabled = pluginConfig.getEnabled();
-			if (p != null && enabled != null)
+			if (plugin != null && enabled != null)
 			{
-				enablePlugin(p, enabled);
+				enablePlugin(plugin, enabled);
 			}
 		});
-
 	}
 
 	private Plugin findPlugin(String plugin, Collection<Plugin> plugins)
@@ -109,9 +111,25 @@ public class PluginPresetsPresetManager
 		return null;
 	}
 
+	private void restartPlugin(Plugin plugin)
+	{
+		boolean enabled = pluginManager.isPluginEnabled(plugin);
+
+		enablePlugin(plugin, !enabled, true);
+		enablePlugin(plugin, enabled, true);
+	}
+
 	private void enablePlugin(Plugin plugin, boolean enabled)
 	{
-		pluginManager.setPluginEnabled(plugin, enabled);
+		enablePlugin(plugin, enabled, false);
+	}
+
+	private void enablePlugin(Plugin plugin, boolean enabled, boolean skipSetEnable)
+	{
+		if (!skipSetEnable)
+		{
+			pluginManager.setPluginEnabled(plugin, enabled);
+		}
 
 		try
 		{

@@ -240,7 +240,7 @@ public class PluginPresetsPlugin extends Plugin
 		}
 	}
 
-	private void updateCurrentConfigurations()
+	public void updateCurrentConfigurations()
 	{
 		currentConfigurations.update();
 	}
