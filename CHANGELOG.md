@@ -1,5 +1,9 @@
 # Changelog
 
+##### 2.3.1
+
+Added confirmation to removing not installed configurations from presets. Fixed _update all_ removing not installed configurations from presets.
+
 #### 2.3
 
 Presets are now refreshed automatically by detecting changes in the preset folder. Having multiple clients open and editing some preset causes that preset to also refresh on other open clients.
