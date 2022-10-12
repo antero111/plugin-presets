@@ -65,6 +65,7 @@ public class ConfigPanel extends JPanel
 	private static final ImageIcon ARROW_RIGHT_HOVER_ICON;
 	private static final ImageIcon NOTIFICATION_ICON;
 	private static final ImageIcon NOT_INSTALLED_ICON;
+	private static final ImageIcon NOT_INSTALLED_HOVER_ICON;
 
 	static
 	{
@@ -75,6 +76,7 @@ public class ConfigPanel extends JPanel
 		final BufferedImage notInstalledImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
 			"not_installed_icon.png");
 		NOT_INSTALLED_ICON = new ImageIcon(notInstalledImg);
+		NOT_INSTALLED_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(notInstalledImg, 0.80f));
 
 		final BufferedImage checkboxImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_icon.png");
 		CHECKBOX_ICON = new ImageIcon(checkboxImg);
@@ -260,9 +262,38 @@ public class ConfigPanel extends JPanel
 
 			if (external && !installed)
 			{
-				notInstalledLabel.setIcon(NOT_INSTALLED_ICON);
-				notInstalledLabel.setToolTipText("Plugin not installed, download from Plugin Hub if you want to use these settings.");
 				title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
+
+				notInstalledLabel.setIcon(NOT_INSTALLED_ICON);
+				notInstalledLabel.setToolTipText("Plugin not installed, download from Plugin Hub if you want to use these settings or click to remove.");
+				notInstalledLabel.setBorder(new EmptyBorder(5, 0, 0, 4));
+				notInstalledLabel.addMouseListener(new MouseAdapter()
+				{
+					@Override
+					public void mousePressed(MouseEvent mouseEvent)
+					{
+						int confirm = JOptionPane.showConfirmDialog(notInstalledLabel,
+							"Are you sure to remove '" + presetConfig.getName() + "' configurations from the preset.",
+							"Remove configuration", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+
+						if (confirm == 0)
+						{
+							presetEditor.removeConfigurationFromEdited(presetConfig);
+						}
+					}
+
+					@Override
+					public void mouseEntered(MouseEvent mouseEvent)
+					{
+						notInstalledLabel.setIcon(NOT_INSTALLED_HOVER_ICON);
+					}
+
+					@Override
+					public void mouseExited(MouseEvent mouseEvent)
+					{
+						notInstalledLabel.setIcon(NOT_INSTALLED_ICON);
+					}
+				});
 			}
 		}
 		else
@@ -326,7 +357,7 @@ public class ConfigPanel extends JPanel
 			}
 		});
 
-		checkbox.setVisible(!settingsVisible);
+		checkbox.setVisible(!settingsVisible && !(external && !installed));
 
 		JPanel leftActions = new JPanel();
 		leftActions.setLayout(new BoxLayout(leftActions, BoxLayout.X_AXIS));
