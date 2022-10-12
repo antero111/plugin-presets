@@ -26,6 +26,7 @@ package com.pluginpresets;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
 import lombok.Data;
 
 @Data
@@ -33,6 +34,7 @@ public class CustomSettings
 {
 	private List<CustomSetting> settings;
 
+	@Inject
 	public CustomSettings()
 	{
 		this.settings = new ArrayList<>();

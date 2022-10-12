@@ -52,7 +52,6 @@ import net.runelite.api.events.GameStateChanged;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.Keybind;
-import net.runelite.client.config.RuneLiteConfig;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.ExternalPluginsChanged;
@@ -60,7 +59,6 @@ import net.runelite.client.input.KeyListener;
 import net.runelite.client.input.KeyManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ImageUtil;
@@ -94,19 +92,15 @@ public class PluginPresetsPlugin extends Plugin
 	private final List<PluginPreset> pluginPresets = new ArrayList<>();
 
 	@Getter
+	@Inject
 	private CurrentConfigurations currentConfigurations;
 
 	@Getter
+	@Inject
 	private CustomSettings customSettings;
 
 	@Inject
 	private ClientToolbar clientToolbar;
-
-	@Inject
-	private PluginManager pluginManager;
-
-	@Inject
-	private RuneLiteConfig runeLiteConfig;
 
 	@Inject
 	private ConfigManager configManager;
@@ -122,13 +116,15 @@ public class PluginPresetsPlugin extends Plugin
 	private PluginPresetsPluginPanel pluginPanel;
 
 	@Getter
+	@Inject
 	private PluginPresetsPresetManager presetManager;
 
+	@Inject
 	private PluginPresetsStorage presetStorage;
 
 	@Getter
 	@Setter
-	private PluginPresetsPresetEditor presetEditor = null;
+	private PluginPresetsPresetEditor presetEditor;
 
 	@Getter
 	private Boolean loggedIn = false; // Used to inform that keybinds don't work in login screen
@@ -168,25 +164,16 @@ public class PluginPresetsPlugin extends Plugin
 	protected void startUp()
 	{
 		PluginPresetsStorage.createPresetFolder();
-
 		pluginPanel = new PluginPresetsPluginPanel(this);
-		presetManager = new PluginPresetsPresetManager(pluginManager, configManager);
-		presetStorage = new PluginPresetsStorage(this);
 
-		customSettings = new CustomSettings();
 		loadPresets();
-
-		PluginPresetsCurrentConfigManager currentConfigManager = new PluginPresetsCurrentConfigManager(pluginManager, configManager, runeLiteConfig, customSettings);
-		currentConfigurations = new CurrentConfigurations(currentConfigManager);
 		updateCurrentConfigurations();
-
 		savePresets();
 		rebuildPluginUi();
 
 		presetStorage.watchFolderChanges();
 
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), ICON_FILE);
-
 		navigationButton = NavigationButton.builder()
 			.tooltip(PLUGIN_NAME)
 			.priority(8)
@@ -215,11 +202,7 @@ public class PluginPresetsPlugin extends Plugin
 		presetStorage.deletePresetFolderIfEmpty();
 
 		pluginPanel = null;
-		presetManager = null;
-		presetStorage = null;
 		presetEditor = null;
-		customSettings = null;
-		currentConfigurations = null;
 		navigationButton = null;
 	}
 

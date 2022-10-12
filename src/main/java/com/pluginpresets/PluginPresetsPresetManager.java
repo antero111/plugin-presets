@@ -26,6 +26,7 @@ package com.pluginpresets;
 
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ClassInfo;
+import com.google.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,6 +46,7 @@ public class PluginPresetsPresetManager
 	private final ConfigManager configManager;
 	private final List<String> corePlugins;
 
+	@Inject
 	public PluginPresetsPresetManager(PluginManager pluginManager, ConfigManager configManager)
 	{
 		this.pluginManager = pluginManager;
@@ -62,11 +64,11 @@ public class PluginPresetsPresetManager
 		preset.getPluginConfigs().forEach(pluginConfig ->
 		{
 			Plugin plugin = findPlugin(pluginConfig.getName(), plugins);
-			
+
 			pluginConfig.getSettings().forEach(setting ->
 			{
 				boolean changedCustomSettings = false;
-				
+
 				// Some values e.g. hidden timers like tzhaar
 				// or color inputs with "Pick a color" option appears as null
 				String value = setting.getValue();
@@ -75,21 +77,21 @@ public class PluginPresetsPresetManager
 					String customConfigName = setting.getCustomConfigName();
 					boolean customConfig = customConfigName != null;
 					String groupName = customConfig ? customConfigName : pluginConfig.getConfigName();
-					
+
 					configManager.setConfiguration(groupName, setting.getKey(), value); // Set configuration
-					
+
 					if (customConfig)
 					{
 						changedCustomSettings = true;
 					}
 				}
-				
+
 				if (changedCustomSettings)
 				{
 					restartPlugin(plugin);
 				}
 			});
-			
+
 			// Set plugin on/off
 			Boolean enabled = pluginConfig.getEnabled();
 			if (plugin != null && enabled != null)

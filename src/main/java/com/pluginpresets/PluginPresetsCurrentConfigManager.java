@@ -26,6 +26,7 @@ package com.pluginpresets;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigDescriptor;
 import net.runelite.client.config.ConfigManager;
@@ -39,6 +40,7 @@ public class PluginPresetsCurrentConfigManager
 	private final RuneLiteConfig runeLiteConfig;
 	private final CustomSettings customSettings;
 
+	@Inject
 	public PluginPresetsCurrentConfigManager(PluginManager pluginManager, ConfigManager configManager, RuneLiteConfig runeLiteConfig, CustomSettings customSettings)
 	{
 		this.pluginManager = pluginManager;

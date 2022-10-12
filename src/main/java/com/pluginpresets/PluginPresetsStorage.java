@@ -27,6 +27,7 @@ package com.pluginpresets;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+import com.google.inject.Inject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -63,6 +64,7 @@ public class PluginPresetsStorage
 	private boolean localClientChange = false;
 	private long lastRefreshTime;
 
+	@Inject
 	public PluginPresetsStorage(PluginPresetsPlugin plugin)
 	{
 		this.plugin = plugin;

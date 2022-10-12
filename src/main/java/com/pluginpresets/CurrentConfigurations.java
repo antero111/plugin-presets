@@ -24,6 +24,7 @@
  */
 package com.pluginpresets;
 
+import com.google.inject.Inject;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,8 +35,9 @@ public class CurrentConfigurations
 	@Setter
 	private List<PluginConfig> pluginConfigs;
 
-	private PluginPresetsCurrentConfigManager currentConfigManager;
+	private final PluginPresetsCurrentConfigManager currentConfigManager;
 
+	@Inject
 	public CurrentConfigurations(PluginPresetsCurrentConfigManager currentConfigManager)
 	{
 		this.currentConfigManager = currentConfigManager;
