@@ -267,9 +267,7 @@ public class PluginPresetsPresetEditor
 
 	public void updateAllModified()
 	{
-		List<PluginConfig> pluginConfigs = editedPreset.getPluginConfigs();
-
-		pluginConfigs.forEach(presetConfig ->
+		for (PluginConfig presetConfig : editedPreset.getPluginConfigs())
 		{
 			PluginConfig currentConfig = currentConfigurations
 				.getPluginConfigs()
@@ -286,7 +284,12 @@ public class PluginPresetsPresetEditor
 				.map(PluginSetting::getKey)
 				.collect(Collectors.toList());
 
-			assert currentConfig != null;
+			if (currentConfig == null)
+			{
+				addConfigurationToEdited(presetConfig, true);
+				continue;
+			}
+
 			List<PluginSetting> updatedSettings = currentConfig
 				.getSettings()
 				.stream()
@@ -301,7 +304,7 @@ public class PluginPresetsPresetEditor
 			}
 
 			addConfigurationToEdited(currentConfig, true);
-		});
+		}
 
 		updateEditedPreset();
 	}
