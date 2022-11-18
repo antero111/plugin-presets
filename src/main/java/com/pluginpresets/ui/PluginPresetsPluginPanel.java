@@ -57,6 +57,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.IconTextField;
@@ -64,6 +65,10 @@ import net.runelite.client.ui.components.PluginErrorPanel;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.LinkBrowser;
 
+/**
+ * Main panel displaying all plugin presets
+ */
+@Slf4j
 public class PluginPresetsPluginPanel extends PluginPanel
 {
 	private static final ImageIcon NOTIFICATION_ICON;
@@ -220,17 +225,14 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		});
 
 		addPreset.setToolTipText("Create new plugin preset");
+		JPopupMenu importPopupMenu = getImportMenuPopup();
+		addPreset.setComponentPopupMenu(importPopupMenu);
 		addPreset.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				if (mouseEvent.getButton() == MouseEvent.BUTTON3) // Right click
-				{
-					JPopupMenu importPopupMenu = getImportMenuPopup();
-					addPreset.setComponentPopupMenu(importPopupMenu);
-				}
-				else
+				if (mouseEvent.getButton() != MouseEvent.BUTTON3) // Right click
 				{
 					promptPresetCreation(true);
 				}
@@ -622,7 +624,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 	private void filterCustomConfigs(List<PluginConfig> configurations)
 	{
-		List<CustomSetting> editedPresetCustomSettings = plugin.getCustomSettings().getCustomSettingsFor(editedPreset.getId());
+		List<CustomSetting> editedPresetCustomSettings = plugin.getCustomSettingsManager().getCustomSettingsFor(editedPreset.getId());
 		List<String> customSettingKeys = editedPresetCustomSettings.stream().map(customSetting -> customSetting.getSetting().getKey()).collect(Collectors.toList());
 		configurations.forEach(c -> c.getSettings().removeIf(setting -> setting.getCustomConfigName() != null && !customSettingKeys.contains(setting.getKey())));
 	}

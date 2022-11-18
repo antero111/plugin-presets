@@ -30,7 +30,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * Class for a single RuneLite plugin.
+ * The config for an individual plugin within a preset. Contains various PluginSettings.
  *
  * @param name       Name of the plugin configuration
  * @param configName RuneLite config name

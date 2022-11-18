@@ -27,6 +27,9 @@ package com.pluginpresets;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+/**
+ * One custom plugin setting within a config within a preset.
+ */
 @Data
 @AllArgsConstructor
 public class CustomSetting

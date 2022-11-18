@@ -27,26 +27,31 @@ package com.pluginpresets;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigDescriptor;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.RuneLiteConfig;
 import net.runelite.client.plugins.PluginManager;
 
+/**
+ * Helper class that retrieves the user's current configs from the RuneLite client
+ */
+@Singleton
 public class PluginPresetsCurrentConfigManager
 {
 	private final PluginManager pluginManager;
 	private final ConfigManager configManager;
 	private final RuneLiteConfig runeLiteConfig;
-	private final CustomSettings customSettings;
+	private final CustomSettingsManager customSettingsManager;
 
 	@Inject
-	public PluginPresetsCurrentConfigManager(PluginManager pluginManager, ConfigManager configManager, RuneLiteConfig runeLiteConfig, CustomSettings customSettings)
+	public PluginPresetsCurrentConfigManager(PluginManager pluginManager, ConfigManager configManager, RuneLiteConfig runeLiteConfig, CustomSettingsManager customSettingsManager)
 	{
 		this.pluginManager = pluginManager;
 		this.configManager = configManager;
 		this.runeLiteConfig = runeLiteConfig;
-		this.customSettings = customSettings;
+		this.customSettingsManager = customSettingsManager;
 	}
 
 	public List<PluginConfig> getCurrentConfigs()
@@ -63,14 +68,13 @@ public class PluginPresetsCurrentConfigManager
 				boolean enabled = pluginManager.isPluginEnabled(p);
 
 				ArrayList<PluginSetting> pluginSettings = new ArrayList<>();
-				String configName = null;
+				String configName;
 
 				if (pluginConfigProxy == null)
 				{
 					configName = p.getClass().getSimpleName().toLowerCase();
 				}
-
-				if (pluginConfigProxy != null)
+				else
 				{
 					ConfigDescriptor configDescriptor = configManager.getConfigDescriptor(pluginConfigProxy);
 					configName = configDescriptor.getGroup().value();
@@ -93,22 +97,24 @@ public class PluginPresetsCurrentConfigManager
 					});
 				}
 
-				List<CustomSetting> configsCustomSettings = customSettings.getCustomConfigsFor(configName);
+				List<CustomSetting> configsCustomSettings = customSettingsManager.getCustomConfigsFor(configName);
 				if (!configsCustomSettings.isEmpty())
 				{
-					// Don't add duplicate custom settings
+					// Don't add duplicate custom settings: config.key must be unique
 					ArrayList<String> addedCustomSettings = new ArrayList<>();
 
 					configsCustomSettings.forEach(customSetting ->
 					{
 						PluginSetting setting = customSetting.getSetting();
 						String customConfigName = setting.getCustomConfigName();
-						if (!addedCustomSettings.contains(customConfigName))
+						String customConfigKey = setting.getKey();
+						String customConfig = customConfigName + "." + customConfigKey;
+						if (!addedCustomSettings.contains(customConfig))
 						{
 							String value = configManager.getConfiguration(customConfigName, setting.getKey());
 							PluginSetting pluginSetting = new PluginSetting(setting.getName(), setting.getKey(), value, customConfigName, setting.getConfigName());
 							pluginSettings.add(pluginSetting);
-							addedCustomSettings.add(customConfigName);
+							addedCustomSettings.add(customConfig);
 						}
 					});
 				}
@@ -136,7 +142,7 @@ public class PluginPresetsCurrentConfigManager
 		});
 
 		// Add possible custom RuneLite settings
-		List<CustomSetting> customRuneLiteSettings = customSettings.getCustomConfigsFor(RuneLiteConfig.GROUP_NAME);
+		List<CustomSetting> customRuneLiteSettings = customSettingsManager.getCustomConfigsFor(RuneLiteConfig.GROUP_NAME);
 		if (!customRuneLiteSettings.isEmpty())
 		{
 			customRuneLiteSettings.forEach(customSetting ->

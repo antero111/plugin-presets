@@ -28,9 +28,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * Class for storing single plugin setting
+ * The setting for a single item in a PluginConfig.
  *
- * @param name             Name of the setting
+ * @param name             Displayed name of the setting
  * @param key              Key used internally by configManager
  * @param value            Value of the setting
  * @param customConfigName Optional different config name that Plugin configs

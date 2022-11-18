@@ -29,6 +29,9 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Helper class that retrieves the user's current set of configs periodically
+ */
 public class CurrentConfigurations
 {
 	@Getter
