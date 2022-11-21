@@ -32,7 +32,7 @@ import lombok.Setter;
 import net.runelite.client.config.Keybind;
 
 /**
- * Class depicting single PluginPreset file.
+ * A single preset which contains multiple PluginConfigs, each of which contains various PluginSettings.
  *
  * @param id            Time of creation used as id
  * @param name          Name of the preset

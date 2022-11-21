@@ -45,6 +45,9 @@ import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.util.ImageUtil;
 
+/**
+ * Row for editing a single config of a plugin in the current preset
+ */
 public class ConfigRow extends JPanel
 {
 	private static final ImageIcon CHECKBOX_CHECKED_ICON;

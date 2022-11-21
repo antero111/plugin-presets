@@ -53,6 +53,9 @@ import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.util.ImageUtil;
 
+/**
+ * Panel for editing a single preset
+ */
 public class ConfigPanel extends JPanel
 {
 	private static final ImageIcon CHECKBOX_ICON;
@@ -133,6 +136,8 @@ public class ConfigPanel extends JPanel
 		JLabel title = new JLabel();
 		JLabel downArrow = new JLabel();
 		title.setText(currentConfig.getName());
+		JPopupMenu customSettingPopupMenu = getCustomSettingPopupMenu();
+		title.setComponentPopupMenu(customSettingPopupMenu);
 		// 0 width is to prevent the title causing the panel to grow in y direction on long plugin names
 		// 16 height is UPDATE_ICONs height
 		title.setPreferredSize(new Dimension(0, 26));
@@ -143,12 +148,7 @@ public class ConfigPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				if (mouseEvent.getButton() == MouseEvent.BUTTON3) // Right click
-				{
-					JPopupMenu customSettingPopupMenu = getCustomSettingPopupMenu();
-					title.setComponentPopupMenu(customSettingPopupMenu);
-				}
-				else
+				if (mouseEvent.getButton() != MouseEvent.BUTTON3) // Right click
 				{
 					toggleSettings();
 				}
@@ -200,17 +200,14 @@ public class ConfigPanel extends JPanel
 		{
 			checkbox.setSelected(true);
 			checkbox.setToolTipText("Remove '" + currentConfig.getName() + "' configurations from the preset.");
+			JPopupMenu updateAllPopupMenu = getUpdateAllMenuPopup();
+			checkbox.setComponentPopupMenu(updateAllPopupMenu);
 			checkbox.addMouseListener(new MouseAdapter()
 			{
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
-					if (mouseEvent.getButton() == MouseEvent.BUTTON3) // Right click
-					{
-						JPopupMenu updateAllPopupMenu = getUpdateAllMenuPopup();
-						checkbox.setComponentPopupMenu(updateAllPopupMenu);
-					}
-					else
+					if (mouseEvent.getButton() != MouseEvent.BUTTON3) // Right click
 					{
 						presetEditor.removeConfigurationFromEdited(presetConfig);
 					}
@@ -303,17 +300,14 @@ public class ConfigPanel extends JPanel
 
 			checkbox.setSelected(false);
 			checkbox.setToolTipText("Add your current '" + currentConfig.getName() + "' configurations to the preset.");
+			JPopupMenu updateAllPopupMenu = getUpdateAllMenuPopup();
+			checkbox.setComponentPopupMenu(updateAllPopupMenu);
 			checkbox.addMouseListener(new MouseAdapter()
 			{
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
-					if (mouseEvent.getButton() == MouseEvent.BUTTON3) // Right click
-					{
-						JPopupMenu updateAllPopupMenu = getUpdateAllMenuPopup();
-						checkbox.setComponentPopupMenu(updateAllPopupMenu);
-					}
-					else
+					if (mouseEvent.getButton() != MouseEvent.BUTTON3) // Right click
 					{
 						presetEditor.addConfigurationToEdited(currentConfig);
 					}
@@ -540,7 +534,7 @@ public class ConfigPanel extends JPanel
 	private void promptCustomSettingInput()
 	{
 		String customPresetName = JOptionPane.showInputDialog(ConfigPanel.this,
-			"Format: configName.settingKey", "Add custom setting to " + currentConfig.getName(), JOptionPane.PLAIN_MESSAGE);
+			"Format: configName.settingKey", currentConfig.getName() + " custom setting", JOptionPane.PLAIN_MESSAGE);
 
 		if (customPresetName != null && customPresetName.length() > 0)
 		{

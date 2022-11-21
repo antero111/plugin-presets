@@ -27,19 +27,27 @@ package com.pluginpresets;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
-import lombok.Data;
+import javax.inject.Singleton;
 
-@Data
-public class CustomSettings
+/**
+ * Container storing all custom settings from all plugins across all presets
+ */
+@Singleton
+public class CustomSettingsManager
 {
-	private List<CustomSetting> settings;
+	private final List<CustomSetting> settings;
 
 	@Inject
-	public CustomSettings()
+	public CustomSettingsManager()
 	{
 		this.settings = new ArrayList<>();
 	}
 
+	/**
+	 * Finds custom settings for an individual plugin preset.
+	 * @param id the id of the preset to match against
+	 * @return all matching custom settings
+	 */
 	public List<CustomSetting> getCustomSettingsFor(long id)
 	{
 		ArrayList<CustomSetting> customSettingsList = new ArrayList<>();
@@ -55,6 +63,11 @@ public class CustomSettings
 		return customSettingsList;
 	}
 
+	/**
+	 * Finds custom settings for all presets matching a plugin config name.
+	 * @param configName the config name of the plugin
+	 * @return all matching custom settings
+	 */
 	public List<CustomSetting> getCustomConfigsFor(String configName)
 	{
 		ArrayList<CustomSetting> customSettingsList = new ArrayList<>();
@@ -70,6 +83,10 @@ public class CustomSettings
 		return customSettingsList;
 	}
 
+	/**
+	 * Finds and stores custom settings given all plugin presets
+	 * @param pluginPresets all the user's presets
+	 */
 	public void parseCustomSettings(List<PluginPreset> pluginPresets)
 	{
 		settings.clear();

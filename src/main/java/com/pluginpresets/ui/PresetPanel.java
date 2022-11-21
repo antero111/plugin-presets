@@ -55,6 +55,9 @@ import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.components.FlatTextField;
 import net.runelite.client.util.ImageUtil;
 
+/**
+ * Row representing a single preset in the list of presets
+ */
 class PresetPanel extends JPanel
 {
 	private static final Border NAME_BOTTOM_BORDER = new CompoundBorder(
@@ -276,18 +279,8 @@ class PresetPanel extends JPanel
 		loadLabel.setBorder(new EmptyBorder(0, 5, 0, 5));
 
 		Boolean loadOnFocus = preset.getLoadOnFocus();
-		loadLabel.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mousePressed(MouseEvent mouseEvent)
-			{
-				if (mouseEvent.getButton() == MouseEvent.BUTTON3) // Right click
-				{
-					JPopupMenu focusMenuPopup = getFocusMenuPopup(loadOnFocus);
-					loadLabel.setComponentPopupMenu(focusMenuPopup);
-				}
-			}
-		});
+		JPopupMenu focusMenuPopup = getFocusMenuPopup(loadOnFocus);
+		loadLabel.setComponentPopupMenu(focusMenuPopup);
 
 		JLabel notice = new JLabel();
 

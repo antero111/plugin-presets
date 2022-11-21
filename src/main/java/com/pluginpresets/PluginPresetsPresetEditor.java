@@ -30,6 +30,10 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Handles updating a preset: enabling/disabling plugin configs and their individual settings.
+ * Globally saves changes to the preset if needed.
+ */
 @Slf4j
 public class PluginPresetsPresetEditor
 {
@@ -46,6 +50,11 @@ public class PluginPresetsPresetEditor
 		this.currentConfigurations = currentConfigurations;
 	}
 
+	/**
+	 * Removes the given plugin config from the preset.
+	 * Switching to this preset will not affect any of the plugin's settings from this point on.
+	 * @param configuration the plugin to remove from this preset
+	 */
 	public void removeConfigurationFromEdited(PluginConfig configuration)
 	{
 		removeConfigurationFromEdited(configuration, false);
@@ -65,6 +74,11 @@ public class PluginPresetsPresetEditor
 		}
 	}
 
+	/**
+	 * Adds the given plugin config to the preset.
+	 * Switching to this preset changes some or all the plugin's settings to whatever the preset has saved.
+	 * @param configuration the plugin to add to this preset
+	 */
 	public void addConfigurationToEdited(PluginConfig configuration)
 	{
 		addConfigurationToEdited(configuration, false);
@@ -82,6 +96,12 @@ public class PluginPresetsPresetEditor
 		}
 	}
 
+	/**
+	 * Removes a setting from a config in this preset.
+	 * Switching to this preset will not affect this setting from this point on.
+	 * @param currentConfig the setting's parent config
+	 * @param setting the setting to remove from the preset
+	 */
 	public void removeSettingFromEdited(PluginConfig currentConfig, PluginSetting setting)
 	{
 		editedPreset.getPluginConfigs().forEach(configuration ->
@@ -102,6 +122,12 @@ public class PluginPresetsPresetEditor
 		updateEditedPreset();
 	}
 
+	/**
+	 * Adds a setting to a config in this preset.
+	 * Switching to this preset changes this setting to whatever the preset has saved.
+	 * @param currentConfig the setting's parent config
+	 * @param setting the setting to add to the preset
+	 */
 	public void addSettingToEdited(PluginConfig currentConfig, PluginSetting setting)
 	{
 		boolean noneMatch = editedPreset.getPluginConfigs().stream().noneMatch(c -> c.getName().equals(currentConfig.getName()));
@@ -125,6 +151,13 @@ public class PluginPresetsPresetEditor
 		updateEditedPreset();
 	}
 
+	/**
+	 * Adds a custom setting key to a config in this preset.
+	 * Switching to this preset changes this custom setting to whatever the preset has saved.
+	 * @param currentConfig the config that will house the custom setting (plugin config name may not always be
+	 *                      equal to the custom setting's config key)
+	 * @param customSetting the setting key to add, in the format configKey.settingKey
+	 */
 	public void addCustomSettingToEdited(PluginConfig currentConfig, String customSetting)
 	{
 		String configName;
@@ -169,12 +202,20 @@ public class PluginPresetsPresetEditor
 		String value = plugin.getPresetManager().getConfiguration(configName, key);
 		PluginSetting setting = new PluginSetting(PluginPresetsUtils.splitAndCapitalize(key), key, value, configName, config.getConfigName());
 
-		config.getSettings().add(setting);
-
-		updateEditedPreset();
-		plugin.refreshPresets(); // Must do refresh to reload custom configs
+		// don't add this setting if its key is already present
+		if (config.getSetting(setting) == null)
+		{
+			config.getSettings().add(setting);
+			updateEditedPreset();
+			plugin.refreshPresets(); // Must do refresh to reload custom configs
+		}
 	}
 
+	/**
+	 * Adds the given plugin config's on/off status to the preset.
+	 * Switching to this preset changes whether the plugin is enabled.
+	 * @param currentConfig the plugin to enable/disable in this preset
+	 */
 	public void addEnabledToEdited(PluginConfig currentConfig)
 	{
 		boolean noneMatch = editedPreset.getPluginConfigs().stream().noneMatch(c -> currentConfig.getName().equals(c.getName()));
@@ -197,6 +238,11 @@ public class PluginPresetsPresetEditor
 		updateEditedPreset();
 	}
 
+	/**
+	 * Removes the given plugin config's on/off status from the preset.
+	 * Switching to this preset will not change the plugin's on/off status.
+	 * @param currentConfig the plugin that will no longer be enabled/disabled by this preset
+	 */
 	public void removeEnabledFromEdited(PluginConfig currentConfig)
 	{
 		editedPreset.getPluginConfigs().forEach(configurations ->
@@ -214,6 +260,10 @@ public class PluginPresetsPresetEditor
 		updateEditedPreset();
 	}
 
+	/**
+	 * Adds the config for the given plugin in all the user's presets.
+	 * @param configuration the plugin config to add to all presets
+	 */
 	public void addConfigurationToPresets(PluginConfig configuration)
 	{
 		addConfigurationToEdited(configuration);
@@ -232,6 +282,10 @@ public class PluginPresetsPresetEditor
 		});
 	}
 
+	/**
+	 * Removes the config for the given plugin from all the user's presets.
+	 * @param configuration the plugin config to remove from all presets
+	 */
 	public void removeConfigurationFromPresets(PluginConfig configuration)
 	{
 		removeConfigurationFromEdited(configuration);
@@ -246,6 +300,11 @@ public class PluginPresetsPresetEditor
 		plugin.savePresets();
 	}
 
+	/**
+	 * Replaces an existing config in this preset with the provided (current) config.
+	 * @param presetConfig the preset config to replace
+	 * @param currentConfig the current config that will replace presetConfig
+	 */
 	public void updateConfigurations(PluginConfig presetConfig, PluginConfig currentConfig)
 	{
 		removeConfigurationFromEdited(presetConfig, true);
@@ -265,6 +324,9 @@ public class PluginPresetsPresetEditor
 		updateEditedPreset();
 	}
 
+	/**
+	 * Updates this preset, replacing all preset configs that have been modified with their current values.
+	 */
 	public void updateAllModified()
 	{
 		for (PluginConfig presetConfig : editedPreset.getPluginConfigs())
@@ -309,6 +371,10 @@ public class PluginPresetsPresetEditor
 		updateEditedPreset();
 	}
 
+	/**
+	 * Adds all provided configs to this preset.
+	 * @param pluginConfigs configs to add
+	 */
 	public void addAll(List<PluginConfig> pluginConfigs)
 	{
 		for (PluginConfig pluginConfig : pluginConfigs)
@@ -319,6 +385,10 @@ public class PluginPresetsPresetEditor
 		updateEditedPreset();
 	}
 
+	/**
+	 * Removes all provided configs from this preset.
+	 * @param pluginConfigs configs to remove
+	 */
 	public void removeAll(List<PluginConfig> pluginConfigs)
 	{
 		for (PluginConfig pluginConfig : pluginConfigs)
@@ -328,6 +398,9 @@ public class PluginPresetsPresetEditor
 		updateEditedPreset();
 	}
 
+	/**
+	 * Toggles cloud/local storage for this preset.
+	 */
 	public void toggleLocal()
 	{
 		editedPreset.setLocal(!editedPreset.getLocal());

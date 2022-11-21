@@ -97,7 +97,7 @@ public class PluginPresetsPlugin extends Plugin
 
 	@Getter
 	@Inject
-	private CustomSettings customSettings;
+	private CustomSettingsManager customSettingsManager;
 
 	@Inject
 	private ClientToolbar clientToolbar;
@@ -365,11 +365,11 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPresets.addAll(presetStorage.loadPresets());
 		loadConfig(configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY));
 		pluginPresets.sort(Comparator.comparing(PluginPreset::getName)); // Keep presets in order
-		customSettings.parseCustomSettings(pluginPresets);
-		cacheKeybins();
+		customSettingsManager.parseCustomSettings(pluginPresets);
+		cacheKeybinds();
 	}
 
-	private void cacheKeybins()
+	private void cacheKeybinds()
 	{
 		keybinds.clear();
 		pluginPresets.forEach(preset ->
