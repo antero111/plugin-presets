@@ -54,7 +54,9 @@ public class PluginPresetsStorage
 	private final List<String> failedFileNames = new ArrayList<>();
 	private final PluginPresetsPlugin plugin;
 
-	private final Gson gson = new Gson();
+	@Inject
+	private Gson gson;
+	
 	private Thread thread;
 	private WatchService watcher;
 
