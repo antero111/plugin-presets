@@ -1,5 +1,19 @@
 # Changelog
 
+##### 2.3.2
+
+Annotated some classes as singletons so that the different areas of code that access those classes all talk to the same instance. This was preventing the custom settings from being "synced" properly between the preset's stored values and the panel's ui. CustomSettings changed to be a manager class.
+
+Modified logic of duplicate custom settings now this checks for duplicates by both the config and setting name.
+
+Various right click menus were previously only added upon right click. The menus are now added so that the first time they're right-clicked, they open the popup menu.
+
+Added some documentation to various classes and functions.
+
+Updates to the readme: some typo fixes and grammar adjustments, as well as some bits of additional info.
+
+Contributed by [equirs](https://github.com/equirs)
+
 ##### 2.3.1
 
 Added confirmation to removing not installed configurations from presets. Fixed _update all_ removing not installed configurations from presets.
