@@ -343,11 +343,12 @@ public class PluginPresetsPlugin extends Plugin
 	public void loadPreset(final PluginPreset preset)
 	{
 		loadingPreset = true;
-		presetManager.loadPreset(preset);
-		loadingPreset = false;
+		presetManager.loadPreset(preset, () -> {
+			loadingPreset = false;
 
-		updateCurrentConfigurations();
-		rebuildPluginUi();
+			updateCurrentConfigurations();
+			rebuildPluginUi();
+		});
 	}
 
 	public void deletePreset(final PluginPreset preset)

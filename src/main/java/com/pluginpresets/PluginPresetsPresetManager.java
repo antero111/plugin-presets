@@ -31,8 +31,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.inject.Singleton;
+import javax.swing.SwingUtilities;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
@@ -60,11 +63,27 @@ public class PluginPresetsPresetManager
 	}
 
 	/**
-	 * Loads settings from given preset.
+	 * Loads a preset, changing its specified settings and enabling/disabling its plugins.
+	 *
+	 * @param preset     the preset to be loaded
+	 * @param onComplete callback invoked once preset is loaded
 	 */
-	public void loadPreset(PluginPreset preset)
+	public void loadPreset(PluginPreset preset, Runnable onComplete)
 	{
 		Collection<Plugin> plugins = pluginManager.getPlugins();
+
+		// A plugin that contains custom settings should be restarted asynchronously.
+		// However, it only needs to be restarted if it's not going to be toggled by the preset
+		Map<Plugin, Boolean> customPluginsToRestart = preset.getPluginConfigs().stream()
+			.filter(PluginConfig::containsCustomSettings)
+			.map(config -> {
+				Plugin plugin = findPlugin(config.getName(), plugins);
+				Boolean enabled = plugin != null ? pluginManager.isPluginEnabled(plugin) : null;
+				Boolean shouldEnable = config.getEnabled();
+				return shouldEnable == null || Objects.equals(enabled, shouldEnable) ? plugin : null;
+			})
+			.filter(Objects::nonNull)
+			.collect(Collectors.toMap(p -> p, pluginManager::isPluginEnabled));
 
 		preset.getPluginConfigs().forEach(pluginConfig ->
 		{
@@ -72,8 +91,6 @@ public class PluginPresetsPresetManager
 
 			pluginConfig.getSettings().forEach(setting ->
 			{
-				boolean changedCustomSettings = false;
-
 				// Some values e.g. hidden timers like tzhaar
 				// or color inputs with "Pick a color" option appears as null
 				String value = setting.getValue();
@@ -82,18 +99,8 @@ public class PluginPresetsPresetManager
 					String customConfigName = setting.getCustomConfigName();
 					boolean customConfig = customConfigName != null;
 					String groupName = customConfig ? customConfigName : pluginConfig.getConfigName();
-
-					configManager.setConfiguration(groupName, setting.getKey(), value); // Set configuration
-
-					if (customConfig)
-					{
-						changedCustomSettings = true;
-					}
-				}
-
-				if (changedCustomSettings)
-				{
-					restartPlugin(plugin);
+					// Set configuration
+					configManager.setConfiguration(groupName, setting.getKey(), value);
 				}
 			});
 
@@ -104,6 +111,20 @@ public class PluginPresetsPresetManager
 				enablePlugin(plugin, enabled);
 			}
 		});
+
+		if (customPluginsToRestart.isEmpty())
+		{
+			onComplete.run();
+		}
+		else
+		{
+			// Toggle plugin immediately, then toggle again later (strange things happen otherwise)
+			customPluginsToRestart.forEach((plugin, enabled) -> enablePlugin(plugin, !enabled, false));
+			SwingUtilities.invokeLater(() -> {
+				customPluginsToRestart.forEach((plugin, enabled) -> enablePlugin(plugin, enabled, false));
+				onComplete.run();
+			});
+		}
 	}
 
 	private Plugin findPlugin(String plugin, Collection<Plugin> plugins)
@@ -116,14 +137,6 @@ public class PluginPresetsPresetManager
 			}
 		}
 		return null;
-	}
-
-	private void restartPlugin(Plugin plugin)
-	{
-		boolean enabled = pluginManager.isPluginEnabled(plugin);
-
-		enablePlugin(plugin, !enabled, true);
-		enablePlugin(plugin, enabled, true);
 	}
 
 	private void enablePlugin(Plugin plugin, boolean enabled)
