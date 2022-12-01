@@ -114,15 +114,18 @@ public class ConfigRow extends JPanel
 
 		if (presetHasConfigurations)
 		{
-			checkboxLabel.setIcon(CHECKBOX_CHECKED_ICON);
-			checkboxLabel.setToolTipText("Remove '" + presetSetting.getName() + "' from preset.");
-			checkboxLabel.addMouseListener(new MouseAdapter()
+			String customConfigName = presetSetting.getCustomConfigName();
+			if (customConfigName != null)
 			{
-				@Override
-				public void mousePressed(MouseEvent mouseEvent)
+				checkboxLabel.setText("remove");
+				checkboxLabel.setPreferredSize(new Dimension(38, 16));
+				checkboxLabel.setFont(FontManager.getRunescapeSmallFont());
+				checkboxLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+				checkboxLabel.setToolTipText("Remove custom setting '" + presetSetting.getName() + "' from preset.");
+				checkboxLabel.addMouseListener(new MouseAdapter()
 				{
-					String customConfigName = presetSetting.getCustomConfigName();
-					if (customConfigName != null)
+					@Override
+					public void mousePressed(MouseEvent mouseEvent)
 					{
 						int confirm = JOptionPane.showConfirmDialog(checkboxLabel,
 							"Are you sure to remove custom setting '" + presetSetting.getName() + "'?",
@@ -133,24 +136,46 @@ public class ConfigRow extends JPanel
 							presetEditor.removeSettingFromEdited(currentConfig, presetSetting);
 						}
 					}
-					else
+	
+					@Override
+					public void mouseEntered(MouseEvent mouseEvent)
+					{
+						checkboxLabel.setForeground(ColorScheme.PROGRESS_ERROR_COLOR);
+
+					}
+	
+					@Override
+					public void mouseExited(MouseEvent mouseEvent)
+					{
+						checkboxLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+					}
+				});
+			}
+			else
+			{
+				checkboxLabel.setIcon(CHECKBOX_CHECKED_ICON);
+				checkboxLabel.setToolTipText("Remove '" + presetSetting.getName() + "' from preset.");
+				checkboxLabel.addMouseListener(new MouseAdapter()
+				{
+					@Override
+					public void mousePressed(MouseEvent mouseEvent)
 					{
 						presetEditor.removeSettingFromEdited(currentConfig, presetSetting);
 					}
-				}
-
-				@Override
-				public void mouseEntered(MouseEvent mouseEvent)
-				{
-					checkboxLabel.setIcon(CHECKBOX_CHECKED_HOVER_ICON);
-				}
-
-				@Override
-				public void mouseExited(MouseEvent mouseEvent)
-				{
-					checkboxLabel.setIcon(CHECKBOX_CHECKED_ICON);
-				}
-			});
+	
+					@Override
+					public void mouseEntered(MouseEvent mouseEvent)
+					{
+						checkboxLabel.setIcon(CHECKBOX_CHECKED_HOVER_ICON);
+					}
+	
+					@Override
+					public void mouseExited(MouseEvent mouseEvent)
+					{
+						checkboxLabel.setIcon(CHECKBOX_CHECKED_ICON);
+					}
+				});
+			}
 
 			if (configsMatch)
 			{
@@ -206,7 +231,8 @@ public class ConfigRow extends JPanel
 		boolean isCustomSetting = (currentSetting != null && currentSetting.getCustomConfigName() != null) || (presetSetting != null && presetSetting.getCustomConfigName() != null);
 		if (isCustomSetting)
 		{
-			customSettingLabel.setText("(Custom) ");
+			customSettingLabel.setText("(Custom)");
+			customSettingLabel.setFont(FontManager.getRunescapeSmallFont());
 			customSettingLabel.setToolTipText("User added custom setting");
 			customSettingLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		}
