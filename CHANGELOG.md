@@ -1,5 +1,13 @@
 # Changelog
 
+#### 2.4
+
+Fixed custom settings causing infinite plugin toggle loop when loading presets. Thanks to [equirs](https://github.com/equirs)
+
+Added partial config indicator.
+
+Replaced custom setting checkbox with "remove" button.
+
 ##### 2.3.2
 
 Annotated some classes as singletons so that the different areas of code that access those classes all talk to the same instance. This was preventing the custom settings from being "synced" properly between the preset's stored values and the panel's ui. CustomSettings changed to be a manager class.
