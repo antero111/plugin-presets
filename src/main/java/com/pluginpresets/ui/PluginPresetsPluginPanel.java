@@ -202,7 +202,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			}
 		});
 
-		helpButton.setToolTipText("Need help?");
+		helpButton.setToolTipText("Open help: " + PluginPresetsPlugin.HELP_LINK);
 		helpButton.addMouseListener(new MouseAdapter()
 		{
 			@Override
