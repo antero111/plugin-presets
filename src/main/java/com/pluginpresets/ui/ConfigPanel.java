@@ -101,7 +101,6 @@ public class ConfigPanel extends JPanel
 	private final PluginConfig presetConfig;
 	private final PluginConfig currentConfig;
 	private final PluginPresetsPlugin plugin;
-	private final JCheckBox checkbox = new JCheckBox();
 	private final JLabel updateLabel = new JLabel();
 	private final JLabel notificationLabel = new JLabel();
 	private final boolean presetHasConfigurations;
@@ -131,6 +130,7 @@ public class ConfigPanel extends JPanel
 
 		setLayout(new BorderLayout());
 		setBorder(new EmptyBorder(0, 3, 0, 0));
+		JCheckBox checkbox = new JCheckBox();
 		checkbox.setBackground(ColorScheme.LIGHT_GRAY_COLOR);
 
 		JLabel title = new JLabel();
@@ -183,6 +183,15 @@ public class ConfigPanel extends JPanel
 			externalNotice.setToolTipText("Plugin from Plugin Hub");
 			externalNotice.setBorder(new EmptyBorder(0, 3, 0, 0));
 			externalNotice.setForeground(ColorScheme.BRAND_ORANGE);
+		}
+
+		JLabel partialNotice = new JLabel();
+		if (presetHasConfigurations && isPartial())
+		{
+			partialNotice.setText("(P)");
+			partialNotice.setToolTipText("Some settings unticked");
+			partialNotice.setBorder(new EmptyBorder(0, 3, 0, 0));
+			partialNotice.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		}
 
 		JLabel customNotice = new JLabel();
@@ -358,6 +367,7 @@ public class ConfigPanel extends JPanel
 		leftActions.add(downArrow);
 		leftActions.add(title);
 		leftActions.add(externalNotice);
+		leftActions.add(partialNotice);
 		leftActions.add(customNotice);
 
 		JPanel rightActions = new JPanel();
@@ -570,6 +580,12 @@ public class ConfigPanel extends JPanel
 	private boolean isExternalPluginInstalled()
 	{
 		return external && presetManager.isExternalPluginInstalled(currentConfig.getName());
+	}
+
+	private boolean isPartial()
+	{
+		return presetConfig.getSettings().size() < currentConfig.getSettings().size()
+			|| (presetConfig.getEnabled() == null && presetConfig.getSettings().size() > 0);
 	}
 
 	private JPopupMenu getUpdateAllMenuPopup()
