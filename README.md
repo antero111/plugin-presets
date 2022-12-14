@@ -56,13 +56,7 @@ Custom settings require the config's _configName_ and the custom settings _setti
 
 Custom settings in your configs are marked with a (C). If you uncheck a custom setting, it will be removed from your preset.
 
-<details>
-  <summary>Adding screen markers to presets</summary>
-    Screen markers are not added to presets automatically since you can't edit markers from the configurations tab.
-    To add markers to your presets, add custom setting "screenmarkers.markers" to your screen markers configurations and then "Markers" setting should be added to the preset.
-
-![Update demo](readme_visuals/markers_demo.gif)
-</details>
+Check the [wiki](https://github.com/antero111/plugin-presets/wiki) for custom setting usage help.
 
 ## Issues
 
