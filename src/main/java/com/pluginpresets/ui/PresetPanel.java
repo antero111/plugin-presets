@@ -145,6 +145,18 @@ class PresetPanel extends JPanel
 		nameActions.setBorder(new EmptyBorder(0, 0, 0, 8));
 		nameActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
+		addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				if (mouseEvent.getClickCount() == 2)  // double click
+				{
+					editPreset(pluginPreset);
+				}
+			}
+		});
+
 		saveRename.setVisible(false);
 		saveRename.setFont(FontManager.getRunescapeSmallFont());
 		saveRename.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR);
