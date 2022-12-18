@@ -39,14 +39,12 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.Box;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -64,7 +62,6 @@ import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.IconTextField;
 import net.runelite.client.ui.components.PluginErrorPanel;
-import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.LinkBrowser;
 
 /**
@@ -73,91 +70,18 @@ import net.runelite.client.util.LinkBrowser;
 @Slf4j
 public class PluginPresetsPluginPanel extends PluginPanel
 {
-	private static final ImageIcon NOTIFICATION_ICON;
-	private static final ImageIcon NOTIFICATION_HOVER_ICON;
-	private static final ImageIcon HELP_ICON;
-	private static final ImageIcon HELP_HOVER_ICON;
-	private static final ImageIcon REFRESH_ICON;
-	private static final ImageIcon REFRESH_INACTIVE_ICON;
-	private static final ImageIcon REFRESH_HOVER_ICON;
-	private static final ImageIcon ORANGE_REFRESH_ICON;
-	private static final ImageIcon ORANGE_REFRESH_HOVER_ICON;
-	private static final ImageIcon ADD_ICON;
-	private static final ImageIcon ADD_HOVER_ICON;
-	private static final ImageIcon ARROW_LEFT_ICON;
-	private static final ImageIcon ARROW_LEFT_HOVER_ICON;
-	private static final ImageIcon ELLIPSIS;
-	private static final ImageIcon ELLIPSIS_HOVER;
-	private static final ImageIcon SYNC_LOCAL_ICON;
-	private static final ImageIcon SYNC_LOCAL_HOVER_ICON;
-	private static final ImageIcon SYNC_CONFIG_ICON;
-	private static final ImageIcon SYNC_CONFIG_HOVER_ICON;
-	private static final ImageIcon PAUSE_ICON;
-	private static final ImageIcon PAUSE_HOVER_ICON;
-	private static final ImageIcon PLAY_ICON;
-	private static final ImageIcon PLAY_HOVER_ICON;
-
-	static
-	{
-		final BufferedImage notificationImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
-			"warning_icon.png");
-		NOTIFICATION_ICON = new ImageIcon(notificationImg);
-		NOTIFICATION_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(notificationImg, 0.53f));
-
-		final BufferedImage helpImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "help_icon.png");
-		HELP_ICON = new ImageIcon(helpImg);
-		HELP_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(helpImg, 0.53f));
-
-		final BufferedImage ellipsisImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "ellipsis_icon.png");
-		ELLIPSIS = new ImageIcon(ellipsisImg);
-		ELLIPSIS_HOVER = new ImageIcon(ImageUtil.alphaOffset(ellipsisImg, 0.53f));
-
-		final BufferedImage cloudImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "cloud_icon.png");
-		SYNC_CONFIG_ICON = new ImageIcon(cloudImg);
-		SYNC_CONFIG_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(cloudImg, -100));
-
-		final BufferedImage folderImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "folder_icon.png");
-		SYNC_LOCAL_ICON = new ImageIcon(folderImg);
-		SYNC_LOCAL_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(folderImg, -100));
-
-		final BufferedImage refreshImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "refresh_icon.png");
-		REFRESH_ICON = new ImageIcon(refreshImg);
-		REFRESH_INACTIVE_ICON = new ImageIcon(ImageUtil.alphaOffset(refreshImg, -120));
-		REFRESH_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(refreshImg, 0.53f));
-
-		final BufferedImage orangeRefreshImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "orange_refresh_icon.png");
-		ORANGE_REFRESH_ICON = new ImageIcon(orangeRefreshImg);
-		ORANGE_REFRESH_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(orangeRefreshImg, 0.63f));
-
-		final BufferedImage addImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "add_icon.png");
-		ADD_ICON = new ImageIcon(addImg);
-		ADD_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(addImg, 0.53f));
-
-		final BufferedImage arrowLeftImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "arrow_left_icon.png");
-		ARROW_LEFT_ICON = new ImageIcon(arrowLeftImg);
-		ARROW_LEFT_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(arrowLeftImg, 0.53f));
-
-		final BufferedImage pauseImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "pause_icon.png");
-		PAUSE_ICON = new ImageIcon(pauseImg);
-		PAUSE_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(pauseImg, 0.53f));
-
-		final BufferedImage playImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "play_icon.png");
-		PLAY_ICON = new ImageIcon(playImg);
-		PLAY_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(playImg, 0.53f));
-	}
-
 	private final PluginPresetsPlugin plugin;
 	private final GridBagConstraints constraints = new GridBagConstraints();
 	private final JPanel contentView = new JPanel(new GridBagLayout());
 	private final JPanel editPanel = new JPanel(new BorderLayout());
-	private final JLabel errorNotification = new JLabel(NOTIFICATION_ICON);
-	private final JLabel helpButton = new JLabel(HELP_ICON);
+	private final JLabel errorNotification = new JLabel(Icons.NOTIFICATION_ICON);
+	private final JLabel helpButton = new JLabel(Icons.HELP_ICON);
 	private final JLabel pauseLabel = new JLabel();
-	private final JLabel addPreset = new JLabel(ADD_ICON);
-	private final JLabel stopEdit = new JLabel(ARROW_LEFT_ICON);
-	private final JLabel ellipsisMenu = new JLabel(ELLIPSIS);
+	private final JLabel addPreset = new JLabel(Icons.ADD_ICON);
+	private final JLabel stopEdit = new JLabel(Icons.ARROW_LEFT_ICON);
+	private final JLabel ellipsisMenu = new JLabel(Icons.ELLIPSIS);
 	private final JLabel syncLabel = new JLabel();
-	private final JLabel updateAll = new JLabel(REFRESH_ICON);
+	private final JLabel updateAll = new JLabel(Icons.REFRESH_ICON);
 	private final PluginErrorPanel noPresetsPanel = new PluginErrorPanel();
 	private final PluginErrorPanel noContent = new PluginErrorPanel();
 	private final JPanel titlePanel = new JPanel(new BorderLayout());
@@ -205,13 +129,13 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
-				errorNotification.setIcon(NOTIFICATION_HOVER_ICON);
+				errorNotification.setIcon(Icons.NOTIFICATION_HOVER_ICON);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				errorNotification.setIcon(NOTIFICATION_ICON);
+				errorNotification.setIcon(Icons.NOTIFICATION_ICON);
 			}
 		});
 
@@ -227,13 +151,13 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
-				helpButton.setIcon(HELP_HOVER_ICON);
+				helpButton.setIcon(Icons.HELP_HOVER_ICON);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				helpButton.setIcon(HELP_ICON);
+				helpButton.setIcon(Icons.HELP_ICON);
 			}
 		});
 
@@ -254,13 +178,13 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
-				addPreset.setIcon(ADD_HOVER_ICON);
+				addPreset.setIcon(Icons.ADD_HOVER_ICON);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				addPreset.setIcon(ADD_ICON);
+				addPreset.setIcon(Icons.ADD_ICON);
 			}
 		});
 
@@ -289,13 +213,13 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
-				stopEdit.setIcon(ARROW_LEFT_HOVER_ICON);
+				stopEdit.setIcon(Icons.ARROW_LEFT_HOVER_ICON);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				stopEdit.setIcon(ARROW_LEFT_ICON);
+				stopEdit.setIcon(Icons.ARROW_LEFT_ICON);
 			}
 		});
 
@@ -348,14 +272,14 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
-				updateAll.setIcon(REFRESH_HOVER_ICON);
+				updateAll.setIcon(Icons.REFRESH_HOVER_ICON);
 				updateAll.setForeground(updateAll.getForeground().darker());
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				updateAll.setIcon(REFRESH_ICON);
+				updateAll.setIcon(Icons.REFRESH_ICON);
 				updateAll.setForeground(Color.WHITE);
 
 			}
@@ -400,13 +324,13 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
-				syncLabel.setIcon(syncLocal ? SYNC_LOCAL_HOVER_ICON : SYNC_CONFIG_HOVER_ICON);
+				syncLabel.setIcon(syncLocal ? Icons.SYNC_LOCAL_HOVER_ICON : Icons.SYNC_CONFIG_HOVER_ICON);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				syncLabel.setIcon(syncLocal ? SYNC_LOCAL_ICON : SYNC_CONFIG_ICON);
+				syncLabel.setIcon(syncLocal ? Icons.SYNC_LOCAL_ICON : Icons.SYNC_CONFIG_ICON);
 			}
 		});
 
@@ -424,13 +348,13 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
-				ellipsisMenu.setIcon(ELLIPSIS_HOVER);
+				ellipsisMenu.setIcon(Icons.ELLIPSIS_HOVER);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				ellipsisMenu.setIcon(ELLIPSIS);
+				ellipsisMenu.setIcon(Icons.ELLIPSIS);
 			}
 
 			private void showPopup(MouseEvent e)
@@ -559,8 +483,8 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private void showFocusPause()
 	{
 		Boolean paused = plugin.getFocusChangedPaused();
-		Icon icon = paused ? PLAY_ICON : PAUSE_ICON;
-		Icon hoverIcon = paused ? PLAY_HOVER_ICON : PAUSE_HOVER_ICON;
+		Icon icon = paused ? Icons.PLAY_ICON : Icons.PAUSE_ICON;
+		Icon hoverIcon = paused ? Icons.PLAY_HOVER_ICON : Icons.PAUSE_HOVER_ICON;
 		pauseLabel.setIcon(icon);
 		pauseLabel.setToolTipText(paused ? "Resume" : "Pause" + " focus preset loading");
 		pauseLabel.removeMouseListener(pauseMouseAdapter);
@@ -673,13 +597,13 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		syncLocal = local;
 		if (local)
 		{
-			syncLabel.setIcon(SYNC_LOCAL_ICON);
+			syncLabel.setIcon(Icons.SYNC_LOCAL_ICON);
 			syncLabel.setText("Local");
 			syncLabel.setToolTipText("Stored in presets folder (Click to change)");
 		}
 		else
 		{
-			syncLabel.setIcon(SYNC_CONFIG_ICON);
+			syncLabel.setIcon(Icons.SYNC_CONFIG_ICON);
 			syncLabel.setText("Config");
 			syncLabel.setToolTipText("Stored in RuneLite config (Click to change)");
 		}
@@ -697,14 +621,14 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			{
 				autoUpdateLabel.setVisible(true);
 				updateAll.setVisible(false);
-				autoUpdate.setIcon(ORANGE_REFRESH_ICON);
+				autoUpdate.setIcon(Icons.ORANGE_REFRESH_ICON);
 				text = "Turn auto updating off from this preset";
 			}
 			else
 			{
 				updateAll.setVisible(modified);
 				autoUpdateLabel.setVisible(false);
-				autoUpdate.setIcon(REFRESH_INACTIVE_ICON);
+				autoUpdate.setIcon(Icons.REFRESH_INACTIVE_ICON);
 				String name = plugin.getAutoUpdater().getEditedPreset().getName();
 				text = name + " is being auto updated. Click to update this preset instead.";
 			}
@@ -713,13 +637,13 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		{
 			updateAll.setVisible(modified);
 			autoUpdateLabel.setVisible(false);
-			autoUpdate.setIcon(REFRESH_INACTIVE_ICON);
+			autoUpdate.setIcon(Icons.REFRESH_INACTIVE_ICON);
 		}
 
 		autoUpdate.setToolTipText(text);
 		autoUpdate.removeMouseListener(autoUpdateMouseAdapter);
-		Icon icon = thisAutoUpdated ? ORANGE_REFRESH_ICON : REFRESH_INACTIVE_ICON;
-		Icon hoverIcon = thisAutoUpdated ? ORANGE_REFRESH_HOVER_ICON : REFRESH_HOVER_ICON;
+		Icon icon = thisAutoUpdated ? Icons.ORANGE_REFRESH_ICON : Icons.REFRESH_INACTIVE_ICON;
+		Icon hoverIcon = thisAutoUpdated ? Icons.ORANGE_REFRESH_HOVER_ICON : Icons.REFRESH_HOVER_ICON;
 		autoUpdateMouseAdapter = new MouseAdapter()
 		{
 

@@ -37,11 +37,9 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -51,53 +49,12 @@ import javax.swing.JPopupMenu;
 import javax.swing.border.EmptyBorder;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
-import net.runelite.client.util.ImageUtil;
 
 /**
  * Panel for editing a single preset
  */
 public class ConfigPanel extends JPanel
 {
-	private static final ImageIcon CHECKBOX_ICON;
-	private static final ImageIcon CHECKBOX_CHECKED_ICON;
-	private static final ImageIcon CHECKBOX_CHECKED_HOVER_ICON;
-	private static final ImageIcon UPDATE_ICON;
-	private static final ImageIcon UPDATE_HOVER_ICON;
-	private static final ImageIcon ARROW_DOWN_ICON;
-	private static final ImageIcon ARROW_RIGHT_ICON;
-	private static final ImageIcon ARROW_RIGHT_HOVER_ICON;
-	private static final ImageIcon NOTIFICATION_ICON;
-	private static final ImageIcon NOT_INSTALLED_ICON;
-	private static final ImageIcon NOT_INSTALLED_HOVER_ICON;
-
-	static
-	{
-		final BufferedImage notificationImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
-			"warning_icon.png");
-		NOTIFICATION_ICON = new ImageIcon(notificationImg);
-
-		final BufferedImage notInstalledImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
-			"not_installed_icon.png");
-		NOT_INSTALLED_ICON = new ImageIcon(notInstalledImg);
-		NOT_INSTALLED_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(notInstalledImg, 0.80f));
-
-		final BufferedImage checkboxImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_icon.png");
-		CHECKBOX_ICON = new ImageIcon(checkboxImg);
-
-		final BufferedImage checkboxCheckedImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_checked_icon.png");
-		CHECKBOX_CHECKED_ICON = new ImageIcon(checkboxCheckedImg);
-		CHECKBOX_CHECKED_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(checkboxCheckedImg, 20));
-
-		final BufferedImage arrowDownImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "arrow_right_icon.png");
-		ARROW_DOWN_ICON = new ImageIcon(ImageUtil.rotateImage(arrowDownImg, (Math.PI / 2)));
-		ARROW_RIGHT_ICON = new ImageIcon(ImageUtil.alphaOffset(arrowDownImg, 0.45f));
-		ARROW_RIGHT_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(arrowDownImg, 0.80f));
-
-		final BufferedImage updateImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "refresh_icon.png");
-		UPDATE_ICON = new ImageIcon(updateImg);
-		UPDATE_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(updateImg, -100));
-	}
-
 	private final PluginConfig presetConfig;
 	private final PluginConfig currentConfig;
 	private final PluginPresetsPlugin plugin;
@@ -161,7 +118,7 @@ public class ConfigPanel extends JPanel
 				title.setForeground(ColorScheme.BRAND_ORANGE);
 				if (!settingsVisible)
 				{
-					downArrow.setIcon(ARROW_RIGHT_HOVER_ICON);
+					downArrow.setIcon(Icons.ARROW_RIGHT_HOVER_ICON);
 				}
 			}
 
@@ -171,7 +128,7 @@ public class ConfigPanel extends JPanel
 				title.setForeground(foreground);
 				if (!settingsVisible)
 				{
-					downArrow.setIcon(ARROW_RIGHT_ICON);
+					downArrow.setIcon(Icons.ARROW_RIGHT_ICON);
 				}
 			}
 		});
@@ -237,7 +194,7 @@ public class ConfigPanel extends JPanel
 					updateLabel.setBorder(new EmptyBorder(4, 0, 0, 5));
 				}
 
-				updateLabel.setIcon(UPDATE_ICON);
+				updateLabel.setIcon(Icons.UPDATE_ICON);
 				updateLabel.setToolTipText("Replace presets '" + currentConfig.getName() + "' configurations with your current configuration.");
 				updateLabel.addMouseListener(new MouseAdapter()
 				{
@@ -250,13 +207,13 @@ public class ConfigPanel extends JPanel
 					@Override
 					public void mouseEntered(MouseEvent mouseEvent)
 					{
-						updateLabel.setIcon(UPDATE_HOVER_ICON);
+						updateLabel.setIcon(Icons.UPDATE_HOVER_ICON);
 					}
 
 					@Override
 					public void mouseExited(MouseEvent mouseEvent)
 					{
-						updateLabel.setIcon(UPDATE_ICON);
+						updateLabel.setIcon(Icons.UPDATE_ICON);
 					}
 				});
 			}
@@ -270,7 +227,7 @@ public class ConfigPanel extends JPanel
 			{
 				title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
 
-				notInstalledLabel.setIcon(NOT_INSTALLED_ICON);
+				notInstalledLabel.setIcon(Icons.NOT_INSTALLED_ICON);
 				notInstalledLabel.setToolTipText("Plugin not installed, download from Plugin Hub if you want to use these settings or click to remove.");
 				notInstalledLabel.setBorder(new EmptyBorder(5, 0, 0, 4));
 				notInstalledLabel.addMouseListener(new MouseAdapter()
@@ -291,13 +248,13 @@ public class ConfigPanel extends JPanel
 					@Override
 					public void mouseEntered(MouseEvent mouseEvent)
 					{
-						notInstalledLabel.setIcon(NOT_INSTALLED_HOVER_ICON);
+						notInstalledLabel.setIcon(Icons.NOT_INSTALLED_HOVER_ICON);
 					}
 
 					@Override
 					public void mouseExited(MouseEvent mouseEvent)
 					{
-						notInstalledLabel.setIcon(NOT_INSTALLED_ICON);
+						notInstalledLabel.setIcon(Icons.NOT_INSTALLED_ICON);
 					}
 				});
 			}
@@ -324,10 +281,10 @@ public class ConfigPanel extends JPanel
 			});
 		}
 
-		notificationLabel.setIcon(NOTIFICATION_ICON);
+		notificationLabel.setIcon(Icons.NOTIFICATION_ICON);
 		notificationLabel.setVisible(false);
 
-		downArrow.setIcon(settingsVisible ? ARROW_DOWN_ICON : ARROW_RIGHT_ICON);
+		downArrow.setIcon(settingsVisible ? Icons.ARROW_DOWN_ICON : Icons.ARROW_RIGHT_ICON);
 		downArrow.addMouseListener(new MouseAdapter()
 		{
 			private Color foreground;
@@ -345,7 +302,7 @@ public class ConfigPanel extends JPanel
 				title.setForeground(ColorScheme.BRAND_ORANGE);
 				if (!settingsVisible)
 				{
-					downArrow.setIcon(ARROW_RIGHT_HOVER_ICON);
+					downArrow.setIcon(Icons.ARROW_RIGHT_HOVER_ICON);
 				}
 			}
 
@@ -355,7 +312,7 @@ public class ConfigPanel extends JPanel
 				title.setForeground(foreground);
 				if (!settingsVisible)
 				{
-					downArrow.setIcon(ARROW_RIGHT_ICON);
+					downArrow.setIcon(Icons.ARROW_RIGHT_ICON);
 				}
 			}
 		});
@@ -466,7 +423,7 @@ public class ConfigPanel extends JPanel
 		JLabel checkBox = new JLabel();
 		if (presetHasConfigurations && presetConfig.getEnabled() != null)
 		{
-			checkBox.setIcon(CHECKBOX_CHECKED_ICON);
+			checkBox.setIcon(Icons.CHECKBOX_CHECKED_ICON);
 			checkBox.setToolTipText("Remove plugin on/off configuration from the preset.");
 			checkBox.addMouseListener(new MouseAdapter()
 			{
@@ -479,13 +436,13 @@ public class ConfigPanel extends JPanel
 				@Override
 				public void mouseEntered(MouseEvent mouseEvent)
 				{
-					checkBox.setIcon(CHECKBOX_CHECKED_HOVER_ICON);
+					checkBox.setIcon(Icons.CHECKBOX_CHECKED_HOVER_ICON);
 				}
 
 				@Override
 				public void mouseExited(MouseEvent mouseEvent)
 				{
-					checkBox.setIcon(CHECKBOX_CHECKED_ICON);
+					checkBox.setIcon(Icons.CHECKBOX_CHECKED_ICON);
 				}
 			});
 
@@ -502,7 +459,7 @@ public class ConfigPanel extends JPanel
 		else
 		{
 			title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
-			checkBox.setIcon(CHECKBOX_ICON);
+			checkBox.setIcon(Icons.CHECKBOX_ICON);
 			checkBox.setToolTipText("Add plugin on/off configuration to the preset.");
 			checkBox.addMouseListener(new MouseAdapter()
 			{

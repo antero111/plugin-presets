@@ -37,9 +37,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -53,7 +51,6 @@ import net.runelite.client.config.Keybind;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.components.FlatTextField;
-import net.runelite.client.util.ImageUtil;
 
 /**
  * Row representing a single preset in the list of presets
@@ -63,56 +60,6 @@ class PresetPanel extends JPanel
 	private static final Border NAME_BOTTOM_BORDER = new CompoundBorder(
 		BorderFactory.createMatteBorder(0, 0, 1, 0, ColorScheme.DARK_GRAY_COLOR),
 		BorderFactory.createLineBorder(ColorScheme.DARKER_GRAY_COLOR));
-
-	private static final ImageIcon SWITCH_ON_ICON;
-	private static final ImageIcon SWITCH_OFF_ICON;
-	private static final ImageIcon SWITCH_OFF_HOVER_ICON;
-	private static final ImageIcon UPDATE_ICON;
-	private static final ImageIcon UPDATE_HOVER_ICON;
-	private static final ImageIcon REFRESH_ICON;
-	private static final ImageIcon DELETE_ICON;
-	private static final ImageIcon DELETE_HOVER_ICON;
-	private static final ImageIcon EDIT_ICON;
-	private static final ImageIcon EDIT_HOVER_ICON;
-	private static final ImageIcon SYNC_CONFIG_ICON;
-	private static final ImageIcon FOCUS_ICON;
-	private static final ImageIcon UNFOCUS_ICON;
-
-	static
-	{
-		final BufferedImage switchOnImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "switch_on_icon.png");
-		SWITCH_ON_ICON = new ImageIcon(switchOnImg);
-
-		final BufferedImage switchOffImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
-			"switch_off_icon.png");
-		final BufferedImage switchOffHoverImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
-			"switch_off_hover_icon.png");
-		SWITCH_OFF_ICON = new ImageIcon(switchOffImg);
-		SWITCH_OFF_HOVER_ICON = new ImageIcon(switchOffHoverImg);
-
-		final BufferedImage refreshImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "orange_refresh_icon.png");
-		REFRESH_ICON = new ImageIcon(refreshImg);
-
-		final BufferedImage updateImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "copy_icon.png");
-		UPDATE_ICON = new ImageIcon(updateImg);
-		UPDATE_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(updateImg, -100));
-
-		final BufferedImage deleteImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "delete_icon.png");
-		DELETE_ICON = new ImageIcon(deleteImg);
-		DELETE_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(deleteImg, -100));
-
-		final BufferedImage editImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "edit_icon.png");
-		EDIT_ICON = new ImageIcon(editImg);
-		EDIT_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(editImg, 0.53f));
-
-		final BufferedImage cloudImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "cloud_icon.png");
-		SYNC_CONFIG_ICON = new ImageIcon(cloudImg);
-
-		final BufferedImage focusImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "focus_icon.png");
-		final BufferedImage unfocusImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "unfocus_icon.png");
-		FOCUS_ICON = new ImageIcon(focusImg);
-		UNFOCUS_ICON = new ImageIcon(unfocusImg);
-	}
 
 	private final PluginPresetsPlugin plugin;
 	private final PluginPreset preset;
@@ -272,7 +219,7 @@ class PresetPanel extends JPanel
 		nameLabel.setHorizontalTextPosition(SwingConstants.LEFT);
 		if (!preset.getLocal())
 		{
-			nameLabel.setIcon(SYNC_CONFIG_ICON);
+			nameLabel.setIcon(Icons.SYNC_CONFIG_ICON);
 			nameLabel.setToolTipText("Stored in RuneLite config");
 		}
 
@@ -307,7 +254,7 @@ class PresetPanel extends JPanel
 		Boolean match = preset.match(plugin.getCurrentConfigurations());
 		if (match)
 		{
-			loadLabel.setIcon(SWITCH_ON_ICON);
+			loadLabel.setIcon(Icons.SWITCH_ON_ICON);
 			loadLabel.setToolTipText("Current configurations match this preset");
 
 			emptyPreset = preset.isEmpty();
@@ -323,7 +270,7 @@ class PresetPanel extends JPanel
 		}
 		else
 		{
-			loadLabel.setIcon(SWITCH_OFF_ICON);
+			loadLabel.setIcon(Icons.SWITCH_OFF_ICON);
 			loadLabel.setToolTipText("Load this preset");
 			loadLabel.addMouseListener(new MouseAdapter()
 			{
@@ -339,13 +286,13 @@ class PresetPanel extends JPanel
 				@Override
 				public void mouseEntered(MouseEvent mouseEvent)
 				{
-					loadLabel.setIcon(SWITCH_OFF_HOVER_ICON);
+					loadLabel.setIcon(Icons.SWITCH_OFF_HOVER_ICON);
 				}
 
 				@Override
 				public void mouseExited(MouseEvent mouseEvent)
 				{
-					loadLabel.setIcon(SWITCH_OFF_ICON);
+					loadLabel.setIcon(Icons.SWITCH_OFF_ICON);
 				}
 			});
 		}
@@ -356,12 +303,12 @@ class PresetPanel extends JPanel
 			String text;
 			if (loadOnFocus)
 			{
-				focusActionLabel.setIcon(FOCUS_ICON);
+				focusActionLabel.setIcon(Icons.FOCUS_ICON);
 				text = "This preset gets loaded when client gets focused";
 			}
 			else
 			{
-				focusActionLabel.setIcon(UNFOCUS_ICON);
+				focusActionLabel.setIcon(Icons.UNFOCUS_ICON);
 				text = "This preset gets loaded when client gets unfocused";
 			}
 			focusActionLabel.setToolTipText(text);
@@ -370,7 +317,7 @@ class PresetPanel extends JPanel
 		JLabel autoUpdateLabel = new JLabel();
 		if (autoUpdate && !emptyPreset)
 		{
-			autoUpdateLabel.setIcon(REFRESH_ICON);
+			autoUpdateLabel.setIcon(Icons.ORANGE_REFRESH_ICON);
 			autoUpdateLabel.setToolTipText("Auto updated preset");
 		}
 
@@ -507,7 +454,7 @@ class PresetPanel extends JPanel
 		keybindWrapper.add(keybind);
 		keybindWrapper.add(keybindActions);
 
-		shareLabel.setIcon(UPDATE_ICON);
+		shareLabel.setIcon(Icons.COPY_ICON);
 		shareLabel.setToolTipText("Copy preset to clipboard");
 		shareLabel.addMouseListener(new MouseAdapter()
 		{
@@ -523,17 +470,17 @@ class PresetPanel extends JPanel
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
-				shareLabel.setIcon(UPDATE_HOVER_ICON);
+				shareLabel.setIcon(Icons.COPY_HOVER_ICON);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				shareLabel.setIcon(UPDATE_ICON);
+				shareLabel.setIcon(Icons.COPY_ICON);
 			}
 		});
 
-		deleteLabel.setIcon(DELETE_ICON);
+		deleteLabel.setIcon(Icons.DELETE_ICON);
 		deleteLabel.setToolTipText("Delete preset");
 		deleteLabel.addMouseListener(new MouseAdapter()
 		{
@@ -553,17 +500,17 @@ class PresetPanel extends JPanel
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
-				deleteLabel.setIcon(DELETE_HOVER_ICON);
+				deleteLabel.setIcon(Icons.DELETE_HOVER_ICON);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				deleteLabel.setIcon(DELETE_ICON);
+				deleteLabel.setIcon(Icons.DELETE_ICON);
 			}
 		});
 
-		editLabel.setIcon(EDIT_ICON);
+		editLabel.setIcon(Icons.EDIT_ICON);
 		editLabel.setToolTipText("Edit preset configurations");
 		editLabel.addMouseListener(new MouseAdapter()
 		{
@@ -576,13 +523,13 @@ class PresetPanel extends JPanel
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
-				editLabel.setIcon(EDIT_HOVER_ICON);
+				editLabel.setIcon(Icons.EDIT_HOVER_ICON);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				editLabel.setIcon(EDIT_ICON);
+				editLabel.setIcon(Icons.EDIT_ICON);
 			}
 		});
 

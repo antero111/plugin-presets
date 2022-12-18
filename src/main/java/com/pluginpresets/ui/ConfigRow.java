@@ -35,42 +35,18 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
-import net.runelite.client.util.ImageUtil;
 
 /**
  * Row for editing a single config of a plugin in the current preset
  */
 public class ConfigRow extends JPanel
 {
-	private static final ImageIcon CHECKBOX_CHECKED_ICON;
-	private static final ImageIcon CHECKBOX_CHECKED_HOVER_ICON;
-	private static final ImageIcon CHECKBOX_ICON;
-	private static final ImageIcon NOTIFICATION_ICON;
-	private static final ImageIcon NOTIFICATION_HOVER_ICON;
-
-	static
-	{
-		final BufferedImage checkboxCheckedImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_checked_icon.png");
-		CHECKBOX_CHECKED_ICON = new ImageIcon(checkboxCheckedImg);
-		CHECKBOX_CHECKED_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(checkboxCheckedImg, 20));
-
-		final BufferedImage checkboxImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_icon.png");
-		CHECKBOX_ICON = new ImageIcon(checkboxImg);
-
-		final BufferedImage notificationImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
-			"warning_icon.png");
-		NOTIFICATION_ICON = new ImageIcon(notificationImg);
-		NOTIFICATION_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(notificationImg, 20));
-	}
-
 	private final PluginSetting currentSetting;
 	private final PluginSetting presetSetting;
 	private final JLabel checkboxLabel = new JLabel();
@@ -136,14 +112,14 @@ public class ConfigRow extends JPanel
 							presetEditor.removeSettingFromEdited(currentConfig, presetSetting);
 						}
 					}
-	
+
 					@Override
 					public void mouseEntered(MouseEvent mouseEvent)
 					{
 						checkboxLabel.setForeground(ColorScheme.PROGRESS_ERROR_COLOR);
 
 					}
-	
+
 					@Override
 					public void mouseExited(MouseEvent mouseEvent)
 					{
@@ -153,7 +129,7 @@ public class ConfigRow extends JPanel
 			}
 			else
 			{
-				checkboxLabel.setIcon(CHECKBOX_CHECKED_ICON);
+				checkboxLabel.setIcon(Icons.CHECKBOX_CHECKED_ICON);
 				checkboxLabel.setToolTipText("Remove '" + presetSetting.getName() + "' from preset.");
 				checkboxLabel.addMouseListener(new MouseAdapter()
 				{
@@ -162,17 +138,17 @@ public class ConfigRow extends JPanel
 					{
 						presetEditor.removeSettingFromEdited(currentConfig, presetSetting);
 					}
-	
+
 					@Override
 					public void mouseEntered(MouseEvent mouseEvent)
 					{
-						checkboxLabel.setIcon(CHECKBOX_CHECKED_HOVER_ICON);
+						checkboxLabel.setIcon(Icons.CHECKBOX_CHECKED_HOVER_ICON);
 					}
-	
+
 					@Override
 					public void mouseExited(MouseEvent mouseEvent)
 					{
-						checkboxLabel.setIcon(CHECKBOX_CHECKED_ICON);
+						checkboxLabel.setIcon(Icons.CHECKBOX_CHECKED_ICON);
 					}
 				});
 			}
@@ -188,7 +164,7 @@ public class ConfigRow extends JPanel
 		}
 		else if (currentSetting == null)
 		{
-			checkboxLabel.setIcon(NOTIFICATION_ICON);
+			checkboxLabel.setIcon(Icons.NOTIFICATION_ICON);
 			checkboxLabel.setToolTipText("Invalid plugin setting configuration (Click to remove)");
 			checkboxLabel.setBorder(new EmptyBorder(2, 0, 2, 0));
 			checkboxLabel.addMouseListener(new MouseAdapter()
@@ -202,20 +178,20 @@ public class ConfigRow extends JPanel
 				@Override
 				public void mouseEntered(MouseEvent mouseEvent)
 				{
-					checkboxLabel.setIcon(NOTIFICATION_HOVER_ICON);
+					checkboxLabel.setIcon(Icons.NOTIFICATION_HOVER_ICON);
 				}
 
 				@Override
 				public void mouseExited(MouseEvent mouseEvent)
 				{
-					checkboxLabel.setIcon(NOTIFICATION_ICON);
+					checkboxLabel.setIcon(Icons.NOTIFICATION_ICON);
 				}
 			});
 		}
 		else
 		{
 			title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
-			checkboxLabel.setIcon(CHECKBOX_ICON);
+			checkboxLabel.setIcon(Icons.CHECKBOX_ICON);
 			checkboxLabel.setToolTipText("Add '" + currentSetting.getName() + "' to preset.");
 			checkboxLabel.addMouseListener(new MouseAdapter()
 			{
