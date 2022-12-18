@@ -29,6 +29,7 @@ import com.pluginpresets.CustomSetting;
 import com.pluginpresets.PluginConfig;
 import com.pluginpresets.PluginPreset;
 import com.pluginpresets.PluginPresetsPlugin;
+import com.pluginpresets.PluginPresetsPresetEditor;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -59,6 +60,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.ui.ColorScheme;
+import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.IconTextField;
 import net.runelite.client.ui.components.PluginErrorPanel;
@@ -76,7 +78,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private static final ImageIcon HELP_ICON;
 	private static final ImageIcon HELP_HOVER_ICON;
 	private static final ImageIcon REFRESH_ICON;
+	private static final ImageIcon REFRESH_INACTIVE_ICON;
 	private static final ImageIcon REFRESH_HOVER_ICON;
+	private static final ImageIcon ORANGE_REFRESH_ICON;
+	private static final ImageIcon ORANGE_REFRESH_HOVER_ICON;
 	private static final ImageIcon ADD_ICON;
 	private static final ImageIcon ADD_HOVER_ICON;
 	private static final ImageIcon ARROW_LEFT_ICON;
@@ -117,7 +122,12 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		final BufferedImage refreshImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "refresh_icon.png");
 		REFRESH_ICON = new ImageIcon(refreshImg);
+		REFRESH_INACTIVE_ICON = new ImageIcon(ImageUtil.alphaOffset(refreshImg, -120));
 		REFRESH_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(refreshImg, 0.53f));
+
+		final BufferedImage orangeRefreshImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "orange_refresh_icon.png");
+		ORANGE_REFRESH_ICON = new ImageIcon(orangeRefreshImg);
+		ORANGE_REFRESH_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(orangeRefreshImg, 0.63f));
 
 		final BufferedImage addImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "add_icon.png");
 		ADD_ICON = new ImageIcon(addImg);
@@ -157,12 +167,15 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final String[] filters = new String[]{"All A to Z", "Included", "Not included", "Modified", "Configs match", "Only Plugin Hub"};
 	private final List<String> openSettings = new ArrayList<>();
 	private final List<PluginConfig> filtered = new ArrayList<>();
+	private final JLabel autoUpdateLabel = new JLabel();
+	private final JLabel autoUpdate = new JLabel();
 	private String filter = filters[0];
 	private boolean syncLocal;
 	private PluginPreset editedPreset;
 	private boolean openPartialConfigs;
 	private boolean openAll;
-	private MouseAdapter mouseAdapter;
+	private MouseAdapter pauseMouseAdapter;
+	private MouseAdapter autoUpdateMouseAdapter;
 
 	public PluginPresetsPluginPanel(PluginPresetsPlugin pluginPresetsPlugin)
 	{
@@ -312,6 +325,13 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			}
 		});
 
+		autoUpdateLabel.setText("Auto updated");
+		autoUpdateLabel.setToolTipText("This preset automatically runs update all after every config change.");
+		autoUpdateLabel.setVisible(false);
+		autoUpdateLabel.setFont(FontManager.getRunescapeSmallFont());
+		autoUpdateLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR.darker());
+		autoUpdateLabel.setBorder(new EmptyBorder(5, 0, 0, 5));
+
 		updateAll.setToolTipText("Update all modified configurations with your current settings.");
 		updateAll.setBorder(new EmptyBorder(3, 0, 0, 0));
 		updateAll.setText("Update all");
@@ -343,6 +363,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		JPanel editActions = new JPanel();
 		editActions.add(updateAll);
+		editActions.add(autoUpdateLabel);
 
 		JPanel filterWrapper = new JPanel();
 		filterWrapper.setAlignmentX(LEFT_ALIGNMENT);
@@ -423,6 +444,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		});
 
 		rightActions.add(syncLabel);
+		rightActions.add(autoUpdate);
 		rightActions.add(ellipsisMenu);
 
 		editPanel.add(stopEdit, BorderLayout.WEST);
@@ -541,8 +563,8 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		Icon hoverIcon = paused ? PLAY_HOVER_ICON : PAUSE_HOVER_ICON;
 		pauseLabel.setIcon(icon);
 		pauseLabel.setToolTipText(paused ? "Resume" : "Pause" + " focus preset loading");
-		pauseLabel.removeMouseListener(mouseAdapter);
-		mouseAdapter = new MouseAdapter()
+		pauseLabel.removeMouseListener(pauseMouseAdapter);
+		pauseMouseAdapter = new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
@@ -565,12 +587,14 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			}
 		};
 
-		pauseLabel.addMouseListener(mouseAdapter);
+		pauseLabel.addMouseListener(pauseMouseAdapter);
 	}
 
 	private void renderEditView()
 	{
-		editedPreset = plugin.getPresetEditor().getEditedPreset();
+		PluginPresetsPresetEditor presetEditor = plugin.getPresetEditor();
+		editedPreset = presetEditor.getEditedPreset();
+
 		setLocalIcon(editedPreset.getLocal());
 		editTitle.setText("Editing " + editedPreset.getName());
 		searchBar.requestFocusInWindow();
@@ -619,7 +643,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			}
 		}
 
-		updateAll.setVisible(modified);
+		setUpdateAllVisibility(modified);
 	}
 
 	private void filterCustomConfigs(List<PluginConfig> configurations)
@@ -659,6 +683,72 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			syncLabel.setText("Config");
 			syncLabel.setToolTipText("Stored in RuneLite config (Click to change)");
 		}
+	}
+
+	private void setUpdateAllVisibility(boolean modified)
+	{
+		boolean hasAutoUpdater = plugin.getAutoUpdater() != null;
+		boolean thisAutoUpdated = hasAutoUpdater && plugin.getAutoUpdater().getEditedPreset().getId() == editedPreset.getId();
+
+		String text = "Automatically run update all on this preset";
+		if (hasAutoUpdater)
+		{
+			if (thisAutoUpdated)
+			{
+				autoUpdateLabel.setVisible(true);
+				updateAll.setVisible(false);
+				autoUpdate.setIcon(ORANGE_REFRESH_ICON);
+				text = "Turn auto updating off from this preset";
+			}
+			else
+			{
+				updateAll.setVisible(modified);
+				autoUpdateLabel.setVisible(false);
+				autoUpdate.setIcon(REFRESH_INACTIVE_ICON);
+				String name = plugin.getAutoUpdater().getEditedPreset().getName();
+				text = name + " is being auto updated. Click to update this preset instead.";
+			}
+		}
+		else
+		{
+			updateAll.setVisible(modified);
+			autoUpdateLabel.setVisible(false);
+			autoUpdate.setIcon(REFRESH_INACTIVE_ICON);
+		}
+
+		autoUpdate.setToolTipText(text);
+		autoUpdate.removeMouseListener(autoUpdateMouseAdapter);
+		Icon icon = thisAutoUpdated ? ORANGE_REFRESH_ICON : REFRESH_INACTIVE_ICON;
+		Icon hoverIcon = thisAutoUpdated ? ORANGE_REFRESH_HOVER_ICON : REFRESH_HOVER_ICON;
+		autoUpdateMouseAdapter = new MouseAdapter()
+		{
+
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				if (thisAutoUpdated)
+				{
+					plugin.setAutoUpdatedPreset(null);
+				}
+				else
+				{
+					plugin.setAutoUpdatedPreset(plugin.getPresetEditor().getEditedPreset().getId());
+				}
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				autoUpdate.setIcon(hoverIcon);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				autoUpdate.setIcon(icon);
+			}
+		};
+		autoUpdate.addMouseListener(autoUpdateMouseAdapter);
 	}
 
 	private List<PluginConfig> filterIfSearchKeyword(List<PluginConfig> currentConfigurations)

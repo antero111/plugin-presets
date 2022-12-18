@@ -83,7 +83,8 @@ public class PluginPresetsPlugin extends Plugin
 	private static final String PLUGIN_NAME = "Plugin Presets";
 	private static final String ICON_FILE = "panel_icon.png";
 	private static final String CONFIG_GROUP = "pluginpresets";
-	private static final String CONFIG_KEY = "presets";
+	private static final String CONFIG_KEY_PRESETS = "presets";
+	private static final String CONFIG_KEY_AUTO_UPDATE = "autoUpdate";
 
 	@Getter
 	private final HashMap<Keybind, PluginPreset> keybinds = new HashMap<>();
@@ -127,14 +128,13 @@ public class PluginPresetsPlugin extends Plugin
 	private PluginPresetsPresetEditor presetEditor;
 
 	@Getter
+	@Setter
+	private PluginPresetsPresetEditor autoUpdater;
+
+	@Getter
 	private Boolean loggedIn = false; // Used to inform that keybinds don't work in login screen
 
 	private Boolean loadingPreset = false;
-
-	@Getter
-	@Setter
-	private Boolean focusChangedPaused = false;
-
 	private final KeyListener keybindListener = new KeyListener()
 	{
 		@Override
@@ -160,6 +160,10 @@ public class PluginPresetsPlugin extends Plugin
 		}
 	};
 
+	@Getter
+	@Setter
+	private Boolean focusChangedPaused = false;
+
 	@Override
 	protected void startUp()
 	{
@@ -168,6 +172,7 @@ public class PluginPresetsPlugin extends Plugin
 
 		loadPresets();
 		updateCurrentConfigurations();
+		setupAutoUpdater();
 		savePresets();
 		rebuildPluginUi();
 
@@ -195,6 +200,7 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		pluginPresets.clear();
 		keybinds.clear();
+		autoUpdater = null;
 
 		presetStorage.stopWatcher();
 		clientToolbar.removeNavigation(navigationButton);
@@ -219,7 +225,14 @@ public class PluginPresetsPlugin extends Plugin
 		if (validConfigChange(configChanged) && !loadingPreset)
 		{
 			updateCurrentConfigurations();
-			SwingUtilities.invokeLater(this::rebuildPluginUi);
+			if (autoUpdater != null)
+			{
+				autoUpdater.updateAllModified();
+			}
+			else
+			{
+				SwingUtilities.invokeLater(this::rebuildPluginUi);
+			}
 		}
 	}
 
@@ -230,7 +243,7 @@ public class PluginPresetsPlugin extends Plugin
 
 	private boolean validConfigChange(ConfigChanged configChanged)
 	{
-		return !configChanged.getKey().equals("pluginpresetsplugin");
+		return !(configChanged.getKey().equals("pluginpresetsplugin") || configChanged.getGroup().equals("pluginpresets"));
 	}
 
 	@Subscribe
@@ -267,12 +280,12 @@ public class PluginPresetsPlugin extends Plugin
 
 		if (syncPresets.isEmpty())
 		{
-			configManager.unsetConfiguration(CONFIG_GROUP, CONFIG_KEY);
+			configManager.unsetConfiguration(CONFIG_GROUP, CONFIG_KEY_PRESETS);
 		}
 		else
 		{
 			final String json = gson.toJson(syncPresets);
-			configManager.setConfiguration(CONFIG_GROUP, CONFIG_KEY, json);
+			configManager.setConfiguration(CONFIG_GROUP, CONFIG_KEY_PRESETS, json);
 		}
 
 		syncPresets.forEach(preset -> preset.setLocal(false));
@@ -342,7 +355,19 @@ public class PluginPresetsPlugin extends Plugin
 	@SneakyThrows
 	public void loadPreset(final PluginPreset preset)
 	{
+		if (preset.match(currentConfigurations))
+		{
+			return;
+		}
+
 		loadingPreset = true;
+
+		// Auto updater gets disabled if loading some preset
+		if (autoUpdater != null)
+		{
+			setAutoUpdater(null);
+		}
+
 		presetManager.loadPreset(preset, () -> {
 			loadingPreset = false;
 
@@ -364,7 +389,7 @@ public class PluginPresetsPlugin extends Plugin
 	public void loadPresets()
 	{
 		pluginPresets.addAll(presetStorage.loadPresets());
-		loadConfig(configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY));
+		loadConfig(configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY_PRESETS));
 		pluginPresets.sort(Comparator.comparing(PluginPreset::getName)); // Keep presets in order
 		customSettingsManager.parseCustomSettings(pluginPresets);
 		cacheKeybinds();
@@ -381,6 +406,51 @@ public class PluginPresetsPlugin extends Plugin
 				keybinds.put(keybind, preset);
 			}
 		});
+	}
+
+	private void setupAutoUpdater()
+	{
+		String configuration = configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY_AUTO_UPDATE);
+		if (configuration != null)
+		{
+			long id = Long.parseLong(configuration);
+			boolean failed = true;
+			for (PluginPreset p : pluginPresets)
+			{
+				if (p.getId() == id)
+				{
+					PluginPresetsPresetEditor autoUpdater = new PluginPresetsPresetEditor(this, p, currentConfigurations);
+					setAutoUpdater(autoUpdater);
+					failed = false;
+				}
+			}
+
+			// If auto preset does not exist or it got deleted, unset autoUpdate configuration 
+			if (failed)
+			{
+				setAutoUpdatedPreset(null);
+			}
+			else
+			{
+				autoUpdater.updateAllModified();
+			}
+		}
+	}
+
+	public void setAutoUpdatedPreset(Long id)
+	{
+		if (id == null)
+		{
+			configManager.unsetConfiguration(CONFIG_GROUP, CONFIG_KEY_AUTO_UPDATE);
+			setAutoUpdater(null);
+			rebuildPluginUi();
+		}
+		else
+		{
+			configManager.setConfiguration(CONFIG_GROUP, CONFIG_KEY_AUTO_UPDATE, id);
+			setupAutoUpdater();
+		}
+
 	}
 
 	public void importPresetFromClipboard()

@@ -69,6 +69,7 @@ class PresetPanel extends JPanel
 	private static final ImageIcon SWITCH_OFF_HOVER_ICON;
 	private static final ImageIcon UPDATE_ICON;
 	private static final ImageIcon UPDATE_HOVER_ICON;
+	private static final ImageIcon REFRESH_ICON;
 	private static final ImageIcon DELETE_ICON;
 	private static final ImageIcon DELETE_HOVER_ICON;
 	private static final ImageIcon EDIT_ICON;
@@ -88,6 +89,9 @@ class PresetPanel extends JPanel
 			"switch_off_hover_icon.png");
 		SWITCH_OFF_ICON = new ImageIcon(switchOffImg);
 		SWITCH_OFF_HOVER_ICON = new ImageIcon(switchOffHoverImg);
+
+		final BufferedImage refreshImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "orange_refresh_icon.png");
+		REFRESH_ICON = new ImageIcon(refreshImg);
 
 		final BufferedImage updateImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "copy_icon.png");
 		UPDATE_ICON = new ImageIcon(updateImg);
@@ -285,19 +289,23 @@ class PresetPanel extends JPanel
 		bottomContainer.setBorder(new EmptyBorder(6, 0, 6, 0));
 		bottomContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
-		JPanel leftActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 3));
+		JPanel leftActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 3));
 		leftActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		leftActions.setPreferredSize(new Dimension(65, 14));
 
-		loadLabel.setBorder(new EmptyBorder(0, 5, 0, 5));
+		loadLabel.setBorder(new EmptyBorder(0, 5, 0, 0));
+		loadLabel.setPreferredSize(new Dimension(25, 14));
 
 		Boolean loadOnFocus = preset.getLoadOnFocus();
+		boolean autoUpdate = plugin.getAutoUpdater() != null && plugin.getAutoUpdater().getEditedPreset().getId() == preset.getId();
 		JPopupMenu focusMenuPopup = getFocusMenuPopup(loadOnFocus);
 		loadLabel.setComponentPopupMenu(focusMenuPopup);
 
 		JLabel notice = new JLabel();
 
 		boolean emptyPreset = false;
-		if (preset.match(plugin.getCurrentConfigurations()))
+		Boolean match = preset.match(plugin.getCurrentConfigurations());
+		if (match)
 		{
 			loadLabel.setIcon(SWITCH_ON_ICON);
 			loadLabel.setToolTipText("Current configurations match this preset");
@@ -308,8 +316,9 @@ class PresetPanel extends JPanel
 				notice.setFont(FontManager.getRunescapeSmallFont());
 				notice.setForeground(ColorScheme.LIGHT_GRAY_COLOR.darker());
 				notice.setText("Empty preset");
+				notice.setBorder(new EmptyBorder(0, 5, 0, 0));
 				notice.setToolTipText("This preset has no configurations, click the edit icon to add configurations.");
-				loadLabel.setVisible(false);
+				leftActions.setVisible(false);
 			}
 		}
 		else
@@ -344,19 +353,29 @@ class PresetPanel extends JPanel
 		JLabel focusActionLabel = new JLabel();
 		if (loadOnFocus != null && !emptyPreset)
 		{
+			String text;
 			if (loadOnFocus)
 			{
 				focusActionLabel.setIcon(FOCUS_ICON);
-				focusActionLabel.setToolTipText("This preset gets loaded when client gets focused");
+				text = "This preset gets loaded when client gets focused";
 			}
 			else
 			{
 				focusActionLabel.setIcon(UNFOCUS_ICON);
-				focusActionLabel.setToolTipText("This preset gets loaded when client gets unfocused");
+				text = "This preset gets loaded when client gets unfocused";
 			}
+			focusActionLabel.setToolTipText(text);
+		}
+
+		JLabel autoUpdateLabel = new JLabel();
+		if (autoUpdate && !emptyPreset)
+		{
+			autoUpdateLabel.setIcon(REFRESH_ICON);
+			autoUpdateLabel.setToolTipText("Auto updated preset");
 		}
 
 		leftActions.add(loadLabel);
+		leftActions.add(autoUpdateLabel);
 		leftActions.add(focusActionLabel);
 
 		JPanel rightActions = new JPanel();
@@ -426,7 +445,7 @@ class PresetPanel extends JPanel
 
 		keybind.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		keybind.setFont(FontManager.getRunescapeSmallFont());
-		int keybindWidth = emptyPreset ? 50 : 70;
+		int keybindWidth = emptyPreset ? 50 : 60;
 		keybind.setPreferredSize(new Dimension(keybindWidth, 12));
 		keybind.setHorizontalAlignment(SwingConstants.RIGHT);
 
@@ -755,6 +774,15 @@ class PresetPanel extends JPanel
 
 	private JPopupMenu getFocusMenuPopup(Boolean loadOnFocus)
 	{
+		JMenuItem autoUpdate = new JMenuItem();
+		autoUpdate.setText("Toggle auto update");
+		autoUpdate.addActionListener(e -> toggleAutoUpdate());
+
+		JMenuItem divider = new JMenuItem();
+		divider.setBorder(new EmptyBorder(1, 5, 1, 5));
+		divider.setPreferredSize(new Dimension(0, 1));
+		divider.setBackground(ColorScheme.DARKER_GRAY_HOVER_COLOR);
+
 		JMenuItem focusedOption = new JMenuItem();
 		focusedOption.setText("Load when focused");
 		focusedOption.setToolTipText("Load this preset automatically when client gets focused");
@@ -784,10 +812,26 @@ class PresetPanel extends JPanel
 
 		JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
+		popupMenu.add(autoUpdate);
+		popupMenu.add(divider);
 		popupMenu.add(focusedOption);
 		popupMenu.add(unfocusedOption);
 		popupMenu.add(clearFocusOption);
 		return popupMenu;
+	}
+
+	private void toggleAutoUpdate()
+	{
+		boolean thisAutoUpdated = plugin.getAutoUpdater() != null && plugin.getAutoUpdater().getEditedPreset().getId() == preset.getId();
+		if (thisAutoUpdated)
+		{
+			plugin.setAutoUpdatedPreset(null);
+		}
+		else
+		{
+			plugin.setAutoUpdatedPreset(preset.getId());
+		}
+
 	}
 
 	private void setPresetWindowFocus(Boolean loadOnFocus)
