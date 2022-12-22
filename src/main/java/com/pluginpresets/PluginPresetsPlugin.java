@@ -35,10 +35,7 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -362,8 +359,8 @@ public class PluginPresetsPlugin extends Plugin
 
 		loadingPreset = true;
 
-		// Auto updater gets disabled if loading some preset
-		if (autoUpdater != null)
+		// Auto updater gets disabled if preset doesn't match
+		if (autoUpdater != null && !matchAutoUpdate(preset))
 		{
 			setAutoUpdater(null);
 		}
@@ -494,5 +491,31 @@ public class PluginPresetsPlugin extends Plugin
 	public void rebuildPluginUi()
 	{
 		pluginPanel.rebuild();
+	}
+
+	public Boolean matchAutoUpdate(PluginPreset preset)
+	{
+		//Figure out preset that auto updates
+		String configuration = configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY_AUTO_UPDATE);
+		if (configuration != null) {
+			long id = Long.parseLong(configuration);
+			for (PluginPreset p : pluginPresets) {
+				if (p.getId() == id) {
+					//Check to see if the presets match, if they don't null auto updater
+					//Loop through the different configs in the auto preset
+					for (PluginConfig autoPresetConfig : p.getPluginConfigs()) {
+						//Loop through the configs in the preset being enabled
+						for (PluginConfig presetConfig : preset.getPluginConfigs()) {
+							//If the names of both configs are the same but they don't match,
+							if (presetConfig.getName().equals(autoPresetConfig.getName()) && !autoPresetConfig.match(presetConfig)) {
+								//Disable the auto updater
+								return false;
+							}
+						}
+					}
+				}
+			}
+		}
+		return true;
 	}
 }
