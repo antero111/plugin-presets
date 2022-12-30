@@ -72,7 +72,7 @@ import net.runelite.client.util.LinkBrowser;
 public class PluginPresetsPlugin extends Plugin
 {
 	public static final File PRESETS_DIR = new File(RUNELITE_DIR, "presets");
-	public static final String HELP_LINK = "https://github.com/antero111/plugin-presets#using-plugin-presets";
+	public static final String HELP_LINK = "https://github.com/antero111/plugin-presets/wiki/General-Features#using-plugin-presets";
 	public static final String DEFAULT_PRESET_NAME = "Preset";
 	static final List<String> IGNORED_PLUGINS = Stream.of("Plugin Presets", "Configuration", "Xtea").collect(Collectors.toList());
 	/**
