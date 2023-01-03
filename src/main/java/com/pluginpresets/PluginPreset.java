@@ -80,6 +80,24 @@ public class PluginPreset
 		this.pluginConfigs = new ArrayList<>();
 	}
 
+	public Boolean match(PluginPreset preset)
+	{
+		for (PluginConfig presetConfig : pluginConfigs)
+		{
+			for (PluginConfig comparedConfig : preset.getPluginConfigs())
+			{
+				if (comparedConfig.getName().equals(presetConfig.getName()))
+				{
+					if (!presetConfig.match(comparedConfig))
+					{
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
+	
 	public Boolean match(CurrentConfigurations currentConfigurations)
 	{
 		for (PluginConfig presetConfig : pluginConfigs)

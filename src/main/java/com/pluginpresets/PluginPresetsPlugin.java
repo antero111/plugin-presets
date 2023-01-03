@@ -362,8 +362,8 @@ public class PluginPresetsPlugin extends Plugin
 
 		loadingPreset = true;
 
-		// Auto updater gets disabled if loading some preset
-		if (autoUpdater != null)
+		// Auto updater gets disabled if preset doesn't match
+		if (autoUpdater != null && !autoUpdater.getEditedPreset().match(preset))
 		{
 			setAutoUpdater(null);
 		}
