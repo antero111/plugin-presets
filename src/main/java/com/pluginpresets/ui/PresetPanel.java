@@ -245,7 +245,7 @@ class PresetPanel extends JPanel
 
 		Boolean loadOnFocus = preset.getLoadOnFocus();
 		boolean autoUpdate = plugin.getAutoUpdater() != null && plugin.getAutoUpdater().getEditedPreset().getId() == preset.getId();
-		JPopupMenu focusMenuPopup = getFocusMenuPopup(loadOnFocus);
+		JPopupMenu focusMenuPopup = getFocusMenuPopup();
 		loadLabel.setComponentPopupMenu(focusMenuPopup);
 
 		JLabel notice = new JLabel();
@@ -315,10 +315,18 @@ class PresetPanel extends JPanel
 		}
 
 		JLabel autoUpdateLabel = new JLabel();
-		if (autoUpdate && !emptyPreset)
+		if (!emptyPreset)
 		{
-			autoUpdateLabel.setIcon(Icons.ORANGE_REFRESH_ICON);
-			autoUpdateLabel.setToolTipText("Auto updated preset");
+			if (autoUpdate)
+			{
+				autoUpdateLabel.setIcon(Icons.ORANGE_REFRESH_ICON);
+				autoUpdateLabel.setToolTipText("Auto updated preset");
+			}
+			else if (preset.getAutoUpdated() != null)
+			{
+				autoUpdateLabel.setIcon(Icons.REFRESH_INACTIVE_ICON);
+				autoUpdateLabel.setToolTipText("Auto updated when loaded");
+			}
 		}
 
 		leftActions.add(loadLabel);
@@ -719,11 +727,15 @@ class PresetPanel extends JPanel
 		keybind.setToolTipText("Save to clear keybind");
 	}
 
-	private JPopupMenu getFocusMenuPopup(Boolean loadOnFocus)
+	private JPopupMenu getFocusMenuPopup()
 	{
-		JMenuItem autoUpdate = new JMenuItem();
-		autoUpdate.setText("Toggle auto update");
-		autoUpdate.addActionListener(e -> toggleAutoUpdate());
+		JMenuItem toggleAutoUpdate = new JMenuItem();
+		toggleAutoUpdate.setText("Toggle auto update");
+		toggleAutoUpdate.addActionListener(e -> toggleAutoUpdate());
+
+		JMenuItem clearAutoUpdate = new JMenuItem();
+		clearAutoUpdate.setText("Clear auto update");
+		clearAutoUpdate.addActionListener(e -> clearAutoUpdate());
 
 		JMenuItem divider = new JMenuItem();
 		divider.setBorder(new EmptyBorder(1, 5, 1, 5));
@@ -744,22 +756,10 @@ class PresetPanel extends JPanel
 		clearFocusOption.setText("Clear focus action");
 		clearFocusOption.addActionListener(e -> setPresetWindowFocus(null));
 
-		if (loadOnFocus == null)
-		{
-			clearFocusOption.setVisible(false);
-		}
-		else if (loadOnFocus)
-		{
-			focusedOption.setVisible(false);
-		}
-		else
-		{
-			unfocusedOption.setVisible(false);
-		}
-
 		JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
-		popupMenu.add(autoUpdate);
+		popupMenu.add(toggleAutoUpdate);
+		popupMenu.add(clearAutoUpdate);
 		popupMenu.add(divider);
 		popupMenu.add(focusedOption);
 		popupMenu.add(unfocusedOption);
@@ -769,16 +769,25 @@ class PresetPanel extends JPanel
 
 	private void toggleAutoUpdate()
 	{
+		if (preset.match(plugin.getCurrentConfigurations()))
+		{
+			plugin.setAutoUpdatedPreset(preset.getId());
+		}
+		else
+		{
+			preset.setAutoUpdated(true);
+			plugin.savePresets();
+		}
+	}
+
+	private void clearAutoUpdate()
+	{
 		boolean thisAutoUpdated = plugin.getAutoUpdater() != null && plugin.getAutoUpdater().getEditedPreset().getId() == preset.getId();
 		if (thisAutoUpdated)
 		{
 			plugin.setAutoUpdatedPreset(null);
 		}
-		else
-		{
-			plugin.setAutoUpdatedPreset(preset.getId());
-		}
-
+		plugin.removeAutoUpdateFrom(preset);
 	}
 
 	private void setPresetWindowFocus(Boolean loadOnFocus)

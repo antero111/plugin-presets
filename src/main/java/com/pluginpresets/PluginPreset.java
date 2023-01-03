@@ -66,6 +66,13 @@ public class PluginPreset
 	@Setter
 	private Boolean loadOnFocus;
 
+	/**
+	 * Preset gets auto updated automatically on load if true
+	 */
+	@Getter
+	@Setter
+	private Boolean autoUpdated;
+
 	@Getter
 	@Setter
 	private List<PluginConfig> pluginConfigs;
@@ -77,6 +84,7 @@ public class PluginPreset
 		this.keybind = null;
 		this.local = true;
 		this.loadOnFocus = null;
+		this.autoUpdated = null;
 		this.pluginConfigs = new ArrayList<>();
 	}
 
@@ -97,7 +105,7 @@ public class PluginPreset
 		}
 		return true;
 	}
-	
+
 	public Boolean match(CurrentConfigurations currentConfigurations)
 	{
 		for (PluginConfig presetConfig : pluginConfigs)

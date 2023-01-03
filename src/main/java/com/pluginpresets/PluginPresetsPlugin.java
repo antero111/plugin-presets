@@ -365,7 +365,7 @@ public class PluginPresetsPlugin extends Plugin
 		// Auto updater gets disabled if preset doesn't match
 		if (autoUpdater != null && !autoUpdater.getEditedPreset().match(preset))
 		{
-			setAutoUpdater(null);
+			setAutoUpdatedPreset(null);
 		}
 
 		presetManager.loadPreset(preset, () -> {
@@ -374,6 +374,12 @@ public class PluginPresetsPlugin extends Plugin
 			updateCurrentConfigurations();
 			rebuildPluginUi();
 		});
+
+		// When preset has loaded, turn auto updater on
+		if (preset.getAutoUpdated() != null)
+		{
+			setAutoUpdatedPreset(preset.getId());
+		}
 	}
 
 	public void deletePreset(final PluginPreset preset)
@@ -448,9 +454,23 @@ public class PluginPresetsPlugin extends Plugin
 		else
 		{
 			configManager.setConfiguration(CONFIG_GROUP, CONFIG_KEY_AUTO_UPDATE, id);
+			for (PluginPreset p : pluginPresets)
+			{
+				if (p.getId() == id)
+				{
+					p.setAutoUpdated(true);
+					savePresets();
+				}
+			}
 			setupAutoUpdater();
 		}
 
+	}
+
+	public void removeAutoUpdateFrom(PluginPreset preset)
+	{
+		preset.setAutoUpdated(null);
+		savePresets();
 	}
 
 	public void importPresetFromClipboard()

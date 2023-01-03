@@ -56,7 +56,6 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
@@ -67,7 +66,6 @@ import net.runelite.client.util.LinkBrowser;
 /**
  * Main panel displaying all plugin presets
  */
-@Slf4j
 public class PluginPresetsPluginPanel extends PluginPanel
 {
 	private final PluginPresetsPlugin plugin;
@@ -550,14 +548,14 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			constraints.gridy++;
 		}
 
-		boolean modified = false;
+		int notMatchingConfigs = 0;
 		for (final PluginConfig currentConfig : configurations)
 		{
 			PluginConfig presetConfig = editedPreset.getConfig(currentConfig);
 
 			if (presetConfig != null && !presetConfig.match(currentConfig))
 			{
-				modified = true;
+				notMatchingConfigs++;
 			}
 
 			if (keywordFilteredConfigNames.contains(currentConfig.getName()) && filterConfigNames.contains(currentConfig.getName()))
@@ -567,6 +565,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			}
 		}
 
+		boolean modified = notMatchingConfigs > 0;
 		setUpdateAllVisibility(modified);
 	}
 
@@ -653,6 +652,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 				if (thisAutoUpdated)
 				{
 					plugin.setAutoUpdatedPreset(null);
+					plugin.removeAutoUpdateFrom(plugin.getPresetEditor().getEditedPreset());
 				}
 				else
 				{
