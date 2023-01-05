@@ -611,26 +611,16 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private void setUpdateAllVisibility(boolean modified)
 	{
 		boolean hasAutoUpdater = plugin.getAutoUpdater() != null;
-		boolean thisAutoUpdated = hasAutoUpdater && plugin.getAutoUpdater().getEditedPreset().getId() == editedPreset.getId();
+		boolean thisHasAutoUpdater = hasAutoUpdater && plugin.getAutoUpdater().getEditedPreset().getId() == editedPreset.getId();
+		boolean thisAutoUpdated = editedPreset.getAutoUpdated() != null;
 
 		String text = "Automatically run update all on this preset";
-		if (hasAutoUpdater)
+		if (thisAutoUpdated)
 		{
-			if (thisAutoUpdated)
-			{
-				autoUpdateLabel.setVisible(true);
-				updateAll.setVisible(false);
-				autoUpdate.setIcon(Icons.ORANGE_REFRESH_ICON);
-				text = "Turn auto updating off from this preset";
-			}
-			else
-			{
-				updateAll.setVisible(modified);
-				autoUpdateLabel.setVisible(false);
-				autoUpdate.setIcon(Icons.REFRESH_INACTIVE_ICON);
-				String name = plugin.getAutoUpdater().getEditedPreset().getName();
-				text = name + " is being auto updated. Click to update this preset instead.";
-			}
+			autoUpdateLabel.setVisible(true);
+			updateAll.setVisible(false);
+			autoUpdate.setIcon(Icons.ORANGE_REFRESH_ICON);
+			text = "Turn auto updating off from this preset";
 		}
 		else
 		{
@@ -651,12 +641,21 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			{
 				if (thisAutoUpdated)
 				{
-					plugin.setAutoUpdatedPreset(null);
+					if (thisHasAutoUpdater) {
+						plugin.setAutoUpdatedPreset(null);
+					}
 					plugin.removeAutoUpdateFrom(plugin.getPresetEditor().getEditedPreset());
 				}
 				else
 				{
-					plugin.setAutoUpdatedPreset(plugin.getPresetEditor().getEditedPreset().getId());
+					if (modified)
+					{
+						plugin.AddAutoUpdateFrom(plugin.getPresetEditor().getEditedPreset());
+					}
+					else
+					{
+						plugin.setAutoUpdatedPreset(plugin.getPresetEditor().getEditedPreset().getId());
+					}
 				}
 			}
 
