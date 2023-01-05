@@ -463,14 +463,23 @@ public class PluginPresetsPlugin extends Plugin
 				}
 			}
 			setupAutoUpdater();
+			rebuildPluginUi();
 		}
 
+	}
+
+	public void AddAutoUpdateFrom(PluginPreset preset)
+	{
+		preset.setAutoUpdated(true);
+		savePresets();
+		rebuildPluginUi();
 	}
 
 	public void removeAutoUpdateFrom(PluginPreset preset)
 	{
 		preset.setAutoUpdated(null);
 		savePresets();
+		rebuildPluginUi();
 	}
 
 	public void importPresetFromClipboard()
