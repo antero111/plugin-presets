@@ -468,7 +468,7 @@ public class PluginPresetsPlugin extends Plugin
 
 	}
 
-	public void AddAutoUpdateFrom(PluginPreset preset)
+	public void addAutoUpdateFrom(PluginPreset preset)
 	{
 		preset.setAutoUpdated(true);
 		savePresets();
