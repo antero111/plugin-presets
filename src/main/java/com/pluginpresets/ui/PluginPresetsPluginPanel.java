@@ -265,6 +265,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			public void mousePressed(MouseEvent mouseEvent)
 			{
 				plugin.getPresetEditor().updateAllModified();
+				if (plugin.getAutoUpdater() == null && editedPreset.getAutoUpdated() != null)
+				{
+					plugin.setAutoUpdatedPreset(plugin.getPresetEditor().getEditedPreset().getId());
+				}
 			}
 
 			@Override
