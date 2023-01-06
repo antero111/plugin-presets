@@ -617,8 +617,16 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		String text = "Automatically run update all on this preset";
 		if (thisAutoUpdated)
 		{
-			autoUpdateLabel.setVisible(true);
-			updateAll.setVisible(false);
+			if (thisHasAutoUpdater)
+			{
+				updateAll.setVisible(false);
+				autoUpdateLabel.setVisible(true);
+			}
+			else
+			{
+				updateAll.setVisible(modified);
+				autoUpdateLabel.setVisible(false);
+			}
 			autoUpdate.setIcon(Icons.ORANGE_REFRESH_ICON);
 			text = "Turn auto updating off from this preset";
 		}
@@ -650,7 +658,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 				{
 					if (modified)
 					{
-						plugin.AddAutoUpdateFrom(plugin.getPresetEditor().getEditedPreset());
+						plugin.addAutoUpdateFrom(plugin.getPresetEditor().getEditedPreset());
 					}
 					else
 					{
