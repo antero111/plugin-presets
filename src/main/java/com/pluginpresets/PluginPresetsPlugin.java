@@ -453,17 +453,24 @@ public class PluginPresetsPlugin extends Plugin
 		}
 		else
 		{
+			boolean doRefresh = false;
 			configManager.setConfiguration(CONFIG_GROUP, CONFIG_KEY_AUTO_UPDATE, id);
 			for (PluginPreset p : pluginPresets)
 			{
 				if (p.getId() == id)
 				{
 					p.setAutoUpdated(true);
+					doRefresh = true;
 					savePresets();
 				}
 			}
+
 			setupAutoUpdater();
-			rebuildPluginUi();
+			if (doRefresh && presetEditor != null)
+			{
+				presetEditor.syncAutoUpdate();
+
+			}
 		}
 
 	}

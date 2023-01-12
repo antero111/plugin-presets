@@ -653,7 +653,8 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			{
 				if (thisAutoUpdated)
 				{
-					if (thisHasAutoUpdater) {
+					if (thisHasAutoUpdater)
+					{
 						plugin.setAutoUpdatedPreset(null);
 					}
 					plugin.removeAutoUpdateFrom(plugin.getPresetEditor().getEditedPreset());
