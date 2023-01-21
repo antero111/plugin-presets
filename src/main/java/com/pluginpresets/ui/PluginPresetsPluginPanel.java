@@ -137,7 +137,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			}
 		});
 
-		helpButton.setToolTipText("Open help: " + PluginPresetsPlugin.HELP_LINK);
+		helpButton.setToolTipText("Open Plugin Presets wiki: " + PluginPresetsPlugin.HELP_LINK);
 		helpButton.addMouseListener(new MouseAdapter()
 		{
 			@Override
@@ -390,7 +390,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		JScrollPane scrollableContainer = new JScrollPane(contentWrapper);
 		scrollableContainer.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-		noPresetsPanel.setContent("Plugin Presets", "Presets of your plugin configurations.");
+		noPresetsPanel.setContent("Plugin Presets", "Presets of your plugin configurations.<br/><br/>See plugin wiki for usage guide.");
 		noPresetsPanel.setVisible(false);
 
 		add(northPanel, BorderLayout.NORTH);
