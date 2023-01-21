@@ -86,7 +86,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final JLabel title = new JLabel();
 	private final JLabel editTitle = new JLabel();
 	private final IconTextField searchBar = new IconTextField();
-	private final String[] filters = new String[]{"All A to Z", "Included", "Not included", "Modified", "Configs match", "Only Plugin Hub"};
+	private final String[] filters = new String[]{"All A to Z", "Included", "Not included", "Modified", "Plugin enabled", "Plugin disabled", "Configs match", "Only Plugin Hub"};
 	private final List<String> openSettings = new ArrayList<>();
 	private final List<PluginConfig> filtered = new ArrayList<>();
 	private final JLabel autoUpdateLabel = new JLabel();
@@ -747,6 +747,19 @@ public class PluginPresetsPluginPanel extends PluginPanel
 				if (filter.equals("Not included") && someSettingsUnticked)
 				{
 					filtered.add(config);
+				}
+
+				if (presetConfig.getEnabled() != null)
+				{
+					if (filter.equals("Plugin enabled") && presetConfig.getEnabled())
+					{
+						filtered.add(config);
+					}
+
+					if (filter.equals("Plugin disabled") && !presetConfig.getEnabled())
+					{
+						filtered.add(config);
+					}
 				}
 
 				if (presetConfig.match(config))
