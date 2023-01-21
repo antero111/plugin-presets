@@ -1,5 +1,14 @@
 # Changelog
 
+
+#### 2.5
+
+Added preset auto updating, plugin enabled/disabled filters and double click preset edit shortcut to preset panels.
+
+Moved most of user help from Readme to Plugin Presets [wiki](https://github.com/antero111/plugin-presets/wiki)
+
+Thanks to [Jademalo](https://github.com/Jademalo) for working with preset auto updating.
+
 #### 2.4
 
 Fixed custom settings causing infinite plugin toggle loop when loading presets. Thanks to [equirs](https://github.com/equirs)
