@@ -77,6 +77,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final JLabel pauseLabel = new JLabel();
 	private final JLabel addPreset = new JLabel(Icons.ADD_ICON);
 	private final JLabel stopEdit = new JLabel(Icons.ARROW_LEFT_ICON);
+	private final JLabel refreshPlugins = new JLabel(Icons.REFRESH_ICON);
 	private final JLabel ellipsisMenu = new JLabel(Icons.ELLIPSIS);
 	private final JLabel syncLabel = new JLabel();
 	private final JLabel updateAll = new JLabel(Icons.REFRESH_ICON);
@@ -159,6 +160,28 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			}
 		});
 
+		refreshPlugins.setToolTipText("Refresh presets");
+		refreshPlugins.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mousePressed(MouseEvent mouseEvent)
+			{
+				plugin.refreshPresets();
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent mouseEvent)
+			{
+				refreshPlugins.setIcon(Icons.REFRESH_HOVER_ICON);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent mouseEvent)
+			{
+				refreshPlugins.setIcon(Icons.REFRESH_ICON);
+			}
+		});
+
 		addPreset.setToolTipText("Create new plugin preset");
 		JPopupMenu importPopupMenu = getImportMenuPopup();
 		addPreset.setComponentPopupMenu(importPopupMenu);
@@ -189,6 +212,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		presetActions.add(errorNotification);
 		presetActions.add(pauseLabel);
 		presetActions.add(helpButton);
+		presetActions.add(refreshPlugins);
 		presetActions.add(addPreset);
 
 		titlePanel.add(title, BorderLayout.WEST);
@@ -881,21 +905,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		createEmptyOption.setText("Create new preset with all settings");
 		createEmptyOption.addActionListener(e -> promptPresetCreation(false));
 
-		JMenuItem divider = new JMenuItem();
-		divider.setBorder(new EmptyBorder(1, 5, 1, 5));
-		divider.setPreferredSize(new Dimension(0, 1));
-		divider.setBackground(ColorScheme.DARKER_GRAY_HOVER_COLOR);
-
-		JMenuItem refreshOption = new JMenuItem();
-		refreshOption.setText("Refresh presets");
-		refreshOption.addActionListener(e -> plugin.refreshPresets());
-
 		JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
 		popupMenu.add(importOption);
 		popupMenu.add(createEmptyOption);
-		popupMenu.add(divider);
-		popupMenu.add(refreshOption);
 		return popupMenu;
 	}
 
