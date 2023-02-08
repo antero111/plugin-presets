@@ -373,13 +373,13 @@ public class PluginPresetsPlugin extends Plugin
 
 			updateCurrentConfigurations();
 			rebuildPluginUi();
-		});
 
-		// When preset has loaded, turn auto updater on
-		if (preset.getAutoUpdated() != null)
-		{
-			setAutoUpdatedPreset(preset.getId());
-		}
+			// When preset has loaded, turn auto updater on
+			if (preset.getAutoUpdated() != null)
+			{
+				setAutoUpdatedPreset(preset.getId());
+			}
+		});
 	}
 
 	public void deletePreset(final PluginPreset preset)

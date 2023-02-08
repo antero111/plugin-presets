@@ -445,10 +445,12 @@ public class PluginPresetsPresetEditor
 	public void updateEditedPreset()
 	{
 		PluginPreset preset = getPresetBeingEdited();
-		assert preset != null;
-		preset.setPluginConfigs(editedPreset.getPluginConfigs());
-		preset.setAutoUpdated(editedPreset.getAutoUpdated());
-		preset.setLocal(editedPreset.getLocal());
+		if (preset != null)
+		{
+			preset.setPluginConfigs(editedPreset.getPluginConfigs());
+			preset.setAutoUpdated(editedPreset.getAutoUpdated());
+			preset.setLocal(editedPreset.getLocal());
+		}
 		plugin.savePresets();
 	}
 }
