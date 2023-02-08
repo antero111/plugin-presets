@@ -245,8 +245,8 @@ class PresetPanel extends JPanel
 
 		Boolean loadOnFocus = preset.getLoadOnFocus();
 		boolean autoUpdate = plugin.getAutoUpdater() != null && plugin.getAutoUpdater().getEditedPreset().getId() == preset.getId();
-		JPopupMenu focusMenuPopup = getFocusMenuPopup();
-		loadLabel.setComponentPopupMenu(focusMenuPopup);
+		JPopupMenu loadLabelPopup = getLoadLabelPopup();
+		loadLabel.setComponentPopupMenu(loadLabelPopup);
 
 		JLabel notice = new JLabel();
 
@@ -727,8 +727,23 @@ class PresetPanel extends JPanel
 		keybind.setToolTipText("Save to clear keybind");
 	}
 
-	private JPopupMenu getFocusMenuPopup()
+	private JPopupMenu getLoadLabelPopup()
 	{
+		JPopupMenu popupMenu = new JPopupMenu();
+		
+		Boolean match = preset.match(plugin.getCurrentConfigurations());
+		if (!match)
+		{
+			JMenuItem loadOption = new JMenuItem();
+			loadOption.setText("Load preset");
+			loadOption.addActionListener(e -> plugin.loadPreset(preset));
+	
+			JMenuItem divider = getDivider();
+			
+			popupMenu.add(loadOption);
+			popupMenu.add(divider);
+		}
+
 		JMenuItem toggleAutoUpdate = new JMenuItem();
 		toggleAutoUpdate.setText("Toggle auto update");
 		toggleAutoUpdate.addActionListener(e -> toggleAutoUpdate());
@@ -737,10 +752,7 @@ class PresetPanel extends JPanel
 		clearAutoUpdate.setText("Clear auto update");
 		clearAutoUpdate.addActionListener(e -> clearAutoUpdate());
 
-		JMenuItem divider = new JMenuItem();
-		divider.setBorder(new EmptyBorder(1, 5, 1, 5));
-		divider.setPreferredSize(new Dimension(0, 1));
-		divider.setBackground(ColorScheme.DARKER_GRAY_HOVER_COLOR);
+		JMenuItem divider = getDivider();
 
 		JMenuItem focusedOption = new JMenuItem();
 		focusedOption.setText("Load when focused");
@@ -756,7 +768,6 @@ class PresetPanel extends JPanel
 		clearFocusOption.setText("Clear focus action");
 		clearFocusOption.addActionListener(e -> setPresetWindowFocus(null));
 
-		JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(new EmptyBorder(2, 2, 2, 0));
 		popupMenu.add(toggleAutoUpdate);
 		popupMenu.add(clearAutoUpdate);
@@ -765,6 +776,15 @@ class PresetPanel extends JPanel
 		popupMenu.add(unfocusedOption);
 		popupMenu.add(clearFocusOption);
 		return popupMenu;
+	}
+
+	private JMenuItem getDivider()
+	{
+		JMenuItem divider = new JMenuItem();
+		divider.setBorder(new EmptyBorder(1, 5, 1, 5));
+		divider.setPreferredSize(new Dimension(0, 1));
+		divider.setBackground(ColorScheme.DARKER_GRAY_HOVER_COLOR);
+		return divider;
 	}
 
 	private void toggleAutoUpdate()
