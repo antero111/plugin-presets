@@ -63,6 +63,31 @@ public class PluginPresetsPresetManager
 	}
 
 	/**
+	 * Disable a preset, turn every plugin off that has the enabled==true
+	 *
+	 * @param preset     the preset to be disabled
+	 * @param onComplete callback invoked once preset is loaded
+	 */
+	public void disablePreset(PluginPreset preset, Runnable onComplete)
+	{
+		Collection<Plugin> plugins = pluginManager.getPlugins();
+
+		preset.getPluginConfigs().forEach(pluginConfig ->
+		{
+			Plugin plugin = findPlugin(pluginConfig.getName(), plugins);
+
+			// Set plugin off
+			Boolean enabled = pluginConfig.getEnabled();
+			if (plugin != null && enabled != null && enabled)
+			{
+				enablePlugin(plugin, false);
+			}
+		});
+
+		onComplete.run();
+	}
+
+	/**
 	 * Loads a preset, changing its specified settings and enabling/disabling its plugins.
 	 *
 	 * @param preset     the preset to be loaded

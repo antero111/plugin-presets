@@ -255,7 +255,33 @@ class PresetPanel extends JPanel
 		if (match)
 		{
 			loadLabel.setIcon(Icons.SWITCH_ON_ICON);
-			loadLabel.setToolTipText("Current configurations match this preset");
+			String text = preset.canBeDisabled()
+				? "Current configurations match this preset. Click to disable preset."
+				: "Current configurations match this preset.";
+			loadLabel.setToolTipText(text);
+			loadLabel.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mousePressed(MouseEvent mouseEvent)
+				{
+					if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+					{
+						plugin.disablePreset(preset);
+					}
+				}
+
+				@Override
+				public void mouseEntered(MouseEvent mouseEvent)
+				{
+					loadLabel.setIcon(Icons.SWITCH_ON_ICON);
+				}
+
+				@Override
+				public void mouseExited(MouseEvent mouseEvent)
+				{
+					loadLabel.setIcon(Icons.SWITCH_ON_ICON);
+				}
+			});
 
 			emptyPreset = preset.isEmpty();
 			if (emptyPreset)
@@ -730,16 +756,16 @@ class PresetPanel extends JPanel
 	private JPopupMenu getLoadLabelPopup()
 	{
 		JPopupMenu popupMenu = new JPopupMenu();
-		
+
 		Boolean match = preset.match(plugin.getCurrentConfigurations());
 		if (!match)
 		{
 			JMenuItem loadOption = new JMenuItem();
 			loadOption.setText("Load preset");
 			loadOption.addActionListener(e -> plugin.loadPreset(preset));
-	
+
 			JMenuItem divider = getDivider();
-			
+
 			popupMenu.add(loadOption);
 			popupMenu.add(divider);
 		}

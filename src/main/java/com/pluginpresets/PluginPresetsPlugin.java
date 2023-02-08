@@ -357,6 +357,7 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		if (preset.match(currentConfigurations))
 		{
+			disablePreset(preset);
 			return;
 		}
 
@@ -379,6 +380,19 @@ public class PluginPresetsPlugin extends Plugin
 			{
 				setAutoUpdatedPreset(preset.getId());
 			}
+		});
+	}
+
+	@SneakyThrows
+	public void disablePreset(final PluginPreset preset)
+	{
+		loadingPreset = true;
+
+		presetManager.disablePreset(preset, () -> {
+			loadingPreset = false;
+
+			updateCurrentConfigurations();
+			rebuildPluginUi();
 		});
 	}
 

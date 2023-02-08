@@ -169,4 +169,16 @@ public class PluginPreset
 	{
 		return pluginConfigs.isEmpty();
 	}
+
+	public boolean canBeDisabled()
+	{
+		for (PluginConfig presetConfig : pluginConfigs)
+		{
+			if (presetConfig.getEnabled() != null && presetConfig.getEnabled())
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 }
