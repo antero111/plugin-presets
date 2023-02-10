@@ -595,29 +595,31 @@ class PresetPanel extends JPanel
 		requestFocusInWindow();
 
 		plugin.savePresets();
-		plugin.rebuildPluginUi();
 	}
 
 	private void updatePresetName()
 	{
 		String nameInputText = nameInput.getText();
-		if (nameIsValid(nameInputText))
+		boolean empty = nameInputText.isEmpty();
+		boolean stringContainsInvalidCharacters = PluginPresetsUtils.stringContainsInvalidCharacters(nameInputText);
+
+		boolean validName = !empty && !stringContainsInvalidCharacters;
+		if (validName)
 		{
 			preset.setName(nameInputText);
 		}
 		else
 		{
-			if (!nameIsValid(preset.getName()))
+			if (empty)
 			{
 				setDefaultPresetName();
 			}
+			else
+			{
+				plugin.setErrorMessage("Rename failed because name input had invalid characters.");
+			}
 			// Else keep the old name
 		}
-	}
-
-	private boolean nameIsValid(String name)
-	{
-		return !nameInput.getText().equals("") && !PluginPresetsUtils.stringContainsInvalidCharacters(name);
 	}
 
 	private void setDefaultPresetName()

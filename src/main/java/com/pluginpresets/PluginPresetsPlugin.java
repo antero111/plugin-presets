@@ -159,7 +159,8 @@ public class PluginPresetsPlugin extends Plugin
 			// Ignore
 		}
 	};
-
+	@Setter
+	private String errorMessage;
 	@Getter
 	@Setter
 	private Boolean focusChangedPaused = false;
@@ -315,9 +316,15 @@ public class PluginPresetsPlugin extends Plugin
 
 	public void createPreset(String presetName, boolean empty)
 	{
-		if (presetName.equals(""))
+		boolean noName = presetName.equals("");
+		boolean invalidName = !noName && PluginPresetsUtils.stringContainsInvalidCharacters(presetName);
+		if (noName || invalidName)
 		{
 			presetName = PluginPresetsPlugin.DEFAULT_PRESET_NAME + " " + (pluginPresets.size() + 1);
+			if (invalidName)
+			{
+				errorMessage = "Preset name contained invalid characters.";
+			}
 		}
 
 		PluginPreset preset = presetManager.createPluginPreset(presetName);
@@ -350,6 +357,12 @@ public class PluginPresetsPlugin extends Plugin
 		pluginPresets.clear();
 		loadPresets();
 		rebuildPluginUi();
+
+		if (errorMessage != null)
+		{
+			renderPanelErrorNotification(errorMessage);
+			errorMessage = null;
+		}
 	}
 
 	@SneakyThrows
