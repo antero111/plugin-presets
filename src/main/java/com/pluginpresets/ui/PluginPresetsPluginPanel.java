@@ -81,7 +81,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 	private final JLabel ellipsisMenu = new JLabel(Icons.ELLIPSIS);
 	private final JLabel syncLabel = new JLabel();
 	private final JLabel updateAll = new JLabel(Icons.REFRESH_ICON);
-	private final PluginErrorPanel noPresetsPanel = new PluginErrorPanel();
+	private final NoPresetsPanel noPresetsPanel = new NoPresetsPanel();
 	private final PluginErrorPanel noContent = new PluginErrorPanel();
 	private final JPanel titlePanel = new JPanel(new BorderLayout());
 	private final JLabel title = new JLabel();
@@ -414,7 +414,6 @@ public class PluginPresetsPluginPanel extends PluginPanel
 		JScrollPane scrollableContainer = new JScrollPane(contentWrapper);
 		scrollableContainer.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-		noPresetsPanel.setContent("Plugin Presets", "Presets of your plugin configurations.<br/><br/>See plugin wiki for usage guide.");
 		noPresetsPanel.setVisible(false);
 
 		add(northPanel, BorderLayout.NORTH);
@@ -476,6 +475,7 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		boolean empty = constraints.gridy == 0;
 		noPresetsPanel.setVisible(empty);
+		helpButton.setVisible(!empty);
 		title.setVisible(!empty);
 		openSettings.clear();
 
