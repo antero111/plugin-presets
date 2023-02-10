@@ -351,7 +351,24 @@ class PresetPanel extends JPanel
 			else if (preset.getAutoUpdated() != null)
 			{
 				autoUpdateLabel.setIcon(Icons.REFRESH_INACTIVE_ICON);
-				autoUpdateLabel.setToolTipText("Auto updated when loaded");
+				String tooltipText = "Auto updated when loaded.";
+				
+				if (match)
+				{
+					tooltipText += " Click to auto update this preset.";
+					autoUpdateLabel.addMouseListener(new MouseAdapter()
+					{
+						@Override
+						public void mousePressed(MouseEvent mouseEvent)
+						{
+							if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+							{
+								toggleAutoUpdate();
+							}
+						}
+					});
+				}
+				autoUpdateLabel.setToolTipText(tooltipText);
 			}
 		}
 
