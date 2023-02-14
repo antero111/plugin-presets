@@ -370,7 +370,7 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		if (preset.match(currentConfigurations))
 		{
-			disablePreset(preset);
+		// 	disablePreset(preset);
 			return;
 		}
 
