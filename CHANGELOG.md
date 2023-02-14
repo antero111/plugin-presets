@@ -1,5 +1,8 @@
 # Changelog
 
+#### 2.6
+
+Readded refresh presets button to plugin panel. Add load preset option to toggle switch context menu. Fixed auto updater not handling custom settings. Added error warning when preset (re)naming fails. Added way for selecting which preset is auto updated out of all matching presets. Added custom no presets panel with a wiki link.
 
 #### 2.5
 
