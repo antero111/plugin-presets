@@ -117,7 +117,10 @@ class PresetPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				saveRename();
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					saveRename();
+				}
 			}
 
 			@Override
@@ -142,7 +145,10 @@ class PresetPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				cancelRename();
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{	
+					cancelRename();
+				}
 			}
 
 			@Override
@@ -166,7 +172,10 @@ class PresetPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				updateNameActions(true);
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					updateNameActions(true);
+				}
 			}
 
 			@Override
@@ -398,7 +407,10 @@ class PresetPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				saveKeybind();
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					saveKeybind();
+				}
 			}
 
 			@Override
@@ -422,7 +434,10 @@ class PresetPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				cancelKeybind();
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					cancelKeybind();
+				}
 			}
 
 			@Override
@@ -485,7 +500,10 @@ class PresetPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				editKeybind();
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					editKeybind();
+				}
 			}
 
 			@Override
@@ -539,13 +557,16 @@ class PresetPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				int confirm = JOptionPane.showConfirmDialog(PresetPanel.this,
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					int confirm = JOptionPane.showConfirmDialog(PresetPanel.this,
 					"Are you sure you want to permanently delete this plugin preset?",
 					"Delete preset", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-
-				if (confirm == 0)
-				{
-					plugin.deletePreset(preset);
+					
+					if (confirm == 0)
+					{
+						plugin.deletePreset(preset);
+					}
 				}
 			}
 
@@ -569,7 +590,10 @@ class PresetPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				editPreset(preset);
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					editPreset(preset);
+				}
 			}
 
 			@Override

@@ -144,7 +144,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				LinkBrowser.browse(PluginPresetsPlugin.HELP_LINK);
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					LinkBrowser.browse(PluginPresetsPlugin.HELP_LINK);
+				}
 			}
 
 			@Override
@@ -166,7 +169,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				plugin.refreshPresets();
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					plugin.refreshPresets();
+				}
 			}
 
 			@Override
@@ -344,7 +350,10 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				plugin.getPresetEditor().toggleLocal();
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					plugin.getPresetEditor().toggleLocal();
+				}
 			}
 
 			@Override
@@ -675,23 +684,26 @@ public class PluginPresetsPluginPanel extends PluginPanel
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				if (thisAutoUpdated)
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
 				{
-					if (thisHasAutoUpdater)
+					if (thisAutoUpdated)
 					{
-						plugin.setAutoUpdatedPreset(null);
-					}
-					plugin.removeAutoUpdateFrom(plugin.getPresetEditor().getEditedPreset());
-				}
-				else
-				{
-					if (modified)
-					{
-						plugin.addAutoUpdateFrom(plugin.getPresetEditor().getEditedPreset());
+						if (thisHasAutoUpdater)
+						{
+							plugin.setAutoUpdatedPreset(null);
+						}
+						plugin.removeAutoUpdateFrom(plugin.getPresetEditor().getEditedPreset());
 					}
 					else
 					{
-						plugin.setAutoUpdatedPreset(plugin.getPresetEditor().getEditedPreset().getId());
+						if (modified)
+						{
+							plugin.addAutoUpdateFrom(plugin.getPresetEditor().getEditedPreset());
+						}
+						else
+						{
+							plugin.setAutoUpdatedPreset(plugin.getPresetEditor().getEditedPreset().getId());
+						}
 					}
 				}
 			}
