@@ -452,8 +452,8 @@ public class PluginPresetsPlugin extends Plugin
 			{
 				if (p.getId() == id)
 				{
-					PluginPresetsPresetEditor autoUpdater = new PluginPresetsPresetEditor(this, p, currentConfigurations);
-					setAutoUpdater(autoUpdater);
+					PluginPresetsPresetEditor updater = new PluginPresetsPresetEditor(this, p, currentConfigurations);
+					setAutoUpdater(updater);
 					failed = false;
 				}
 			}
@@ -540,6 +540,20 @@ public class PluginPresetsPlugin extends Plugin
 		{
 			renderPanelErrorNotification("You do not have any valid presets in your clipboard.");
 		}
+	}
+
+	public void duplicatePreset(final PluginPreset preset)
+	{
+		PluginPreset newPreset = new PluginPreset(PluginPresetsUtils.createNameWithSuffixIfNeeded(preset.getName(), pluginPresets));
+		newPreset.setPluginConfigs(preset.getPluginConfigs());
+		newPreset.setAutoUpdated(preset.getAutoUpdated());
+		newPreset.setLoadOnFocus(preset.getLoadOnFocus());
+		newPreset.setLocal(preset.getLocal());
+		newPreset.setKeybind(preset.getKeybind());
+
+		pluginPresets.add(newPreset);
+		savePresets();
+		refreshPresets();
 	}
 
 	public void exportPresetToClipboard(final PluginPreset preset)

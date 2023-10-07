@@ -245,8 +245,7 @@ class PresetPanel extends JPanel
 
 		Boolean loadOnFocus = preset.getLoadOnFocus();
 		boolean autoUpdate = plugin.getAutoUpdater() != null && plugin.getAutoUpdater().getEditedPreset().getId() == preset.getId();
-		JPopupMenu loadLabelPopup = getLoadLabelPopup();
-		loadLabel.setComponentPopupMenu(loadLabelPopup);
+		loadLabel.setComponentPopupMenu(getLoadLabelPopup());
 
 		JLabel notice = new JLabel();
 
@@ -506,29 +505,30 @@ class PresetPanel extends JPanel
 		keybindWrapper.add(keybind);
 		keybindWrapper.add(keybindActions);
 
-		shareLabel.setIcon(Icons.COPY_ICON);
-		shareLabel.setToolTipText("Copy preset to clipboard");
+		shareLabel.setIcon(Icons.DUPLICATE_ICON);
+		shareLabel.setToolTipText("Duplicate preset");
+		shareLabel.setComponentPopupMenu(getCopyLabelPopup());
 		shareLabel.addMouseListener(new MouseAdapter()
 		{
 			@Override
 			public void mousePressed(MouseEvent mouseEvent)
 			{
-				plugin.exportPresetToClipboard(preset);
-				JOptionPane.showMessageDialog(shareLabel,
-					"Preset data of '" + preset.getName() + "' copied to clipboard.", "Preset exported",
-					JOptionPane.INFORMATION_MESSAGE);
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					plugin.duplicatePreset(preset);
+				}
 			}
 
 			@Override
 			public void mouseEntered(MouseEvent mouseEvent)
 			{
-				shareLabel.setIcon(Icons.COPY_HOVER_ICON);
+				shareLabel.setIcon(Icons.DUPLICATE_HOVER_ICON);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent mouseEvent)
 			{
-				shareLabel.setIcon(Icons.COPY_ICON);
+				shareLabel.setIcon(Icons.DUPLICATE_ICON);
 			}
 		});
 
@@ -771,6 +771,29 @@ class PresetPanel extends JPanel
 	{
 		keybind.setText("No keybind set");
 		keybind.setToolTipText("Save to clear keybind");
+	}
+
+	private JPopupMenu getCopyLabelPopup()
+	{
+		JPopupMenu popupMenu = new JPopupMenu();
+
+		JMenuItem duplicatePreset = new JMenuItem();
+		duplicatePreset.setText("Duplicate preset");
+		duplicatePreset.addActionListener(e -> plugin.duplicatePreset(preset));
+
+		JMenuItem copyToClipboard = new JMenuItem();
+		copyToClipboard.setText("Copy preset to clipboard");
+		copyToClipboard.addActionListener(e -> {
+			plugin.exportPresetToClipboard(preset);
+			JOptionPane.showMessageDialog(shareLabel,
+				"Preset data of '" + preset.getName() + "' copied to clipboard.", "Preset exported",
+				JOptionPane.INFORMATION_MESSAGE);
+		});
+
+		popupMenu.add(duplicatePreset);
+		popupMenu.add(copyToClipboard);
+
+		return popupMenu;
 	}
 
 	private JPopupMenu getLoadLabelPopup()

@@ -34,8 +34,8 @@ public final class Icons
 	static final ImageIcon SWITCH_ON_ICON;
 	static final ImageIcon SWITCH_OFF_ICON;
 	static final ImageIcon SWITCH_OFF_HOVER_ICON;
-	static final ImageIcon COPY_ICON;
-	static final ImageIcon COPY_HOVER_ICON;
+	static final ImageIcon DUPLICATE_ICON;
+	static final ImageIcon DUPLICATE_HOVER_ICON;
 	static final ImageIcon DELETE_ICON;
 	static final ImageIcon DELETE_HOVER_ICON;
 	static final ImageIcon EDIT_ICON;
@@ -113,9 +113,9 @@ public final class Icons
 		SWITCH_OFF_ICON = new ImageIcon(switchOffImg);
 		SWITCH_OFF_HOVER_ICON = new ImageIcon(switchOffHoverImg);
 
-		final BufferedImage copyImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "copy_icon.png");
-		COPY_ICON = new ImageIcon(copyImg);
-		COPY_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(copyImg, -100));
+		final BufferedImage duplicateImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "duplicate_icon.png");
+		DUPLICATE_ICON = new ImageIcon(duplicateImg);
+		DUPLICATE_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(duplicateImg, -100));
 
 		final BufferedImage deleteImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "delete_icon.png");
 		DELETE_ICON = new ImageIcon(deleteImg);
