@@ -234,7 +234,7 @@ public class PluginPresetsPlugin extends Plugin
 			{
 				if (autoUpdater != null)
 				{
-					autoUpdater.updateAllModified();
+					SwingUtilities.invokeLater(autoUpdater::updateAllModified);
 				}
 				else
 				{
