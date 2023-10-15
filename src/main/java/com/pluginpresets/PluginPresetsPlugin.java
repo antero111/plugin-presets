@@ -55,6 +55,7 @@ import net.runelite.client.config.Keybind;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.ExternalPluginsChanged;
+import net.runelite.client.events.ProfileChanged;
 import net.runelite.client.input.KeyListener;
 import net.runelite.client.input.KeyManager;
 import net.runelite.client.plugins.Plugin;
@@ -225,21 +226,38 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		if (validConfigChange(configChanged) && !loadingPreset)
 		{
-			updateCurrentConfigurations();
-			if (autoUpdater != null)
+			// When profile changes, multiple onConfigChanged events are 
+			// fired and we don't want to update configurations multiple times since it hangs the client.
+			// Current configurations updater filters these out with update interval timestamp.
+			boolean updated = updateCurrentConfigurations();
+			if (updated)
 			{
-				autoUpdater.updateAllModified();
-			}
-			else
-			{
-				SwingUtilities.invokeLater(this::rebuildPluginUi);
+				if (autoUpdater != null)
+				{
+					autoUpdater.updateAllModified();
+				}
+				else
+				{
+					SwingUtilities.invokeLater(this::rebuildPluginUi);
+				}
 			}
 		}
 	}
 
-	public void updateCurrentConfigurations()
+	@Subscribe
+	public void onProfileChanged(ProfileChanged profileChanged)
 	{
-		currentConfigurations.update();
+		SwingUtilities.invokeLater(this::refreshPresets);
+	}
+
+	/**
+	 * Updates current configurations from RuneLite config.
+	 *
+	 * @return true if configurations were updated
+	 */
+	public boolean updateCurrentConfigurations()
+	{
+		return currentConfigurations.update();
 	}
 
 	private boolean validConfigChange(ConfigChanged configChanged)
@@ -370,7 +388,7 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		if (preset.match(currentConfigurations))
 		{
-		// 	disablePreset(preset);
+			// 	disablePreset(preset);
 			return;
 		}
 

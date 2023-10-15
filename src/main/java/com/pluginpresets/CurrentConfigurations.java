@@ -34,11 +34,15 @@ import lombok.Setter;
  */
 public class CurrentConfigurations
 {
+	private static final int UPDATE_INTERVAL_MS = 150;
+
+	private final PluginPresetsCurrentConfigManager currentConfigManager;
+
 	@Getter
 	@Setter
 	private List<PluginConfig> pluginConfigs;
 
-	private final PluginPresetsCurrentConfigManager currentConfigManager;
+	private Long lastUpdate = null;
 
 	@Inject
 	public CurrentConfigurations(PluginPresetsCurrentConfigManager currentConfigManager)
@@ -46,8 +50,17 @@ public class CurrentConfigurations
 		this.currentConfigManager = currentConfigManager;
 	}
 
-	public void update()
+
+	public Boolean update()
 	{
-		setPluginConfigs(currentConfigManager.getCurrentConfigs());
+		boolean updated = false;
+		Long timestamp = System.currentTimeMillis();
+		if (lastUpdate == null || timestamp - lastUpdate > UPDATE_INTERVAL_MS)
+		{
+			setPluginConfigs(currentConfigManager.getCurrentConfigs());
+			updated = true;
+		}
+		lastUpdate = timestamp;
+		return updated;
 	}
 }
