@@ -564,10 +564,6 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		PluginPreset newPreset = new PluginPreset(PluginPresetsUtils.createNameWithSuffixIfNeeded(preset.getName(), pluginPresets));
 		newPreset.setPluginConfigs(preset.getPluginConfigs());
-		newPreset.setAutoUpdated(preset.getAutoUpdated());
-		newPreset.setLoadOnFocus(preset.getLoadOnFocus());
-		newPreset.setLocal(preset.getLocal());
-		newPreset.setKeybind(preset.getKeybind());
 
 		pluginPresets.add(newPreset);
 		savePresets();
