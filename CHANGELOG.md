@@ -1,5 +1,13 @@
 # Changelog
 
+#### 2.7
+
+**Fixed config changed event causing client to hang when profile was changed.** Profiles now finally work with no side effect to the plugin and now both system can be used in conjunction.
+
+Fixed auto updater causing presets to disappear. Fixed some button context menu options.
+
+Changed copy to clipboard button as duplicate preset button. Clipboard import is now context menu option on the green plus icon.
+
 #### 2.6
 
 Readded refresh presets button to plugin panel. Add load preset option to toggle switch context menu. Fixed auto updater not handling custom settings. Added error warning when preset (re)naming fails. Added way for selecting which preset is auto updated out of all matching presets. Added custom no presets panel with a wiki link.
@@ -46,7 +54,7 @@ Added preset loading based on client focus.
 
 Added open all/partial and close all buttons to config panel. Not included filter also shows partial configs. Fixed _Add all_ button to work with open configs.
 
-Custom settings were mostly rewritten and fixed issues causing custom settings to be reset when adding new ones. Custom settings are now only visible to the preset where they are stored. Added confirmation to removing custom settings.  
+Custom settings were mostly rewritten and fixed issues causing custom settings to be reset when adding new ones. Custom settings are now only visible to the preset where they are stored. Added confirmation to removing custom settings.
 
 Improved edit panel and preset loading performance. Added and improved tooltips and fixed some wrong ui alingments. Added cloud icon to preset panel and improved some other icons.
 
@@ -64,7 +72,7 @@ Configurations that don't have a name set can now be edited, this fixed volume s
 
 The Plugin was mostly rewritten to use a new Plugin Preset file format and fit to a new way of editing presets with the editor panel. Previously presets contained all of your RuneLite configurations, now the presets only include those that user stores in them with the new preset editor panel. The new preset file format is much easier to work with and is much more future proof for future additions e.g. description.
 
-Presets can now be also stored in the RuneLite configurations similiar to other RuneLite configurations. This allows having different presets with different RL accounts and syncing presets between computers.  
+Presets can now be also stored in the RuneLite configurations similiar to other RuneLite configurations. This allows having different presets with different RL accounts and syncing presets between computers.
 
 Presets can now be bound to keybinds and multiple presets can be enabled at the same time. The preset panel now automatically knows if a preset is enabled or not by comparing the presets and users current configurations. Made improvements to preset importing and exporting, preset file saving and loading and performance improvements. Added icon for copying plugin preset data and updated some other icons. Lots of bugfixes and other various ux/ui fixes and code refactorings.
 
