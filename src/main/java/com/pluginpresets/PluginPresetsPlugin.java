@@ -37,7 +37,6 @@ import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -88,10 +87,32 @@ public class PluginPresetsPlugin extends Plugin
 	private static final String CONFIG_KEY_AUTO_UPDATE = "autoUpdate";
 
 	@Getter
-	private final HashMap<Keybind, PluginPreset> keybinds = new HashMap<>();
-
-	@Getter
 	private final List<PluginPreset> pluginPresets = new ArrayList<>();
+
+	private final KeyListener keybindListener = new KeyListener()
+	{
+		@Override
+		public void keyTyped(KeyEvent e)
+		{
+			// Ignore
+		}
+
+		@Override
+		public void keyPressed(KeyEvent e)
+		{
+			PluginPreset preset = keybindManager.getPresetFor(new Keybind(e));
+			if (preset != null)
+			{
+				loadPreset(preset);
+			}
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e)
+		{
+			// Ignore
+		}
+	};
 
 	@Getter
 	@Inject
@@ -100,6 +121,10 @@ public class PluginPresetsPlugin extends Plugin
 	@Getter
 	@Inject
 	private CustomSettingsManager customSettingsManager;
+
+	@Getter
+	@Inject
+	private KeybindManager keybindManager;
 
 	@Inject
 	private ClientToolbar clientToolbar;
@@ -136,32 +161,10 @@ public class PluginPresetsPlugin extends Plugin
 	private Boolean loggedIn = false; // Used to inform that keybinds don't work in login screen
 
 	private Boolean loadingPreset = false;
-	private final KeyListener keybindListener = new KeyListener()
-	{
-		@Override
-		public void keyTyped(KeyEvent e)
-		{
-			// Ignore
-		}
 
-		@Override
-		public void keyPressed(KeyEvent e)
-		{
-			PluginPreset preset = keybinds.get(new Keybind(e));
-			if (preset != null)
-			{
-				loadPreset(preset);
-			}
-		}
-
-		@Override
-		public void keyReleased(KeyEvent e)
-		{
-			// Ignore
-		}
-	};
 	@Setter
 	private String errorMessage;
+
 	@Getter
 	@Setter
 	private Boolean focusChangedPaused = false;
@@ -188,8 +191,7 @@ public class PluginPresetsPlugin extends Plugin
 			.panel(pluginPanel)
 			.popup(ImmutableMap
 				.<String, Runnable>builder()
-				.put("Open preset folder...", () ->
-					LinkBrowser.open(PRESETS_DIR.toString()))
+				.put("Open preset folder...", () -> LinkBrowser.open(PRESETS_DIR.toString()))
 				.build())
 			.build();
 		clientToolbar.addNavigation(navigationButton);
@@ -201,7 +203,7 @@ public class PluginPresetsPlugin extends Plugin
 	protected void shutDown()
 	{
 		pluginPresets.clear();
-		keybinds.clear();
+		keybindManager.clearKeybinds();
 		autoUpdater = null;
 
 		presetStorage.stopWatcher();
@@ -226,9 +228,11 @@ public class PluginPresetsPlugin extends Plugin
 	{
 		if (validConfigChange(configChanged) && !loadingPreset)
 		{
-			// When profile changes, multiple onConfigChanged events are 
-			// fired and we don't want to update configurations multiple times since it hangs the client.
-			// Current configurations updater filters these out with update interval timestamp.
+			// When profile changes, multiple onConfigChanged events are
+			// fired and we don't want to update configurations multiple times since it
+			// hangs the client.
+			// Current configurations updater filters these out with update interval
+			// timestamp.
 			boolean updated = updateCurrentConfigurations();
 			if (updated)
 			{
@@ -257,12 +261,15 @@ public class PluginPresetsPlugin extends Plugin
 	 */
 	public boolean updateCurrentConfigurations()
 	{
-		return currentConfigurations.update();
+		Boolean updated = currentConfigurations.update();
+		if (updated) keybindManager.setCurrentConfigurations(currentConfigurations);
+		return updated;
 	}
 
 	private boolean validConfigChange(ConfigChanged configChanged)
 	{
-		return !(configChanged.getKey().equals("pluginpresetsplugin") || configChanged.getGroup().equals("pluginpresets"));
+		return !(configChanged.getKey().equals("pluginpresetsplugin")
+			|| configChanged.getGroup().equals("pluginpresets"));
 	}
 
 	@Subscribe
@@ -310,7 +317,8 @@ public class PluginPresetsPlugin extends Plugin
 		syncPresets.forEach(preset -> preset.setLocal(false));
 
 		// If all presets are saved to config, do a refresh since...
-		// ...presetStorage folder watcher does not recognize any file change and doesn't refresh presets.
+		// ...presetStorage folder watcher does not recognize any file change and
+		// doesn't refresh presets.
 		if (syncPresets.size() == pluginPresets.size())
 		{
 			refreshPresets();
@@ -383,14 +391,16 @@ public class PluginPresetsPlugin extends Plugin
 		}
 	}
 
+	/**
+	 * Loads preset and updates current configurations.
+	 */
 	@SneakyThrows
 	public void loadPreset(final PluginPreset preset)
 	{
-		if (preset.match(currentConfigurations))
-		{
-			// 	disablePreset(preset);
-			return;
-		}
+		// if (preset.match(currentConfigurations))
+		// {
+		// 	disablePreset(preset);
+		// }
 
 		loadingPreset = true;
 
@@ -434,7 +444,8 @@ public class PluginPresetsPlugin extends Plugin
 	}
 
 	/**
-	 * Loads presets from preset folder and RuneLite config and adds them to plugin memory.
+	 * Loads presets from preset folder and RuneLite config and adds them to plugin
+	 * memory.
 	 */
 	@SneakyThrows
 	public void loadPresets()
@@ -443,20 +454,7 @@ public class PluginPresetsPlugin extends Plugin
 		loadConfig(configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY_PRESETS));
 		pluginPresets.sort(Comparator.comparing(PluginPreset::getName)); // Keep presets in order
 		customSettingsManager.parseCustomSettings(pluginPresets);
-		cacheKeybinds();
-	}
-
-	private void cacheKeybinds()
-	{
-		keybinds.clear();
-		pluginPresets.forEach(preset ->
-		{
-			Keybind keybind = preset.getKeybind();
-			if (keybind != null && keybinds.get(keybind) == null)
-			{
-				keybinds.put(keybind, preset);
-			}
-		});
+		keybindManager.cacheKeybinds(pluginPresets);
 	}
 
 	private void setupAutoUpdater()
@@ -476,7 +474,8 @@ public class PluginPresetsPlugin extends Plugin
 				}
 			}
 
-			// If auto preset does not exist or it got deleted, unset autoUpdate configuration 
+			// If auto preset does not exist or it got deleted, unset autoUpdate
+			// configuration
 			if (failed)
 			{
 				setAutoUpdatedPreset(null);
@@ -548,7 +547,7 @@ public class PluginPresetsPlugin extends Plugin
 		{
 			newPreset.setId(Instant.now().toEpochMilli());
 			newPreset.setName(PluginPresetsUtils.createNameWithSuffixIfNeeded(newPreset.getName(), pluginPresets));
-			newPreset.setLocal(true); // Presets are imported to /presets folder 
+			newPreset.setLocal(true); // Presets are imported to /presets folder
 
 			pluginPresets.add(newPreset);
 			savePresets();
