@@ -239,37 +239,18 @@ public class PluginPresetsStorage
 			return null;
 		}
 
-		if (newPreset.getName() == null || newPreset.getPluginConfigs() == null)
+		if (isMalformedPluginPreset(newPreset))
 		{
-			// Something wrong with the parsed preset
-			// Check if file contains old styled preset
-			LegacyPluginPreset legacyPluginPreset = null;
-
-			try (Reader reader = new FileReader(file))
-			{
-				legacyPluginPreset = gson.fromJson(reader, new TypeToken<LegacyPluginPreset>()
-				{
-				}.getType());
-			}
-			catch (JsonSyntaxException e)
-			{
-				// Ignore
-			}
-
-			if (legacyPluginPreset != null)
-			{
-				log.info(String.format("Converting legacy styled preset to new plugin preset format, file: %s, preset: %s", file.getAbsolutePath(), legacyPluginPreset));
-				newPreset = LegacyPluginPreset.convert(legacyPluginPreset, plugin.getCurrentConfigurations());
-				return newPreset;
-			}
-			else
-			{
-				log.warn(String.format("Plugin Preset data is malformed in file and could not be loaded %s, %s", file.getAbsolutePath(), newPreset));
-			}
+			log.warn(String.format("Plugin Preset data is malformed in file and could not be loaded %s, %s", file.getAbsolutePath(), newPreset));
 			return null;
 		}
 
 		return newPreset;
+	}
+
+	private boolean isMalformedPluginPreset(PluginPreset newPreset)
+	{
+		return newPreset.getName() == null || newPreset.getPluginConfigs() == null;
 	}
 
 	public PluginPreset parsePluginPresetFrom(String string)
