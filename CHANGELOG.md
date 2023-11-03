@@ -1,5 +1,9 @@
 # Changelog
 
+#### 2.8
+
+Added ability to keybind multiple presets to one keybind to easily toggle/cycle between presets. **Removed legacy plugin preset support.**
+
 #### 2.7
 
 **Fixed config changed event causing client to hang when profile was changed.** Profiles now finally work with no side effect to the plugin and now both system can be used in conjunction.
