@@ -467,8 +467,9 @@ public class PluginPresetsPluginPanel extends PluginPanel
 
 		errorNotification.setVisible(false);
 
+		invalidate();
+		validate();
 		repaint();
-		revalidate();
 	}
 
 	private void renderPresetView()
