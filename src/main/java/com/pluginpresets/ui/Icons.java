@@ -44,9 +44,6 @@ public final class Icons
 	static final ImageIcon UNFOCUS_ICON;
 	static final ImageIcon NOT_INSTALLED_ICON;
 	static final ImageIcon NOT_INSTALLED_HOVER_ICON;
-	static final ImageIcon CHECKBOX_ICON;
-	static final ImageIcon CHECKBOX_CHECKED_ICON;
-	static final ImageIcon CHECKBOX_CHECKED_HOVER_ICON;
 	static final ImageIcon ARROW_DOWN_ICON;
 	static final ImageIcon ARROW_RIGHT_ICON;
 	static final ImageIcon ARROW_RIGHT_HOVER_ICON;
@@ -135,14 +132,6 @@ public final class Icons
 			"not_installed_icon.png");
 		NOT_INSTALLED_ICON = new ImageIcon(notInstalledImg);
 		NOT_INSTALLED_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(notInstalledImg, 0.80f));
-
-		final BufferedImage checkboxImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class, "checkbox_icon.png");
-		CHECKBOX_ICON = new ImageIcon(checkboxImg);
-
-		final BufferedImage checkboxCheckedImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
-			"checkbox_checked_icon.png");
-		CHECKBOX_CHECKED_ICON = new ImageIcon(checkboxCheckedImg);
-		CHECKBOX_CHECKED_HOVER_ICON = new ImageIcon(ImageUtil.luminanceOffset(checkboxCheckedImg, 20));
 
 		final BufferedImage arrowDownImg = ImageUtil.loadImageResource(PluginPresetsPlugin.class,
 			"arrow_right_icon.png");

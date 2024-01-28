@@ -420,29 +420,17 @@ public class ConfigPanel extends JPanel
 		title.setPreferredSize(new Dimension(0, 16));
 		title.setFont(FontManager.getRunescapeSmallFont());
 
-		JLabel checkBox = new JLabel();
+		JCheckBox checkBox = new JCheckBox();
 		if (presetHasConfigurations && presetConfig.getEnabled() != null)
 		{
-			checkBox.setIcon(Icons.CHECKBOX_CHECKED_ICON);
 			checkBox.setToolTipText("Remove plugin on/off configuration from the preset.");
+			checkBox.setSelected(true);
 			checkBox.addMouseListener(new MouseAdapter()
 			{
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
 				{
 					presetEditor.removeEnabledFromEdited(currentConfig);
-				}
-
-				@Override
-				public void mouseEntered(MouseEvent mouseEvent)
-				{
-					checkBox.setIcon(Icons.CHECKBOX_CHECKED_HOVER_ICON);
-				}
-
-				@Override
-				public void mouseExited(MouseEvent mouseEvent)
-				{
-					checkBox.setIcon(Icons.CHECKBOX_CHECKED_ICON);
 				}
 			});
 
@@ -459,7 +447,7 @@ public class ConfigPanel extends JPanel
 		else
 		{
 			title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
-			checkBox.setIcon(Icons.CHECKBOX_ICON);
+			checkBox.setSelected(false);
 			checkBox.setToolTipText("Add plugin on/off configuration to the preset.");
 			checkBox.addMouseListener(new MouseAdapter()
 			{

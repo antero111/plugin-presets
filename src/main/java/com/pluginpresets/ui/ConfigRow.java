@@ -35,6 +35,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -49,7 +50,8 @@ public class ConfigRow extends JPanel
 {
 	private final PluginSetting currentSetting;
 	private final PluginSetting presetSetting;
-	private final JLabel checkboxLabel = new JLabel();
+	private final JLabel customLabel = new JLabel();
+	private JCheckBox checkBox = new JCheckBox();
 	private final boolean presetHasConfigurations;
 	private final PluginPresetsPresetEditor presetEditor;
 
@@ -93,17 +95,18 @@ public class ConfigRow extends JPanel
 			String customConfigName = presetSetting.getCustomConfigName();
 			if (customConfigName != null)
 			{
-				checkboxLabel.setText("remove");
-				checkboxLabel.setPreferredSize(new Dimension(38, 16));
-				checkboxLabel.setFont(FontManager.getRunescapeSmallFont());
-				checkboxLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
-				checkboxLabel.setToolTipText("Remove custom setting '" + presetSetting.getName() + "' from preset.");
-				checkboxLabel.addMouseListener(new MouseAdapter()
+				checkBox = null; // Hide checkbox
+				customLabel.setText("remove");
+				customLabel.setPreferredSize(new Dimension(38, 16));
+				customLabel.setFont(FontManager.getRunescapeSmallFont());
+				customLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+				customLabel.setToolTipText("Remove custom setting '" + presetSetting.getName() + "' from preset.");
+				customLabel.addMouseListener(new MouseAdapter()
 				{
 					@Override
 					public void mousePressed(MouseEvent mouseEvent)
 					{
-						int confirm = JOptionPane.showConfirmDialog(checkboxLabel,
+						int confirm = JOptionPane.showConfirmDialog(customLabel,
 							"Are you sure to remove custom setting '" + presetSetting.getName() + "'?",
 							"Remove custom setting", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
 
@@ -116,39 +119,27 @@ public class ConfigRow extends JPanel
 					@Override
 					public void mouseEntered(MouseEvent mouseEvent)
 					{
-						checkboxLabel.setForeground(ColorScheme.PROGRESS_ERROR_COLOR);
+						customLabel.setForeground(ColorScheme.PROGRESS_ERROR_COLOR);
 
 					}
 
 					@Override
 					public void mouseExited(MouseEvent mouseEvent)
 					{
-						checkboxLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+						customLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 					}
 				});
 			}
 			else
 			{
-				checkboxLabel.setIcon(Icons.CHECKBOX_CHECKED_ICON);
-				checkboxLabel.setToolTipText("Remove '" + presetSetting.getName() + "' from preset.");
-				checkboxLabel.addMouseListener(new MouseAdapter()
+				checkBox.setSelected(true);
+				checkBox.setToolTipText("Remove '" + presetSetting.getName() + "' from preset.");
+				checkBox.addMouseListener(new MouseAdapter()
 				{
 					@Override
 					public void mousePressed(MouseEvent mouseEvent)
 					{
 						presetEditor.removeSettingFromEdited(currentConfig, presetSetting);
-					}
-
-					@Override
-					public void mouseEntered(MouseEvent mouseEvent)
-					{
-						checkboxLabel.setIcon(Icons.CHECKBOX_CHECKED_HOVER_ICON);
-					}
-
-					@Override
-					public void mouseExited(MouseEvent mouseEvent)
-					{
-						checkboxLabel.setIcon(Icons.CHECKBOX_CHECKED_ICON);
 					}
 				});
 			}
@@ -164,10 +155,11 @@ public class ConfigRow extends JPanel
 		}
 		else if (currentSetting == null)
 		{
-			checkboxLabel.setIcon(Icons.NOTIFICATION_ICON);
-			checkboxLabel.setToolTipText("Invalid plugin setting configuration (Click to remove)");
-			checkboxLabel.setBorder(new EmptyBorder(2, 0, 2, 0));
-			checkboxLabel.addMouseListener(new MouseAdapter()
+			checkBox = null; // Hide checkbox
+			customLabel.setIcon(Icons.NOTIFICATION_ICON);
+			customLabel.setToolTipText("Invalid plugin setting configuration (Click to remove)");
+			customLabel.setBorder(new EmptyBorder(2, 0, 2, 0));
+			customLabel.addMouseListener(new MouseAdapter()
 			{
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
@@ -178,22 +170,22 @@ public class ConfigRow extends JPanel
 				@Override
 				public void mouseEntered(MouseEvent mouseEvent)
 				{
-					checkboxLabel.setIcon(Icons.NOTIFICATION_HOVER_ICON);
+					customLabel.setIcon(Icons.NOTIFICATION_HOVER_ICON);
 				}
 
 				@Override
 				public void mouseExited(MouseEvent mouseEvent)
 				{
-					checkboxLabel.setIcon(Icons.NOTIFICATION_ICON);
+					customLabel.setIcon(Icons.NOTIFICATION_ICON);
 				}
 			});
 		}
 		else
 		{
 			title.setForeground(ColorScheme.MEDIUM_GRAY_COLOR);
-			checkboxLabel.setIcon(Icons.CHECKBOX_ICON);
-			checkboxLabel.setToolTipText("Add '" + currentSetting.getName() + "' to preset.");
-			checkboxLabel.addMouseListener(new MouseAdapter()
+			checkBox.setSelected(false);
+			checkBox.setToolTipText("Add '" + currentSetting.getName() + "' to preset.");
+			checkBox.addMouseListener(new MouseAdapter()
 			{
 				@Override
 				public void mousePressed(MouseEvent mouseEvent)
@@ -217,7 +209,7 @@ public class ConfigRow extends JPanel
 		rightActions.setLayout(new FlowLayout(FlowLayout.LEFT, 14, 0));
 		JLabel updateLabel = new JLabel();
 		rightActions.add(updateLabel);
-		rightActions.add(checkboxLabel);
+		rightActions.add(checkBox == null ? customLabel : checkBox);
 
 		JPanel leftActions = new JPanel();
 		leftActions.setLayout(new BorderLayout());
