@@ -1,5 +1,9 @@
 # Changelog
 
+##### 2.8.1
+
+Fix plugin panel reloading causing RuneLite client size setting not working correctly. Fix config dropdown checkboxes to new ui style.  
+
 #### 2.8
 
 Added ability to keybind multiple presets to one keybind to easily toggle/cycle between presets. **Removed legacy plugin preset support.**
