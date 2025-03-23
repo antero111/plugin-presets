@@ -35,21 +35,26 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.file.*;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import javax.swing.SwingUtilities;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
+import static java.nio.file.StandardOpenOption.*;
 
 @Slf4j
 public class PluginPresetsStorage
 {
 	private static final File PRESETS_DIR = PluginPresetsPlugin.PRESETS_DIR;
+	private static final File LOCK_FILE = new File(PRESETS_DIR, "lock");
 
 	private final List<String> failedFileNames = new ArrayList<>();
 	private final PluginPresetsPlugin plugin;
@@ -60,16 +65,56 @@ public class PluginPresetsStorage
 	private Thread thread;
 	private WatchService watcher;
 
-	/**
-	 * Informs that preset folder edits were made from this client, and they should be refreshed first.
-	 */
-	private boolean localClientChange = false;
-	private long lastRefreshTime;
-
 	@Inject
 	public PluginPresetsStorage(PluginPresetsPlugin plugin)
 	{
 		this.plugin = plugin;
+	}
+
+	private FileLock lock() {
+		try {
+			// wait until the lock file is free
+			while (LOCK_FILE.exists()) {
+				// writing the plugin preset files should only take a few ms
+				// if the lock file is more than 5sec old then we assume it's an artifact from a previous run
+				// this can happen in the event runelite crashes or is killed vai external process
+				if(Instant.now().toEpochMilli() - LOCK_FILE.lastModified() > 5000) {
+					LOCK_FILE.delete();
+				} else {
+					TimeUnit.MILLISECONDS.sleep(50);
+				}
+			}
+
+			FileChannel channel = FileChannel.open(LOCK_FILE.toPath(), CREATE_NEW, SYNC, WRITE);
+			return channel.lock();
+		} catch (IOException | InterruptedException e) {
+			log.warn("Failed to lock file");
+		}
+		return null;
+	}
+
+	private void unlock(FileLock lock) {
+		if(lock == null) {
+			log.warn("lock is null"); // probably caused by ending runelite via task manager
+			LOCK_FILE.delete();
+			return;
+		}
+
+		try {
+			lock.release();
+			LOCK_FILE.delete();
+		} catch (IOException e) {
+			log.warn("Failed to release lock file");
+		}
+	}
+
+	private boolean isLockFile(File file) {
+		try {
+			return LOCK_FILE.exists() && Files.isSameFile(file.toPath(), LOCK_FILE.toPath());
+		} catch (IOException e) {
+			log.warn(String.format("Failed compare file to lock file, %s", e.toString()));
+		}
+		return false;
 	}
 
 	private static File createNewPresetFileWithCustomSuffix(final PluginPreset pluginPreset, final int fileNumber)
@@ -109,9 +154,12 @@ public class PluginPresetsStorage
 
 	public void savePresets(final List<PluginPreset> pluginPresets)
 	{
-		localClientChange = true;
-		clearPresetFolder();
-		pluginPresets.forEach(this::storePluginPresetToJsonFile);
+		synchronized (LOCK_FILE) {
+			FileLock lock = lock();
+			clearPresetFolder();
+			pluginPresets.forEach(this::storePluginPresetToJsonFile);
+			unlock(lock);
+		}
 	}
 
 	private void clearPresetFolder()
@@ -120,7 +168,7 @@ public class PluginPresetsStorage
 		{
 			// Don't delete invalid files,
 			// those could be e.g. v1 style presets or some syntax failed presets
-			if (!failedFileNames.contains(file.getName()))
+			if (!failedFileNames.contains(file.getName()) && !isLockFile(file))
 			{
 				deleteFile(file);
 			}
@@ -192,34 +240,37 @@ public class PluginPresetsStorage
 
 	public List<PluginPreset> loadPresets() throws IOException
 	{
-		failedFileNames.clear();
-
 		ArrayList<Long> loadedIds = new ArrayList<>();
 		List<PluginPreset> pluginPresetsFromFolder = new ArrayList<>();
+		synchronized (LOCK_FILE) {
+			FileLock lock = lock();
 
-		for (File file : Objects.requireNonNull(PRESETS_DIR.listFiles()))
-		{
-			if (file.isFile())
+			failedFileNames.clear();
+			for (File file : Objects.requireNonNull(PRESETS_DIR.listFiles()))
 			{
-				PluginPreset pluginPreset = parsePluginPresetFrom(file);
-
-				if (pluginPreset != null)
+				if (file.isFile() && !isLockFile(file))
 				{
-					long id = pluginPreset.getId();
-					if (!(loadedIds.contains(id)))
+					PluginPreset pluginPreset = parsePluginPresetFrom(file);
+
+					if (pluginPreset != null)
 					{
-						pluginPreset.setLocal(true);
-						pluginPresetsFromFolder.add(pluginPreset);
-						loadedIds.add(id);
+						long id = pluginPreset.getId();
+						if (!(loadedIds.contains(id)))
+						{
+							pluginPreset.setLocal(true);
+							pluginPresetsFromFolder.add(pluginPreset);
+							loadedIds.add(id);
+						}
+					}
+					else
+					{
+						failedFileNames.add(file.getName());
 					}
 				}
-				else
-				{
-					failedFileNames.add(file.getName());
-				}
 			}
-		}
 
+			unlock(lock);
+		}
 		return pluginPresetsFromFolder;
 	}
 
@@ -338,29 +389,24 @@ public class PluginPresetsStorage
 				return;
 			}
 
-			if (!wk.pollEvents().isEmpty())
-			{
-				// Run refreshPresets only once
-				boolean validMillisDiff = (System.currentTimeMillis() - lastRefreshTime) > 100;
-				if (validMillisDiff)
-				{
-					// Offset other clients so that file edits don't collapse
-					if (!localClientChange)
-					{
-						try
-						{
-							Thread.sleep(300);
-						}
-						catch (InterruptedException e)
-						{
-							Thread.currentThread().interrupt();
-							return;
-						}
-					}
+			// test to see if any files other than the lock file were modified
+			boolean change = false;
+			for(WatchEvent<?> event : wk.pollEvents()) {
+				WatchEvent<Path> path = (WatchEvent<Path>) event;
+				change = !path.context().toString().equals(LOCK_FILE.getName());
+				if(change){
+					break;
+				}
+			}
 
-					lastRefreshTime = System.currentTimeMillis();
+			// if any plugin preset files were modified then run the update
+			// we lock here to ensure that all updates happen before we reload
+			if(change) {
+				synchronized (LOCK_FILE) {
+					FileLock lock = lock();
+					wk.pollEvents(); // clear all events
 					SwingUtilities.invokeLater(plugin::refreshPresets); // Refresh
-					localClientChange = false;
+					unlock(lock);
 				}
 			}
 			boolean valid = wk.reset();
