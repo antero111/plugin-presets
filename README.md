@@ -1,4 +1,4 @@
-# RuneLite Plugin Presets plugin [![total installs](https://img.shields.io/endpoint?url=https://i.pluginhub.info/shields/installs/plugin/plugin-presets)](https://runelite.net/plugin-hub)
+# RuneLite Plugin Presets plugin
 
 This plugin adds the ability to create presets from your RuneLite plugin configurations.
 
