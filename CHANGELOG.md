@@ -1,5 +1,12 @@
 # Changelog
 
+### 2.9.0
+
+Fixed preset being deleted when playing with multiple clients open. Thanks to [Steve](https://github.com/stevemurphy61132) for the fix!
+
+Removed refresh presets buttons from the plugin panel since presets are now automatically refreshed when the preset folder changes.
+
+
 ##### 2.8.1
 
 Fix plugin panel reloading causing RuneLite client size setting not working correctly. Fix config dropdown checkboxes to new ui style.  
